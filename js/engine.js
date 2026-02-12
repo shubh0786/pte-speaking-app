@@ -207,55 +207,170 @@ PTE.SpeechRecognizer = {
 // ── Text-to-Speech (for audio prompts) ─────────────────────────
 
 PTE.TTS = {
-  synth: window.speechSynthesis,
+  synth: window.speechSynthesis || null,
   speaking: false,
   voice: null,
+  _unlocked: false,
+  _resumeInterval: null,
 
   init() {
     return new Promise((resolve) => {
+      if (!this.synth) {
+        console.warn('[TTS] speechSynthesis not available');
+        resolve(false);
+        return;
+      }
+
       const loadVoices = () => {
         const voices = this.synth.getVoices();
         // Prefer a natural English voice
         this.voice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) ||
+                     voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural')) ||
+                     voices.find(v => v.lang.startsWith('en') && v.name.includes('Samantha')) ||
                      voices.find(v => v.lang.startsWith('en-') && !v.localService) ||
                      voices.find(v => v.lang.startsWith('en')) ||
-                     voices[0];
+                     voices[0] || null;
+        console.log('[TTS] Voice selected:', this.voice ? this.voice.name : 'none', '| Total voices:', voices.length);
         resolve(true);
       };
+
       if (this.synth.getVoices().length > 0) {
         loadVoices();
       } else {
         this.synth.onvoiceschanged = loadVoices;
-        // Fallback timeout
-        setTimeout(loadVoices, 1000);
+        // Longer fallback for mobile (voices load slowly on iOS/Android)
+        setTimeout(loadVoices, 2000);
       }
     });
   },
 
+  /**
+   * Unlock TTS on mobile. Must be called inside a user gesture (click/tap).
+   * Plays a silent utterance to satisfy iOS/Android audio restrictions.
+   */
+  unlock() {
+    if (this._unlocked || !this.synth) return;
+    try {
+      const u = new SpeechSynthesisUtterance('');
+      u.volume = 0;
+      u.rate = 1;
+      this.synth.speak(u);
+      this._unlocked = true;
+      console.log('[TTS] Unlocked for mobile');
+    } catch (e) {
+      console.warn('[TTS] Unlock failed:', e);
+    }
+  },
+
+  /**
+   * Re-init voices if none were found initially.
+   */
+  _ensureVoice() {
+    if (this.voice) return;
+    if (!this.synth) return;
+    const voices = this.synth.getVoices();
+    this.voice = voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
+  },
+
   speak(text, rate = 0.95) {
     return new Promise((resolve) => {
-      if (this.synth.speaking) this.synth.cancel();
+      if (!this.synth) {
+        console.warn('[TTS] speechSynthesis not available, skipping');
+        resolve();
+        return;
+      }
+
+      if (!text || text.trim().length === 0) {
+        resolve();
+        return;
+      }
+
+      // Re-check voices (mobile may load them late)
+      this._ensureVoice();
+
+      // Cancel any ongoing speech
+      if (this.synth.speaking) {
+        this.synth.cancel();
+      }
+
       const utterance = new SpeechSynthesisUtterance(text);
       if (this.voice) utterance.voice = this.voice;
       utterance.rate = rate;
       utterance.pitch = 1;
       utterance.volume = 1;
+      utterance.lang = 'en-US';
+
+      // Safety timeout: resolve even if TTS hangs (mobile issue)
+      // Estimate duration: ~6 words/sec at rate 0.95
+      const wordCount = text.trim().split(/\s+/).length;
+      const estimatedMs = Math.max(5000, (wordCount / 5) * 1000 * (1 / rate) + 3000);
+      let resolved = false;
+      const safetyTimer = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          this.speaking = false;
+          this._stopResumeHack();
+          console.warn('[TTS] Safety timeout after', estimatedMs, 'ms');
+          try { this.synth.cancel(); } catch(e) {}
+          resolve();
+        }
+      }, estimatedMs);
+
       utterance.onend = () => {
-        this.speaking = false;
-        resolve();
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(safetyTimer);
+          this.speaking = false;
+          this._stopResumeHack();
+          resolve();
+        }
       };
-      utterance.onerror = () => {
-        this.speaking = false;
-        resolve();
+      utterance.onerror = (e) => {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(safetyTimer);
+          this.speaking = false;
+          this._stopResumeHack();
+          console.warn('[TTS] Speech error:', e.error || e);
+          resolve();
+        }
       };
+
       this.speaking = true;
+
+      // Chrome bug workaround: Chrome pauses speechSynthesis after ~15 sec.
+      // Periodically call resume() to keep it going.
+      this._startResumeHack();
+
       this.synth.speak(utterance);
     });
   },
 
+  /**
+   * Chrome resume hack: Chrome pauses TTS after ~15 seconds.
+   * Calling resume() periodically prevents this.
+   */
+  _startResumeHack() {
+    this._stopResumeHack();
+    this._resumeInterval = setInterval(() => {
+      if (this.synth && this.synth.speaking) {
+        this.synth.pause();
+        this.synth.resume();
+      }
+    }, 10000);
+  },
+
+  _stopResumeHack() {
+    if (this._resumeInterval) {
+      clearInterval(this._resumeInterval);
+      this._resumeInterval = null;
+    }
+  },
+
   stop() {
-    if (this.synth.speaking) this.synth.cancel();
+    if (this.synth && this.synth.speaking) this.synth.cancel();
     this.speaking = false;
+    this._stopResumeHack();
   }
 };
 

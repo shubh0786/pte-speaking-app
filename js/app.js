@@ -316,6 +316,10 @@ PTE.App = {
     const type = this.currentTypeConfig;
     const q = this.currentQuestion;
 
+    // ── Mobile fix: Unlock TTS inside the user gesture (tap/click) ──
+    // Must happen BEFORE any async calls to preserve the gesture context
+    if (PTE.TTS) PTE.TTS.unlock();
+
     // Request mic access
     const micOk = await PTE.AudioRecorder.init();
     if (!micOk) {
@@ -323,6 +327,11 @@ PTE.App = {
       return;
     }
     this.micStream = PTE.AudioRecorder.stream;
+
+    // Re-init TTS voices if needed (mobile may have loaded them by now)
+    if (PTE.TTS && !PTE.TTS.voice) {
+      try { await PTE.TTS.init(); } catch(e) {}
+    }
 
     // Hide start button and skip
     document.getElementById('action-buttons').innerHTML = '';
@@ -357,6 +366,9 @@ PTE.App = {
       if (statusEl) statusEl.textContent = 'Playing audio...';
       if (subEl) subEl.textContent = 'Listen carefully';
 
+      // Track if TTS actually produced audio
+      let ttsWorked = false;
+
       if (q.speakers) {
         const speakersArea = document.getElementById('speakers-area');
         if (speakersArea) speakersArea.classList.remove('hidden');
@@ -366,17 +378,48 @@ PTE.App = {
           if (speakerEl) speakerEl.style.opacity = '1';
           if (statusEl) statusEl.textContent = `${speaker.name} is speaking...`;
           await PTE.TTS.speak(speaker.text, 0.9);
+          ttsWorked = true;
           await this.sleep(500);
         }
       } else {
         const textToSpeak = q.text || q.audioText || '';
         if (textToSpeak) {
           await PTE.TTS.speak(textToSpeak, 0.9);
+          ttsWorked = true;
+        }
+      }
+
+      // ── Mobile fallback: if TTS might not have played, show the text ──
+      if (!PTE.TTS.synth || !PTE.TTS.voice) {
+        ttsWorked = false;
+      }
+
+      if (!ttsWorked || !PTE.TTS._unlocked) {
+        // Show a fallback notice with play-again button
+        const fallbackText = q.text || q.audioText || (q.speakers ? q.speakers.map(s => s.text).join(' ') : '');
+        if (fallbackText && indicator) {
+          const audioSub = document.getElementById('audio-sub');
+          if (audioSub) {
+            audioSub.innerHTML = '<span class="text-amber-500 font-medium">Audio may not have played on your device.</span>';
+          }
+          // Add a retry button and show text
+          const retryHtml = `
+          <div class="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+            <p class="text-xs text-amber-400 font-semibold mb-2">If you didn't hear audio, tap to play again or read the text below:</p>
+            <button onclick="PTE.TTS.speak('${fallbackText.replace(/'/g, "\\'")}', 0.9)" class="mb-2 px-4 py-2 rounded-lg bg-amber-500/20 text-amber-400 text-sm font-semibold hover:bg-amber-500/30 transition-colors">
+              🔊 Tap to Play Audio Again
+            </button>
+            <details class="mt-1">
+              <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-400">Show text (fallback)</summary>
+              <p class="text-sm text-gray-400 mt-2 p-2 bg-white/5 rounded-lg">${fallbackText}</p>
+            </details>
+          </div>`;
+          indicator.insertAdjacentHTML('afterend', retryHtml);
         }
       }
 
       if (statusEl) statusEl.textContent = 'Audio complete';
-      if (subEl) subEl.textContent = 'Prepare your response';
+      if (subEl && ttsWorked) subEl.textContent = 'Prepare your response';
       await this.sleep(500);
       
       resolve();
