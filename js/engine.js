@@ -88,10 +88,34 @@ PTE.AudioRecorder = {
     return null;
   },
 
-  cleanup() {
+  /**
+   * Soft reset: clears recording state but KEEPS the mic stream alive.
+   * Use this between questions (Try Again / Next Question).
+   */
+  reset() {
     if (this.animationId) cancelAnimationFrame(this.animationId);
+    this.animationId = null;
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      try { this.mediaRecorder.stop(); } catch(e) {}
+    }
+    this.mediaRecorder = null;
+    this.audioChunks = [];
+    this.audioBlob = null;
+    if (this.audioUrl) {
+      try { URL.revokeObjectURL(this.audioUrl); } catch(e) {}
+    }
+    this.audioUrl = null;
+    this.isRecording = false;
+  },
+
+  /**
+   * Full cleanup: stops mic stream and closes AudioContext.
+   * Only use when navigating AWAY from practice entirely.
+   */
+  cleanup() {
+    this.reset();
     if (this.audioContext && this.audioContext.state !== 'closed') {
-      this.audioContext.close();
+      try { this.audioContext.close(); } catch(e) {}
     }
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop());
@@ -99,7 +123,13 @@ PTE.AudioRecorder = {
     this.stream = null;
     this.audioContext = null;
     this.analyser = null;
-    this.isRecording = false;
+  },
+
+  /**
+   * Check if the mic stream is still alive and usable.
+   */
+  isStreamActive() {
+    return this.stream && this.stream.getTracks().some(t => t.readyState === 'live');
   }
 };
 
@@ -177,12 +207,25 @@ PTE.SpeechRecognizer = {
     this.wordTimestamps = [];
     this.silenceCount = 0;
     this.isListening = true;
+
+    // On mobile, re-create the recognition instance for a clean start
+    // (some browsers can't restart a stopped recognition)
     try {
       this.recognition.start();
       return true;
     } catch (e) {
-      console.error('Failed to start recognition:', e);
-      return false;
+      console.warn('[Speech] Restart failed, re-initializing...', e.message);
+      // Re-create the instance and try again
+      try {
+        this.init();
+        this.isListening = true;
+        this.recognition.start();
+        return true;
+      } catch (e2) {
+        console.error('[Speech] Failed to start recognition:', e2);
+        this.isListening = false;
+        return false;
+      }
     }
   },
 

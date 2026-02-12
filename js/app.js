@@ -98,7 +98,13 @@ PTE.App = {
   },
 
   renderPage(page, param) {
-    this.cleanup();
+    // Full cleanup (kill mic) when navigating away from practice
+    const isPracticePage = (page === 'practice' || page === 'predictions');
+    if (!isPracticePage && this.micStream) {
+      this.fullCleanup();
+    } else {
+      this.cleanup();
+    }
     const root = document.getElementById('app-root');
     switch (page) {
       case 'login': root.innerHTML = PTE.Pages.login(); break;
@@ -320,11 +326,13 @@ PTE.App = {
     // Must happen BEFORE any async calls to preserve the gesture context
     if (PTE.TTS) PTE.TTS.unlock();
 
-    // Request mic access
-    const micOk = await PTE.AudioRecorder.init();
-    if (!micOk) {
-      alert('Microphone access is required for speaking practice. Please allow microphone access and try again.');
-      return;
+    // Request mic access (reuse existing stream if still alive)
+    if (!PTE.AudioRecorder.isStreamActive()) {
+      const micOk = await PTE.AudioRecorder.init();
+      if (!micOk) {
+        alert('Microphone access is required for speaking practice. Please allow microphone access and try again.');
+        return;
+      }
     }
     this.micStream = PTE.AudioRecorder.stream;
 
@@ -1056,12 +1064,16 @@ PTE.App = {
     return new Promise(resolve => setTimeout(resolve, ms));
   },
 
+  /**
+   * Soft cleanup: resets state for Try Again / Next Question.
+   * Keeps the mic stream alive so recording works immediately.
+   */
   cleanup() {
     PTE.Timer.stop();
     PTE.TTS.stop();
     this.stopWaveformAnimation();
     if (PTE.AudioRecorder.isRecording) {
-      PTE.AudioRecorder.stop();
+      try { PTE.AudioRecorder.stop(); } catch(e) {}
     }
     if (PTE.SpeechRecognizer.isListening) {
       PTE.SpeechRecognizer.stop();
@@ -1069,7 +1081,8 @@ PTE.App = {
     if (PTE.ToneAnalyzer) {
       PTE.ToneAnalyzer.cleanup();
     }
-    PTE.AudioRecorder.cleanup();
+    // Soft reset: keep mic stream alive for retry
+    PTE.AudioRecorder.reset();
     // Stop any active mock test
     if (PTE.Exam && PTE.Exam.active) {
       PTE.Exam.active = false;
@@ -1080,10 +1093,18 @@ PTE.App = {
       }
     }
     this.toneResults = null;
-    this.micStream = null;
     this._prepResolve = null;
     this._recordResolve = null;
     this.phase = 'idle';
+  },
+
+  /**
+   * Full cleanup: destroys mic stream. Used when navigating away from practice.
+   */
+  fullCleanup() {
+    this.cleanup();
+    PTE.AudioRecorder.cleanup();
+    this.micStream = null;
   }
 };
 
