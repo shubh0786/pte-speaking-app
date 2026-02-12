@@ -13,38 +13,58 @@ PTE.Auth = {
 
   getUsers() {
     try {
-      const raw = localStorage.getItem(this.USERS_KEY);
+      let raw = localStorage.getItem(this.USERS_KEY);
+      if (!raw) raw = sessionStorage.getItem(this.USERS_KEY); // fallback
       return raw ? JSON.parse(raw) : [];
-    } catch (e) { return []; }
+    } catch (e) {
+      console.warn('[Auth] Failed to read users:', e);
+      return [];
+    }
   },
 
   saveUsers(users) {
-    try { localStorage.setItem(this.USERS_KEY, JSON.stringify(users)); } catch (e) {}
+    const data = JSON.stringify(users);
+    try { localStorage.setItem(this.USERS_KEY, data); } catch (e) { console.warn('[Auth] localStorage save users failed:', e); }
+    try { sessionStorage.setItem(this.USERS_KEY, data); } catch (e) {} // backup
   },
 
   getSession() {
     try {
-      const raw = localStorage.getItem(this.SESSION_KEY);
+      // Try localStorage first, fall back to sessionStorage
+      let raw = localStorage.getItem(this.SESSION_KEY);
+      if (!raw) raw = sessionStorage.getItem(this.SESSION_KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch (e) { return null; }
+    } catch (e) {
+      console.warn('[Auth] Failed to read session:', e);
+      return null;
+    }
   },
 
   saveSession(session) {
-    try { localStorage.setItem(this.SESSION_KEY, JSON.stringify(session)); } catch (e) {}
+    const data = JSON.stringify(session);
+    try { localStorage.setItem(this.SESSION_KEY, data); } catch (e) { console.warn('[Auth] localStorage save failed:', e); }
+    try { sessionStorage.setItem(this.SESSION_KEY, data); } catch (e) {} // backup
   },
 
   clearSession() {
     try { localStorage.removeItem(this.SESSION_KEY); } catch (e) {}
+    try { sessionStorage.removeItem(this.SESSION_KEY); } catch (e) {}
   },
 
   // ── Auth State ──────────────────────────────────────────────
 
   isLoggedIn() {
     const session = this.getSession();
-    if (!session || !session.userId) return false;
-    // Verify user still exists
+    if (!session || !session.userId) {
+      console.log('[Auth] No session found');
+      return false;
+    }
     const users = this.getUsers();
-    return users.some(u => u.id === session.userId);
+    const found = users.some(u => u.id === session.userId);
+    if (!found) {
+      console.log('[Auth] Session userId not found in users list, users count:', users.length);
+    }
+    return found;
   },
 
   getCurrentUser() {

@@ -23,28 +23,26 @@ PTE.App = {
   // ── Initialization ───────────────────────────────────────────
 
   async init() {
-    // Merge ALL question banks into PTE.Questions
+    // ── 1. Merge question banks (synchronous, fast) ──
     if (PTE.mergePredictions) PTE.mergePredictions();
     if (PTE.mergeBankSpeaking) PTE.mergeBankSpeaking();
     if (PTE.mergeBankVocab) PTE.mergeBankVocab();
 
-    // Log total questions
     let total = 0;
     Object.keys(PTE.Questions).forEach(function(k) { total += PTE.Questions[k].length; });
     console.log('[PTE] Total questions loaded: ' + total);
 
-    // Initialize TTS
-    await PTE.TTS.init();
-
-    // Initialize Speech Recognition
-    PTE.SpeechRecognizer.init();
-
-    // ── Auth: Activate per-user storage if logged in ──
+    // ── 2. Auth: Check session and activate per-user storage FIRST ──
+    // This runs before anything async so auth always works on refresh
     if (PTE.Auth && PTE.Auth.isLoggedIn()) {
       PTE.Auth.activateUserStorage();
+      const user = PTE.Auth.getCurrentUser();
+      console.log('[PTE] Session restored for:', user ? user.username : 'unknown');
+    } else {
+      console.log('[PTE] No active session');
     }
 
-    // ── Auth routes (accessible without login, redirect if already logged in) ──
+    // ── 3. Setup ALL routes (synchronous) ──
     PTE.Router.on('/login', () => {
       if (PTE.Auth && PTE.Auth.isLoggedIn()) { location.hash = '#/'; return; }
       this.renderPage('login');
@@ -54,7 +52,6 @@ PTE.App = {
       this.renderPage('signup');
     });
 
-    // ── Protected routes (require login) ──
     PTE.Router.on('/', () => this.requireAuth(() => this.renderPage('home')));
     PTE.Router.on('/profile', () => this.requireAuth(() => this.renderPage('profile')));
     PTE.Router.on('/practice', () => this.requireAuth(() => this.renderPage('practice')));
@@ -73,8 +70,21 @@ PTE.App = {
     PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
     PTE.Router.on('/practice/:type', (type) => this.requireAuth(() => this.startPractice(type, false)));
 
-    // Start router
+    // ── 4. Start router IMMEDIATELY (renders the page) ──
     PTE.Router.init();
+
+    // ── 5. Initialize TTS and Speech in background (non-blocking) ──
+    // These are only needed for practice, not for auth/navigation
+    try {
+      await PTE.TTS.init();
+    } catch (e) {
+      console.warn('[PTE] TTS init failed (will retry when needed):', e);
+    }
+    try {
+      PTE.SpeechRecognizer.init();
+    } catch (e) {
+      console.warn('[PTE] Speech recognizer init failed:', e);
+    }
   },
 
   // ── Auth Guard ──────────────────────────────────────────────
