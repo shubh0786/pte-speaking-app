@@ -12,43 +12,39 @@ PTE.UI = {
   navbar(activePage) {
     const navId = 'mobile-nav-' + Date.now();
     const links = [
-      { href: '#/', label: 'Home', page: 'home', cls: 'bg-indigo-50 text-indigo-700' },
-      { href: '#/practice', label: 'Practice', page: 'practice', cls: 'bg-indigo-50 text-indigo-700' },
-      { href: '#/predictions', label: 'Predictions', page: 'predictions', cls: 'bg-orange-50 text-orange-700' },
-      { href: '#/mock-test', label: 'Mock Test', page: 'mock-test', cls: 'bg-red-50 text-red-700' },
-      { href: '#/progress', label: 'Progress', page: 'progress', cls: 'bg-indigo-50 text-indigo-700' },
+      { href:'#/', label:'Home', page:'home' },
+      { href:'#/practice', label:'Practice', page:'practice' },
+      { href:'#/predictions', label:'Predictions', page:'predictions' },
+      { href:'#/mock-test', label:'Mock Test', page:'mock-test' },
+      { href:'#/progress', label:'Progress', page:'progress' },
     ];
-    const desktopLinks = links.map(l =>
-      `<a href="${l.href}" class="px-2.5 py-2 rounded-lg text-sm font-medium transition-all ${activePage === l.page ? l.cls : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}">${l.label}</a>`
-    ).join('');
-    const mobileLinks = links.map(l =>
-      `<a href="${l.href}" onclick="document.getElementById('${navId}').classList.add('hidden')" class="block px-4 py-3 rounded-xl text-base font-medium transition-all ${activePage === l.page ? l.cls : 'text-gray-700 hover:bg-gray-50'}">${l.label}</a>`
-    ).join('');
+    const dLink = l => `<a href="${l.href}" class="px-2.5 py-2 rounded-lg text-sm font-medium transition-all ${activePage===l.page?'bg-indigo-500/20 text-indigo-400 neon-border':'text-gray-400 hover:bg-white/5 hover:text-gray-200'}">${l.label}</a>`;
+    const mLink = l => `<a href="${l.href}" onclick="document.getElementById('${navId}').classList.add('hidden')" class="block px-4 py-3 rounded-xl text-base font-medium transition-all ${activePage===l.page?'bg-indigo-500/20 text-indigo-400':'text-gray-300 hover:bg-white/5'}">${l.label}</a>`;
+    const xpBar = PTE.Gamify ? PTE.Gamify.renderXPBar() : '';
 
     return `
-    <nav class="bg-white/80 backdrop-blur-lg border-b border-gray-100 sticky top-0 z-50">
+    <nav class="glass border-b border-[var(--border)] sticky top-0 z-50">
       <div class="max-w-6xl mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-14 sm:h-16">
           <a href="#/" class="flex items-center gap-2 sm:gap-3 group">
-            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-shadow">
-              <span class="text-white font-extrabold text-xs sm:text-sm tracking-tight">C</span>
-            </div>
+            <img src="img/logo.png" alt="Crack PTE" class="h-8 sm:h-9 rounded-lg">
             <div class="flex items-baseline gap-1">
-              <span class="font-extrabold text-gray-900 text-base sm:text-lg">Crack</span>
-              <span class="font-extrabold text-indigo-600 text-base sm:text-lg">PTE</span>
+              <span class="font-extrabold text-white text-base sm:text-lg">Crack</span>
+              <span class="font-extrabold text-cyan-400 text-base sm:text-lg">PTE</span>
             </div>
           </a>
-          <!-- Desktop nav -->
-          <div class="hidden md:flex items-center gap-1">${desktopLinks}</div>
-          <!-- Mobile hamburger -->
-          <button onclick="document.getElementById('${navId}').classList.toggle('hidden')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          </button>
+          <div class="hidden md:flex items-center gap-1">${links.map(dLink).join('')}</div>
+          <div class="flex items-center gap-2">
+            <div class="hidden sm:block">${xpBar}</div>
+            <button onclick="document.getElementById('${navId}').classList.toggle('hidden')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors">
+              <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+          </div>
         </div>
       </div>
-      <!-- Mobile menu -->
-      <div id="${navId}" class="hidden md:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-1 shadow-lg">
-        ${mobileLinks}
+      <div id="${navId}" class="hidden md:hidden bg-[var(--bg-secondary)] border-t border-[var(--border)] px-4 py-3 space-y-1 shadow-2xl">
+        <div class="sm:hidden mb-3 pb-3 border-b border-[var(--border)]">${xpBar}</div>
+        ${links.map(mLink).join('')}
       </div>
     </nav>`;
   },
@@ -158,62 +154,48 @@ PTE.UI = {
     const typeConfig = Object.values(PTE.QUESTION_TYPES).find(t => t.id === type);
 
     let scoreBreakdown = '';
-    if (scores.content !== undefined) {
-      scoreBreakdown += this.scoreBar('Content', scores.content);
-    }
-    if (scores.pronunciation !== undefined) {
-      scoreBreakdown += this.scoreBar('Pronunciation', scores.pronunciation);
-    }
-    if (scores.fluency !== undefined) {
-      scoreBreakdown += this.scoreBar('Fluency', scores.fluency);
-    }
-    if (scores.vocabulary !== undefined) {
-      scoreBreakdown += this.scoreBar('Vocabulary', scores.vocabulary);
-    }
+    if (scores.content !== undefined) scoreBreakdown += this.scoreBar('Content', scores.content);
+    if (scores.pronunciation !== undefined) scoreBreakdown += this.scoreBar('Pronunciation', scores.pronunciation);
+    if (scores.fluency !== undefined) scoreBreakdown += this.scoreBar('Fluency', scores.fluency);
+    if (scores.vocabulary !== undefined) scoreBreakdown += this.scoreBar('Vocabulary', scores.vocabulary);
 
     let feedbackHtml = '';
     if (feedback && feedback.length > 0) {
       feedbackHtml = `
       <div class="mt-6 space-y-3">
-        <h4 class="font-semibold text-gray-700 flex items-center gap-2">
-          <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        <h4 class="font-semibold text-gray-200 flex items-center gap-2">
+          <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
           Feedback
         </h4>
-        ${feedback.map(f => `
-          <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-            <span class="text-indigo-400 mt-0.5">•</span>
-            <p class="text-sm text-gray-600">${f}</p>
-          </div>
-        `).join('')}
+        ${feedback.map(f => `<div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/5"><span class="text-cyan-400 mt-0.5">•</span><p class="text-sm text-gray-400">${f}</p></div>`).join('')}
       </div>`;
     }
 
     return `
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden max-w-lg mx-auto animate-fadeIn">
-      <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-center">
-        <h3 class="text-white/80 text-sm font-medium mb-3">${typeConfig ? typeConfig.name : 'Speaking'} Score</h3>
-        <div class="relative inline-flex items-center justify-center mb-3">
-          <svg class="w-32 h-32 -rotate-90" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="8"/>
-            <circle cx="60" cy="60" r="52" fill="none" stroke="white" stroke-width="8" 
-              stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="${326.73 * (1 - overallScore / 90)}"
-              class="score-circle-animate"/>
-          </svg>
-          <div class="absolute flex flex-col items-center">
-            <span class="text-4xl font-bold text-white">${overallScore}</span>
-            <span class="text-xs text-white/70">/90</span>
+    <div class="glass neon-border rounded-2xl overflow-hidden max-w-lg mx-auto animate-fadeIn">
+      <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 p-6 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width%3D%2240%22 height%3D%2240%22 viewBox%3D%220 0 40 40%22 xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath d%3D%22M0 0h40v40H0z%22 fill%3D%22none%22/%3E%3Ccircle cx%3D%2220%22 cy%3D%2220%22 r%3D%221%22 fill%3D%22rgba(255%2C255%2C255%2C0.1)%22/%3E%3C/svg%3E')]"></div>
+        <div class="relative">
+          <h3 class="text-white/70 text-sm font-medium mb-3">${typeConfig ? typeConfig.name : 'Speaking'} Score</h3>
+          <div class="relative inline-flex items-center justify-center mb-3">
+            <svg class="w-32 h-32 -rotate-90" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="${326.73*(1-overallScore/90)}" class="score-circle-animate"/>
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span class="text-4xl font-extrabold text-white neon-text">${overallScore}</span>
+              <span class="text-xs text-white/50">/90</span>
+            </div>
           </div>
-        </div>
-        <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-1.5 rounded-full">
-          <span>${band.emoji}</span>
-          <span class="text-white font-semibold text-sm">${band.label}</span>
+          <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-1.5 rounded-full">
+            <span>${band.emoji}</span>
+            <span class="text-white font-semibold text-sm">${band.label}</span>
+          </div>
         </div>
       </div>
       <div class="p-6">
-        <h4 class="font-semibold text-gray-700 mb-4">Score Breakdown</h4>
-        <div class="space-y-4">
-          ${scoreBreakdown}
-        </div>
+        <h4 class="font-semibold text-gray-200 mb-4">Score Breakdown</h4>
+        <div class="space-y-4">${scoreBreakdown}</div>
         ${feedbackHtml}
       </div>
     </div>`;
@@ -230,11 +212,11 @@ PTE.UI = {
     return `
     <div>
       <div class="flex justify-between items-center mb-1.5">
-        <span class="text-sm font-medium text-gray-600">${label}</span>
+        <span class="text-sm font-medium text-gray-400">${label}</span>
         <span class="text-sm font-bold" style="color:${color}">${score}/90</span>
       </div>
-      <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-        <div class="h-full rounded-full transition-all duration-1000 score-bar-animate" style="width:${pct}%;background:${color}"></div>
+      <div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all duration-1000 score-bar-animate" style="width:${pct}%;background:${color};box-shadow:0 0 8px ${color}66"></div>
       </div>
     </div>`;
   },
@@ -250,29 +232,28 @@ PTE.UI = {
 
     return `
     <a href="#/practice/${type.id}" class="block group">
-      <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all duration-300 hover:-translate-y-1">
+      <div class="glass glass-hover rounded-2xl p-6 transition-all duration-300">
         <div class="flex items-start justify-between mb-4">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:${type.colorLight}">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:${type.color}22">
             ${type.icon}
           </div>
           <div class="flex flex-col items-end gap-1">
-            <span class="text-xs font-bold px-2.5 py-1 rounded-full" style="background:${type.colorLight};color:${type.color}">${type.shortName}</span>
-            <span class="text-xs text-gray-400 font-medium">${questionCount} Qs</span>
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full" style="background:${type.color}22;color:${type.color}">${type.shortName}</span>
+            <span class="text-xs text-gray-500 font-medium">${questionCount} Qs</span>
           </div>
         </div>
-        <h3 class="font-bold text-gray-900 mb-1 group-hover:text-indigo-600 transition-colors">${type.name}</h3>
+        <h3 class="font-bold text-gray-100 mb-1 group-hover:text-cyan-400 transition-colors">${type.name}</h3>
         <p class="text-sm text-gray-500 mb-3 line-clamp-2">${type.description}</p>
-        <div class="flex items-center gap-2 text-xs text-gray-400">
+        <div class="flex items-center gap-2 text-xs text-gray-500">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span>Prep: ${type.prepTime}s • Record: ${type.recordTime}s</span>
         </div>
         ${predictionCount > 0 ? `
         <div class="mt-2 flex items-center gap-1.5">
-          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">${predictionCount} Predictions</span>
-          <span class="text-xs text-gray-400">from APEUni, Gurully+</span>
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20">${predictionCount} Predictions</span>
         </div>` : ''}
-        <div class="mt-3 pt-3 border-t border-gray-50">
-          <p class="text-xs text-gray-400">${attemptsText}</p>
+        <div class="mt-3 pt-3 border-t border-white/5">
+          <p class="text-xs text-gray-500">${attemptsText}</p>
         </div>
       </div>
     </a>`;

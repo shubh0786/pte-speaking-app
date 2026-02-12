@@ -545,8 +545,8 @@ PTE.App = {
     // Audio playback
     if (PTE.AudioRecorder.audioUrl) {
       html += `
-      <div class="mt-4 bg-white rounded-xl border border-gray-100 p-4 max-w-lg mx-auto">
-        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Your Recording:</label>
+      <div class="mt-4 glass rounded-xl p-4 max-w-lg mx-auto">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Your Recording:</label>
         <audio controls src="${PTE.AudioRecorder.audioUrl}" class="w-full"></audio>
       </div>`;
     }
@@ -554,23 +554,29 @@ PTE.App = {
     // Recognized speech
     if (transcript) {
       html += `
-      <div class="mt-4 bg-white rounded-xl border border-gray-100 p-4 max-w-lg mx-auto">
-        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Recognized Speech:</label>
-        <p class="text-sm text-gray-600">${transcript}</p>
+      <div class="mt-4 glass rounded-xl p-4 max-w-lg mx-auto">
+        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Recognized Speech:</label>
+        <p class="text-sm text-gray-400">${transcript}</p>
       </div>`;
     }
 
     // For ASQ, show correct answer
     if (type.scoring.includes('vocabulary')) {
       html += `
-      <div class="mt-4 bg-emerald-50 rounded-xl border border-emerald-100 p-4 max-w-lg mx-auto">
-        <label class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1 block">Correct Answer:</label>
-        <p class="text-emerald-800 font-semibold">${q.answer}</p>
-        <button onclick="PTE.pronounceWord('${(q.answer || '').replace(/'/g, "\\'")}')" class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-800 transition-colors">
+      <div class="mt-4 glass rounded-xl p-4 max-w-lg mx-auto" style="border-color:rgba(16,185,129,0.2)">
+        <label class="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-1 block">Correct Answer:</label>
+        <p class="text-emerald-300 font-semibold">${q.answer}</p>
+        <button onclick="PTE.pronounceWord('${(q.answer || '').replace(/'/g, "\\'")}')" class="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
           Hear pronunciation
         </button>
       </div>`;
+    }
+
+    // ── Gamification XP Award ──
+    if (PTE.Gamify) {
+      const xpResult = PTE.Gamify.awardXP(overallScore, type.id, false, this.isPredictionsMode);
+      PTE.Gamify.showToast(xpResult);
     }
 
     scoreArea.innerHTML = html;

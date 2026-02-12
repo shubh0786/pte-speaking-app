@@ -10,68 +10,95 @@ PTE.Pages = {
   home() {
     const stats = PTE.Store.getStats();
     const overall = stats.overall || null;
+    const gp = PTE.Gamify ? PTE.Gamify.getProgress() : null;
 
     let statsSection = '';
     if (overall) {
       statsSection = `
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-12">
-        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-          <p class="text-3xl font-bold text-indigo-600">${overall.totalAttempts}</p>
-          <p class="text-xs text-gray-400 mt-1">Total Attempts</p>
-        </div>
-        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-          <p class="text-3xl font-bold text-emerald-600">${overall.averageScore}</p>
-          <p class="text-xs text-gray-400 mt-1">Average Score</p>
-        </div>
-        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-          <p class="text-3xl font-bold text-purple-600">${overall.bestScore}</p>
-          <p class="text-xs text-gray-400 mt-1">Best Score</p>
-        </div>
-        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-          <p class="text-3xl font-bold text-amber-600">${overall.streak}</p>
-          <p class="text-xs text-gray-400 mt-1">Day Streak</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
+        <div class="glass rounded-2xl p-5 text-center"><p class="text-3xl font-bold text-indigo-400">${overall.totalAttempts}</p><p class="text-xs text-gray-500 mt-1">Total Attempts</p></div>
+        <div class="glass rounded-2xl p-5 text-center"><p class="text-3xl font-bold text-emerald-400">${overall.averageScore}</p><p class="text-xs text-gray-500 mt-1">Average Score</p></div>
+        <div class="glass rounded-2xl p-5 text-center"><p class="text-3xl font-bold text-purple-400">${overall.bestScore}</p><p class="text-xs text-gray-500 mt-1">Best Score</p></div>
+        <div class="glass rounded-2xl p-5 text-center"><p class="text-3xl font-bold text-amber-400">${overall.streak}</p><p class="text-xs text-gray-500 mt-1">Day Streak</p></div>
+      </div>`;
+    }
+
+    // Gamification profile card
+    let profileCard = '';
+    if (gp) {
+      const badgeIcons = gp.badges.slice(0,6).map(b => `<span title="${b.name}" class="text-lg cursor-default">${b.icon}</span>`).join('');
+      profileCard = `
+      <div class="max-w-4xl mx-auto mb-8 glass neon-border rounded-2xl p-6">
+        <div class="flex flex-col sm:flex-row items-center gap-6">
+          <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl shadow-lg animate-float">${gp.level.icon}</div>
+          <div class="flex-1 text-center sm:text-left">
+            <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
+              <h3 class="text-xl font-bold text-white">${gp.level.title}</h3>
+              <span class="badge badge-level">Level ${gp.level.level}</span>
+            </div>
+            <div class="flex items-center gap-3 mb-2">
+              <div class="xp-bar-bg flex-1 max-w-xs"><div class="xp-bar-fill" style="width:${gp.progress}%"></div></div>
+              <span class="text-xs text-indigo-400 font-bold">${gp.xp} / ${gp.nextLevel.xpNeeded} XP</span>
+            </div>
+            <div class="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+              ${gp.streak > 0 ? `<span class="badge badge-streak">🔥 ${gp.streak}-day streak</span>` : ''}
+              <span class="badge badge-xp">⚡ ${gp.xp} XP</span>
+              ${badgeIcons ? `<div class="flex gap-1 ml-1">${badgeIcons}</div>` : ''}
+            </div>
+          </div>
         </div>
       </div>`;
     }
 
+    const featureCard = (icon, color, title, desc) => `
+      <div class="glass rounded-2xl p-6 text-center hover:border-[${color}]/30 transition-all">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl" style="background:${color}22">${icon}</div>
+        <h3 class="font-bold text-gray-100 mb-2">${title}</h3>
+        <p class="text-sm text-gray-500">${desc}</p>
+      </div>`;
+
     return `
     ${PTE.UI.navbar('home')}
     <main class="min-h-screen">
-      <!-- Hero Section -->
-      <section class="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 text-white">
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.07%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-30"></div>
-        <div class="relative max-w-4xl mx-auto px-4 py-20 md:py-28 text-center">
-          <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full text-sm mb-6">
-            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-            2025/2026 Predictions from APEUni, Gurully, StormEduGo + AI Feedback
+      <!-- Hero -->
+      <section class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/50 via-purple-900/30 to-transparent"></div>
+        <div class="absolute inset-0" style="background:radial-gradient(circle at 30% 20%, rgba(99,102,241,0.15) 0%, transparent 50%),radial-gradient(circle at 70% 80%, rgba(168,85,247,0.1) 0%, transparent 50%)"></div>
+        <div class="relative max-w-4xl mx-auto px-4 py-16 md:py-24 text-center">
+          <img src="img/logo.png" alt="Crack PTE" class="h-20 sm:h-24 mx-auto mb-6 animate-float rounded-2xl">
+          <div class="inline-flex items-center gap-2 bg-indigo-500/15 border border-indigo-500/20 px-4 py-2 rounded-full text-sm mb-6 text-indigo-300">
+            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+            500+ Prediction Questions • AI Scoring • Gamified
           </div>
           <h1 class="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
-            Crack PTE <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">Speaking</span>
+            Crack PTE <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">Speaking</span>
           </h1>
-          <p class="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-            Practice all 7 speaking question types with prediction questions, AI scoring, tone/pitch analysis, and detailed improvement strategies.
+          <p class="text-lg md:text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
+            Earn XP, level up, unlock badges. Practice with real exam predictions and AI-powered feedback.
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#/mock-test" class="inline-flex items-center justify-center gap-2 bg-white text-indigo-700 font-bold px-8 py-4 rounded-xl hover:bg-indigo-50 transition-all shadow-xl shadow-indigo-900/20 hover:shadow-2xl hover:-translate-y-0.5">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Take Mock Test
+            <a href="#/mock-test" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition-all shadow-xl shadow-indigo-500/20 hover:-translate-y-0.5 animate-glow">
+              ⚡ Take Mock Test
             </a>
-            <a href="#/practice" class="inline-flex items-center justify-center gap-2 bg-white/15 backdrop-blur-sm text-white font-bold px-8 py-4 rounded-xl hover:bg-white/25 transition-all border border-white/20">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Practice by Type
+            <a href="#/practice" class="inline-flex items-center justify-center gap-2 glass text-white font-bold px-8 py-4 rounded-xl hover:bg-white/10 transition-all border border-white/10">
+              🎯 Practice by Type
+            </a>
+            <a href="#/predictions" class="inline-flex items-center justify-center gap-2 bg-amber-500/15 border border-amber-500/20 text-amber-400 font-bold px-8 py-4 rounded-xl hover:bg-amber-500/25 transition-all">
+              🔮 Predictions
             </a>
           </div>
         </div>
       </section>
 
-      ${statsSection ? `<section class="py-12 px-4 bg-gray-50">${statsSection}</section>` : ''}
+      ${profileCard ? `<section class="px-4 -mt-4">${profileCard}</section>` : ''}
+      ${statsSection ? `<section class="py-8 px-4">${statsSection}</section>` : ''}
 
-      <!-- Question Types Preview -->
-      <section class="py-16 px-4">
+      <!-- Question Types -->
+      <section class="py-12 px-4">
         <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-3">All Speaking Question Types</h2>
-            <p class="text-gray-500 max-w-xl mx-auto">Practice every PTE Academic speaking task, including the new 2025 question types: Summarize Group Discussion and Respond to a Situation.</p>
+          <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold text-white mb-3">All Speaking Question Types</h2>
+            <p class="text-gray-500 max-w-xl mx-auto">All 7 PTE Academic speaking tasks including 2025 new types.</p>
           </div>
           <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             ${Object.values(PTE.QUESTION_TYPES).map(t => PTE.UI.typeCard(t)).join('')}
@@ -79,68 +106,28 @@ PTE.Pages = {
         </div>
       </section>
 
-      <!-- Features Section -->
-      <section class="py-16 px-4 bg-gray-50">
+      <!-- Features -->
+      <section class="py-12 px-4">
         <div class="max-w-6xl mx-auto">
-          <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-3">Why Practice Here?</h2>
+          <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold text-white mb-3">Powered By</h2>
           </div>
-          <div class="grid md:grid-cols-3 gap-8 mb-12">
-            <div class="text-center">
-              <div class="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              </div>
-              <h3 class="font-bold text-gray-900 mb-2">Prediction Questions</h3>
-              <p class="text-sm text-gray-500">High-frequency questions sourced from APEUni, Gurully, StormEduGo, and PTE Hub. Updated for the 2025/2026 exam cycle.</p>
-            </div>
-            <div class="text-center">
-              <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-              </div>
-              <h3 class="font-bold text-gray-900 mb-2">AI-Powered Feedback</h3>
-              <p class="text-sm text-gray-500">Get detailed feedback with word-by-word analysis, keyword coverage, specific improvement strategies, and personalized practice exercises.</p>
-            </div>
-            <div class="text-center">
-              <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
-              </div>
-              <h3 class="font-bold text-gray-900 mb-2">Tone & Pitch Analysis</h3>
-              <p class="text-sm text-gray-500">Real-time voice analysis tracks your pitch, volume, and intonation patterns. See exactly how to make your speech more natural and engaging.</p>
-            </div>
-          </div>
-          <div class="grid md:grid-cols-3 gap-8">
-            <div class="text-center">
-              <div class="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-              </div>
-              <h3 class="font-bold text-gray-900 mb-2">Progress Tracking</h3>
-              <p class="text-sm text-gray-500">Track scores over time, see trends by question type, identify weak areas, and watch your improvement.</p>
-            </div>
-            <div class="text-center">
-              <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </div>
-              <h3 class="font-bold text-gray-900 mb-2">Skip Prep & Flexible Timing</h3>
-              <p class="text-sm text-gray-500">Skip preparation time when you're ready, or use the full exam-realistic timing. Practice at your own pace.</p>
-            </div>
-            <div class="text-center">
-              <div class="w-14 h-14 bg-cyan-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-              </div>
-              <h3 class="font-bold text-gray-900 mb-2">PTE-Specific Strategies</h3>
-              <p class="text-sm text-gray-500">Get proven exam strategies for each question type: APEUni Method 258 for Repeat Sentence, templates for Describe Image, and more.</p>
-            </div>
+          <div class="grid md:grid-cols-3 gap-5">
+            ${featureCard('🔮','#f59e0b','Prediction Questions','500+ high-frequency questions from APEUni, Gurully, StormEduGo.')}
+            ${featureCard('🤖','#6366f1','AI Feedback','Word-by-word analysis, keyword coverage, pronunciation tips.')}
+            ${featureCard('🎵','#a855f7','Tone Analysis','Real-time pitch, volume, and intonation tracking.')}
+            ${featureCard('🏆','#10b981','Gamification','Earn XP, level up, unlock badges, maintain streaks.')}
+            ${featureCard('📝','#ef4444','Mock Tests','Full exam simulation with auto-advancing questions.')}
+            ${featureCard('📊','#22d3ee','Progress Tracking','Score trends, type breakdown, session history.')}
           </div>
         </div>
       </section>
 
       <!-- Footer -->
-      <footer class="bg-white border-t border-gray-100 py-8 px-4 text-center">
-        <div class="space-y-2">
-          <p class="text-sm font-semibold text-gray-600">Crack PTE</p>
-          <p class="text-xs text-gray-400">Designed and Developed by <span class="font-semibold text-gray-600">Sanjay Singh And Sons Solutions</span></p>
-          <p class="text-xs text-gray-300">Built for exam preparation. Not affiliated with Pearson.</p>
-        </div>
+      <footer class="border-t border-[var(--border)] py-8 px-4 text-center">
+        <img src="img/logo.png" alt="Crack PTE" class="h-8 mx-auto mb-3 rounded-lg opacity-60">
+        <p class="text-xs text-gray-600">Designed and Developed by <span class="font-semibold text-gray-400">Sanjay Singh And Sons Solutions</span></p>
+        <p class="text-xs text-gray-700 mt-1">Built for exam preparation. Not affiliated with Pearson.</p>
       </footer>
     </main>`;
   },
@@ -149,11 +136,11 @@ PTE.Pages = {
   practice() {
     return `
     ${PTE.UI.navbar('practice')}
-    <main class="min-h-screen bg-gray-50 py-10 px-4">
+    <main class="min-h-screen py-10 px-4">
       <div class="max-w-6xl mx-auto">
         <div class="mb-10">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Choose a Question Type</h1>
-          <p class="text-gray-500">Select a speaking task to begin practicing. Each type mirrors the real PTE Academic exam format.</p>
+          <h1 class="text-3xl font-bold text-white mb-2">Choose a Question Type</h1>
+          <p class="text-gray-500">Select a speaking task to begin practicing. Each type mirrors the real PTE Academic exam.</p>
         </div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           ${Object.values(PTE.QUESTION_TYPES).map(t => PTE.UI.typeCard(t)).join('')}
