@@ -1,0 +1,228 @@
+/* ── PTE Speaking Practice App - Custom Styles ── */
+
+/* Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  min-height: 100vh;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.7; }
+  100% { transform: scale(0.9); opacity: 1; }
+}
+
+@keyframes scoreReveal {
+  from { stroke-dashoffset: 326.73; }
+}
+
+@keyframes barGrow {
+  from { width: 0; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.4s ease-out;
+}
+
+.score-circle-animate {
+  animation: scoreReveal 1.5s ease-out forwards;
+}
+
+.score-bar-animate {
+  animation: barGrow 1s ease-out forwards;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Audio player styling */
+audio {
+  border-radius: 12px;
+  outline: none;
+}
+audio::-webkit-media-controls-panel {
+  background: #f8fafc;
+}
+
+/* Line clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Tabular numbers for timer */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Selection color */
+::selection {
+  background: #c7d2fe;
+  color: #3730a3;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Practice area animations */
+#practice-area {
+  animation: fadeIn 0.4s ease-out;
+}
+
+#score-area {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Smooth transitions for cards */
+a[href^="#/practice/"] > div {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Details/Summary styling */
+details summary {
+  list-style: none;
+}
+details summary::-webkit-details-marker {
+  display: none;
+}
+details[open] summary {
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .text-4xl { font-size: 1.75rem; }
+  .text-6xl { font-size: 2.25rem; }
+  .text-3xl { font-size: 1.5rem; }
+  .py-20 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+  .py-28 { padding-top: 3rem; padding-bottom: 3rem; }
+  .py-16 { padding-top: 2rem; padding-bottom: 2rem; }
+  .p-6 { padding: 1rem; }
+  .p-8 { padding: 1.25rem; }
+  .gap-8 { gap: 1.5rem; }
+
+  /* Make buttons full width on mobile */
+  #action-buttons { flex-direction: column; }
+  #action-buttons button,
+  #action-buttons a { width: 100%; justify-content: center; }
+
+  /* Compact timer on mobile */
+  .w-28 { width: 5.5rem; }
+  .h-28 { height: 5.5rem; }
+
+  /* Touch-friendly tap targets */
+  button, a, select { min-height: 44px; }
+
+  /* Score card compact */
+  .max-w-lg { max-width: 100%; }
+}
+
+/* Prevent horizontal scroll on mobile */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Gradient text fallback */
+.text-transparent {
+  -webkit-text-fill-color: transparent;
+}
+
+/* Loading state for page transitions */
+#app-root > * {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Waveform canvas */
+#main-waveform {
+  image-rendering: crisp-edges;
+}
+
+/* Backdrop blur fallback */
+@supports not (backdrop-filter: blur(12px)) {
+  .backdrop-blur-lg {
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+  .backdrop-blur-sm {
+    background: rgba(255, 255, 255, 0.9) !important;
+  }
+}
+
+/* Pronunciation word click animation */
+.group:active {
+  transform: scale(0.95);
+}
+
+/* Pronunciation word speaking state (added via JS) */
+.word-speaking {
+  animation: wordPulse 0.6s ease-in-out;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+@keyframes wordPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+/* Print styles */
+@media print {
+  nav, #action-buttons, button, audio, canvas, details { display: none !important; }
+  #score-area { break-inside: avoid; }
+}
