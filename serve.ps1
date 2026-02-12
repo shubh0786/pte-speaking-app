@@ -6,7 +6,7 @@ $root = $PSScriptRoot
 $listener = $null
 $port = 0
 
-foreach ($tryPort in @(8080, 8081, 8082, 8083, 3000, 5000, 9090)) {
+foreach ($tryPort in @(8080, 8081, 8082, 8083, 3000, 5000, 9090, 4000, 4200, 7000, 7070, 8888, 8000)) {
     try {
         $listener = New-Object System.Net.HttpListener
         $listener.Prefixes.Add("http://localhost:${tryPort}/")

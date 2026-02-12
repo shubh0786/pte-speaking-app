@@ -11,6 +11,7 @@ PTE.Pages = {
     const stats = PTE.Store.getStats();
     const overall = stats.overall || null;
     const gp = PTE.Gamify ? PTE.Gamify.getProgress() : null;
+    const user = PTE.Auth ? PTE.Auth.getCurrentUser() : null;
 
     let statsSection = '';
     if (overall) {
@@ -70,6 +71,7 @@ PTE.Pages = {
             <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
             500+ Prediction Questions • AI Scoring • Gamified
           </div>
+          ${user ? `<p class="text-lg text-indigo-300 font-semibold mb-2">Welcome back, ${user.username}!</p>` : ''}
           <h1 class="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
             Crack PTE <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">Speaking</span>
           </h1>
@@ -168,14 +170,12 @@ PTE.Pages = {
     if (!overall || overall.totalAttempts === 0) {
       return `
       ${PTE.UI.navbar('progress')}
-      <main class="min-h-screen bg-gray-50 py-10 px-4">
+      <main class="min-h-screen py-10 px-4">
         <div class="max-w-4xl mx-auto">
-          <h1 class="text-3xl font-bold text-gray-900 mb-8">Your Progress</h1>
+          <h1 class="text-3xl font-bold text-white mb-8">Your Progress</h1>
           ${PTE.UI.emptyState('📊', 'No Practice Sessions Yet', 'Start practicing to see your progress here. Your scores and statistics will be tracked automatically.')}
           <div class="text-center mt-6">
-            <a href="#/practice" class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
-              Start Practicing
-            </a>
+            <a href="#/practice" class="btn-primary">Start Practicing</a>
           </div>
         </div>
       </main>`;
@@ -187,18 +187,18 @@ PTE.Pages = {
       const typeStat = stats[type.id];
       if (typeStat) {
         typeBreakdown += `
-        <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0" style="background:${type.colorLight}">${type.icon}</div>
+        <div class="glass rounded-xl p-4 flex items-center gap-4 card-shine">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0" style="background:${type.color}22">${type.icon}</div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between mb-1">
-              <h4 class="font-semibold text-gray-800 text-sm truncate">${type.name}</h4>
-              <span class="text-sm font-bold text-indigo-600">${typeStat.averageScore}/90</span>
+              <h4 class="font-semibold text-gray-200 text-sm truncate">${type.name}</h4>
+              <span class="text-sm font-bold text-indigo-400">${typeStat.averageScore}/90</span>
             </div>
             <div class="flex items-center gap-3">
-              <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <div class="h-full rounded-full" style="width:${(typeStat.averageScore/90)*100}%;background:${type.color}"></div>
               </div>
-              <span class="text-xs text-gray-400 flex-shrink-0">${typeStat.totalAttempts} tries</span>
+              <span class="text-xs text-gray-500 flex-shrink-0">${typeStat.totalAttempts} tries</span>
             </div>
           </div>
           <div class="flex-shrink-0">${PTE.UI.sparkline(typeStat.recentScores)}</div>
@@ -210,20 +210,20 @@ PTE.Pages = {
     let recentTable = '';
     if (recentSessions.length > 0) {
       recentTable = `
-      <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-50">
-          <h3 class="font-bold text-gray-800">Recent Sessions</h3>
+      <div class="glass rounded-2xl overflow-hidden neon-border">
+        <div class="px-6 py-4 border-b border-white/5">
+          <h3 class="font-bold text-white">Recent Sessions</h3>
         </div>
-        <div class="divide-y divide-gray-50">
+        <div class="divide-y divide-white/5">
           ${recentSessions.map(s => {
             const typeConfig = Object.values(PTE.QUESTION_TYPES).find(t => t.id === s.type);
             const band = PTE.Scoring.getBand(s.overallScore);
             return `
-            <div class="px-6 py-3 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-              <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style="background:${typeConfig ? typeConfig.colorLight : '#f1f5f9'}">${typeConfig ? typeConfig.icon : '?'}</div>
+            <div class="px-6 py-3 flex items-center gap-4 hover:bg-white/5 transition-colors">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style="background:${typeConfig ? typeConfig.color + '22' : 'rgba(255,255,255,0.05)'}">${typeConfig ? typeConfig.icon : '?'}</div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-800 truncate">${typeConfig ? typeConfig.name : s.type}</p>
-                <p class="text-xs text-gray-400">${s.date}</p>
+                <p class="text-sm font-medium text-gray-200 truncate">${typeConfig ? typeConfig.name : s.type}</p>
+                <p class="text-xs text-gray-500">${s.date}</p>
               </div>
               <div class="text-right">
                 <span class="text-sm font-bold" style="color:${band.color}">${s.overallScore}/90</span>
@@ -238,39 +238,39 @@ PTE.Pages = {
 
     return `
     ${PTE.UI.navbar('progress')}
-    <main class="min-h-screen bg-gray-50 py-10 px-4">
+    <main class="min-h-screen py-10 px-4">
       <div class="max-w-4xl mx-auto">
         <div class="flex items-center justify-between mb-8">
-          <h1 class="text-3xl font-bold text-gray-900">Your Progress</h1>
+          <h1 class="text-3xl font-bold text-white">Your Progress</h1>
           <button onclick="if(confirm('Clear all progress data?')){PTE.Store.clearAll();PTE.Router.navigate(location.hash.slice(1));}" 
-            class="text-xs text-gray-400 hover:text-red-500 transition-colors">Clear Data</button>
+            class="text-xs text-gray-500 hover:text-red-400 transition-colors">Clear Data</button>
         </div>
 
         <!-- Overall Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-            <p class="text-3xl font-bold text-indigo-600">${overall.totalAttempts}</p>
-            <p class="text-xs text-gray-400 mt-1">Total Attempts</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 stagger">
+          <div class="glass rounded-2xl p-5 text-center card-3d">
+            <p class="text-3xl font-bold text-indigo-400">${overall.totalAttempts}</p>
+            <p class="text-xs text-gray-500 mt-1">Total Attempts</p>
           </div>
-          <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-            <p class="text-3xl font-bold text-emerald-600">${overall.averageScore}</p>
-            <p class="text-xs text-gray-400 mt-1">Average Score</p>
+          <div class="glass rounded-2xl p-5 text-center card-3d">
+            <p class="text-3xl font-bold text-emerald-400">${overall.averageScore}</p>
+            <p class="text-xs text-gray-500 mt-1">Average Score</p>
           </div>
-          <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-            <p class="text-3xl font-bold text-purple-600">${overall.bestScore}</p>
-            <p class="text-xs text-gray-400 mt-1">Best Score</p>
+          <div class="glass rounded-2xl p-5 text-center card-3d">
+            <p class="text-3xl font-bold text-purple-400">${overall.bestScore}</p>
+            <p class="text-xs text-gray-500 mt-1">Best Score</p>
           </div>
-          <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm text-center">
-            <p class="text-3xl font-bold text-amber-600">${practiceMinutes}<span class="text-lg">m</span></p>
-            <p class="text-xs text-gray-400 mt-1">Practice Time</p>
+          <div class="glass rounded-2xl p-5 text-center card-3d">
+            <p class="text-3xl font-bold text-amber-400">${practiceMinutes}<span class="text-lg">m</span></p>
+            <p class="text-xs text-gray-500 mt-1">Practice Time</p>
           </div>
         </div>
 
         <!-- Type Breakdown -->
         <div class="mb-8">
-          <h3 class="font-bold text-gray-800 mb-4">Score by Question Type</h3>
+          <h3 class="font-bold text-white mb-4">Score by Question Type</h3>
           <div class="space-y-3">
-            ${typeBreakdown || '<p class="text-gray-400 text-sm">No data yet</p>'}
+            ${typeBreakdown || '<p class="text-gray-500 text-sm">No data yet</p>'}
           </div>
         </div>
 
@@ -290,11 +290,11 @@ PTE.Pages = {
     if (!typeConfig) {
       return `
       ${PTE.UI.navbar(navPage)}
-      <main class="min-h-screen bg-gray-50 py-10 px-4">
+      <main class="min-h-screen py-10 px-4">
         <div class="max-w-4xl mx-auto">
           ${PTE.UI.emptyState('🔍', 'Question Type Not Found', 'The requested question type does not exist.')}
           <div class="text-center mt-4">
-            <a href="${backUrl}" class="text-indigo-600 font-medium hover:text-indigo-700">Back</a>
+            <a href="${backUrl}" class="text-indigo-400 font-medium hover:text-indigo-300">Back</a>
           </div>
         </div>
       </main>`;
@@ -304,7 +304,7 @@ PTE.Pages = {
     if (questions.length === 0) {
       return `
       ${PTE.UI.navbar(navPage)}
-      <main class="min-h-screen bg-gray-50 py-10 px-4">
+      <main class="min-h-screen py-10 px-4">
         <div class="max-w-4xl mx-auto">
           ${PTE.UI.emptyState('📝', 'No Questions Available', 'Questions for this type are coming soon.')}
         </div>
@@ -313,19 +313,19 @@ PTE.Pages = {
 
     return `
     ${PTE.UI.navbar(navPage)}
-    <main class="min-h-screen bg-gray-50 py-8 px-4">
+    <main class="min-h-screen py-8 px-4">
       <div class="max-w-3xl mx-auto">
-        ${isPred ? '<div class="mb-4 inline-flex items-center gap-2 bg-orange-100 text-orange-800 text-xs font-bold px-3 py-1.5 rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Prediction Questions Only</div>' : ''}
+        ${isPred ? '<div class="mb-4 inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/20 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-full"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Prediction Questions Only</div>' : ''}
         <!-- Header -->
         <div class="flex items-center gap-4 mb-6">
-          <a href="${backUrl}" class="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          <a href="${backUrl}" class="w-10 h-10 glass rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </a>
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
               <span class="text-xl">${typeConfig.icon}</span>
-              <h1 class="text-xl font-bold text-gray-900">${typeConfig.name}</h1>
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:${typeConfig.colorLight};color:${typeConfig.color}">${typeConfig.shortName}</span>
+              <h1 class="text-xl font-bold text-white">${typeConfig.name}</h1>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:${typeConfig.color}22;color:${typeConfig.color}">${typeConfig.shortName}</span>
             </div>
             <p class="text-sm text-gray-500">${typeConfig.description}</p>
           </div>
@@ -333,7 +333,7 @@ PTE.Pages = {
 
         <!-- Tips (collapsible) -->
         <details class="mb-6">
-          <summary class="cursor-pointer text-sm font-medium text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 hover:bg-amber-100 transition-colors">
+          <summary class="cursor-pointer text-sm font-medium text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5 hover:bg-amber-500/15 transition-colors">
             Show Tips for ${typeConfig.name}
           </summary>
           <div class="mt-2">
@@ -344,18 +344,18 @@ PTE.Pages = {
         <!-- Question Navigation -->
         <div class="flex items-center justify-between mb-6">
           <div class="flex items-center gap-2">
-            <span class="text-sm text-gray-400">Question</span>
-            <select id="question-select" class="text-sm bg-white border border-gray-200 rounded-lg px-3 py-1.5 font-medium text-gray-700 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" onchange="PTE.App.loadQuestion(this.value)">
+            <span class="text-sm text-gray-500">Question</span>
+            <select id="question-select" class="input-dark text-sm !w-auto !py-1.5 !px-3" onchange="PTE.App.loadQuestion(this.value)">
               ${questions.map((q, i) => `<option value="${i}">Q${i + 1} of ${questions.length}</option>`).join('')}
             </select>
           </div>
-          <button id="btn-skip" onclick="PTE.App.nextQuestion()" class="text-sm text-gray-400 hover:text-indigo-600 font-medium transition-colors">
+          <button id="btn-skip" onclick="PTE.App.nextQuestion()" class="text-sm text-gray-500 hover:text-indigo-400 font-medium transition-colors">
             Skip →
           </button>
         </div>
 
         <!-- Practice Area -->
-        <div id="practice-area" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div id="practice-area" class="glass rounded-2xl overflow-hidden neon-border">
           <!-- Content is dynamically rendered by PTE.App -->
         </div>
 
@@ -397,70 +397,71 @@ PTE.Pages = {
 
     return `
     ${PTE.UI.navbar('predictions')}
-    <main class="min-h-screen bg-gray-50">
+    <main class="min-h-screen bg-orbs">
+      <div class="bg-orb-extra"></div>
       <!-- Hero -->
-      <section class="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white px-4 py-12">
-        <div class="max-w-4xl mx-auto text-center">
-          <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full text-sm mb-4">
+      <section class="relative overflow-hidden px-4 py-12 md:py-16">
+        <div class="absolute inset-0 bg-gradient-to-b from-amber-900/20 via-transparent to-transparent pointer-events-none"></div>
+        <div class="relative max-w-4xl mx-auto text-center">
+          <div class="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/20 px-4 py-2 rounded-full text-sm mb-4 text-amber-400">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             Updated for PTE 2025/2026 Exam Cycle
           </div>
-          <h1 class="text-3xl md:text-4xl font-extrabold mb-3">Prediction Questions</h1>
-          <p class="text-white/80 max-w-xl mx-auto mb-6">High-frequency questions sourced from APEUni, Gurully, StormEduGo, and other top PTE platforms. These questions appear most often in real exams.</p>
+          <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-3">Prediction Questions</h1>
+          <p class="text-gray-400 max-w-xl mx-auto mb-6">High-frequency questions sourced from APEUni, Gurully, StormEduGo, and other top PTE platforms.</p>
           <div class="flex flex-wrap justify-center gap-3">
             ${Object.entries(sourceCounts).map(([src, count]) => `
-              <span class="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold">${src}: ${count} Qs</span>
+              <span class="bg-white/5 border border-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold text-gray-300">${src}: ${count} Qs</span>
             `).join('')}
           </div>
-          <p class="mt-4 text-2xl font-bold">${totalPredictions} Total Prediction Questions</p>
+          <p class="mt-4 text-2xl font-bold text-amber-400">${totalPredictions} Total Prediction Questions</p>
         </div>
       </section>
 
       <!-- Info banner -->
-      <div class="max-w-4xl mx-auto px-4 -mt-6">
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 flex flex-col md:flex-row items-center gap-4">
-          <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="max-w-4xl mx-auto px-4 -mt-4 relative z-10">
+        <div class="glass-premium rounded-2xl p-5 flex flex-col md:flex-row items-center gap-4">
+          <div class="w-12 h-12 bg-amber-500/15 rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
           <div class="flex-1 text-center md:text-left">
-            <p class="text-sm text-gray-700 font-medium">These are <strong>prediction questions</strong> — high-frequency items recalled from real exams.</p>
-            <p class="text-xs text-gray-400 mt-0.5">Each question shows its source platform and frequency rating. Practice these for the best exam preparation.</p>
+            <p class="text-sm text-gray-200 font-medium">These are <strong class="text-white">prediction questions</strong> — high-frequency items recalled from real exams.</p>
+            <p class="text-xs text-gray-500 mt-0.5">Each question shows its source platform and frequency rating.</p>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
-            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700">Very High</span>
-            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700">High</span>
+            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-500/15 text-red-400 border border-red-500/20">Very High</span>
+            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">High</span>
           </div>
         </div>
       </div>
 
       <!-- Question type cards -->
-      <div class="max-w-4xl mx-auto px-4 py-10">
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div class="max-w-4xl mx-auto px-4 py-10 relative z-10">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
           ${types.map(t => {
             const count = typeCounts[t.id];
             if (count === 0) return '';
 
-            // Count by frequency
             const preds = predictions[t.id] || [];
             const veryHigh = preds.filter(q => q.frequency === 'very-high').length;
             const high = preds.filter(q => q.frequency === 'high').length;
 
             return `
             <a href="#/predictions/${t.id}" class="block group">
-              <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-lg hover:border-orange-200 transition-all duration-300 hover:-translate-y-1">
+              <div class="glass glass-hover rounded-2xl p-6 card-shine">
                 <div class="flex items-start justify-between mb-4">
-                  <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:${t.colorLight}">
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:${t.color}22">
                     ${t.icon}
                   </div>
-                  <span class="text-lg font-bold text-orange-600">${count}</span>
+                  <span class="text-lg font-bold text-amber-400">${count}</span>
                 </div>
-                <h3 class="font-bold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors">${t.name}</h3>
+                <h3 class="font-bold text-white mb-1 group-hover:text-amber-400 transition-colors">${t.name}</h3>
                 <p class="text-sm text-gray-500 mb-3">${t.description}</p>
                 <div class="flex items-center gap-2 mb-2">
-                  ${veryHigh > 0 ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">${veryHigh} Very High</span>` : ''}
-                  ${high > 0 ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-100">${high} High</span>` : ''}
+                  ${veryHigh > 0 ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/20">${veryHigh} Very High</span>` : ''}
+                  ${high > 0 ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20">${high} High</span>` : ''}
                 </div>
-                <div class="text-xs text-gray-400">
+                <div class="text-xs text-gray-600">
                   Sources: ${[...new Set(preds.map(q => q.source).filter(Boolean))].join(', ')}
                 </div>
               </div>
@@ -480,17 +481,17 @@ PTE.Pages = {
     if (recentMocks.length > 0) {
       recentHtml = `
       <div class="mt-10">
-        <h3 class="font-bold text-gray-800 mb-4">Recent Mock Tests</h3>
-        <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div class="divide-y divide-gray-50">
+        <h3 class="font-bold text-white mb-4">Recent Mock Tests</h3>
+        <div class="glass rounded-2xl overflow-hidden neon-border">
+          <div class="divide-y divide-white/5">
             ${recentMocks.map(s => {
               const band = PTE.Scoring.getBand(s.overallScore);
               return `
-              <div class="px-6 py-3 flex items-center gap-4">
-                <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-lg">🎯</div>
+              <div class="px-6 py-3 flex items-center gap-4 hover:bg-white/5 transition-colors">
+                <div class="w-10 h-10 rounded-lg bg-indigo-500/15 flex items-center justify-center text-lg">🎯</div>
                 <div class="flex-1">
-                  <p class="text-sm font-medium text-gray-800">${s.transcript || 'Mock Test'}</p>
-                  <p class="text-xs text-gray-400">${s.date}</p>
+                  <p class="text-sm font-medium text-gray-200">${s.transcript || 'Mock Test'}</p>
+                  <p class="text-xs text-gray-500">${s.date}</p>
                 </div>
                 <span class="text-sm font-bold" style="color:${band.color}">${s.overallScore}/90</span>
               </div>`;
@@ -502,54 +503,54 @@ PTE.Pages = {
 
     return `
     ${PTE.UI.navbar('mock-test')}
-    <main class="min-h-screen bg-gray-50 py-10 px-4">
+    <main class="min-h-screen py-10 px-4">
       <div class="max-w-4xl mx-auto">
         <div class="mb-8">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Speaking Mock Test</h1>
-          <p class="text-gray-500">Simulate the real PTE Academic Speaking test. Questions auto-advance with exam timing — no pausing allowed. Get your score at the end.</p>
+          <h1 class="text-3xl font-bold text-white mb-2">Speaking Mock Test</h1>
+          <p class="text-gray-400">Simulate the real PTE Academic Speaking test. Questions auto-advance with exam timing — no pausing allowed.</p>
         </div>
 
         <!-- Exam rules -->
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8">
-          <h3 class="font-bold text-amber-800 text-sm mb-2 flex items-center gap-2">
+        <div class="glass rounded-2xl p-5 mb-8 border border-amber-500/20">
+          <h3 class="font-bold text-amber-400 text-sm mb-2 flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
             Exam Conditions
           </h3>
-          <ul class="space-y-1.5 text-xs text-amber-700">
-            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#9632;</span>Questions auto-advance — you cannot pause or go back</li>
-            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#9632;</span>Each question has fixed preparation and recording time</li>
-            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#9632;</span>No feedback is shown during the test — scores appear at the end</li>
-            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#9632;</span>Ensure your microphone is working and you are in a quiet environment</li>
-            <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">&#9632;</span>Use Chrome browser for best speech recognition support</li>
+          <ul class="space-y-1.5 text-xs text-amber-300/80">
+            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9632;</span>Questions auto-advance — you cannot pause or go back</li>
+            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9632;</span>Each question has fixed preparation and recording time</li>
+            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9632;</span>No feedback is shown during the test — scores appear at the end</li>
+            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9632;</span>Ensure your microphone is working and you are in a quiet environment</li>
+            <li class="flex items-start gap-2"><span class="text-amber-500 mt-0.5">&#9632;</span>Use Chrome browser for best speech recognition support</li>
           </ul>
         </div>
 
         <!-- Test type cards -->
-        <div class="grid md:grid-cols-3 gap-5">
+        <div class="grid md:grid-cols-3 gap-5 stagger">
           ${Object.values(configs).map(cfg => {
             const totalQ = cfg.sections.reduce((s, sec) => s + sec.count, 0);
             return `
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-lg hover:border-indigo-200 transition-all duration-300">
+            <div class="glass glass-hover rounded-2xl p-6 card-shine">
               <div class="flex items-start justify-between mb-4">
                 <span class="text-4xl">${cfg.icon}</span>
                 <span class="text-xs font-bold px-2.5 py-1 rounded-full text-white" style="background:${cfg.color}">${cfg.duration}</span>
               </div>
-              <h3 class="font-bold text-gray-900 text-lg mb-1">${cfg.name}</h3>
+              <h3 class="font-bold text-white text-lg mb-1">${cfg.name}</h3>
               <p class="text-sm text-gray-500 mb-4">${cfg.description}</p>
               <div class="space-y-1 mb-5">
                 ${cfg.sections.map(sec => `
                   <div class="flex items-center justify-between text-xs">
                     <span class="text-gray-500">${sec.label}</span>
-                    <span class="font-medium text-gray-700">${sec.count} Q${sec.count > 1 ? 's' : ''}</span>
+                    <span class="font-medium text-gray-300">${sec.count} Q${sec.count > 1 ? 's' : ''}</span>
                   </div>
                 `).join('')}
-                <div class="flex items-center justify-between text-xs pt-1 border-t border-gray-100 mt-2">
-                  <span class="font-semibold text-gray-700">Total</span>
-                  <span class="font-bold text-gray-900">${totalQ} Questions</span>
+                <div class="flex items-center justify-between text-xs pt-1 border-t border-white/10 mt-2">
+                  <span class="font-semibold text-gray-300">Total</span>
+                  <span class="font-bold text-white">${totalQ} Questions</span>
                 </div>
               </div>
               <button onclick="PTE.Exam.start('${cfg.id}')" 
-                class="w-full inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-3 rounded-xl text-white transition-all hover:opacity-90 shadow-lg" style="background:${cfg.color};box-shadow:0 4px 14px ${cfg.color}33">
+                class="w-full inline-flex items-center justify-center gap-2 font-semibold text-sm px-5 py-3 rounded-xl text-white transition-all hover:opacity-90 hover:-translate-y-0.5 shadow-lg" style="background:${cfg.color};box-shadow:0 4px 14px ${cfg.color}33">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Start Test
               </button>
@@ -558,6 +559,299 @@ PTE.Pages = {
         </div>
 
         ${recentHtml}
+      </div>
+    </main>`;
+  },
+
+  // ── Login Page ──────────────────────────────────────────────
+  login() {
+    return `
+    <div class="min-h-screen flex flex-col">
+      <!-- Background -->
+      <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/50 via-purple-900/30 to-transparent pointer-events-none"></div>
+      <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 30% 20%, rgba(99,102,241,0.15) 0%, transparent 50%),radial-gradient(circle at 70% 80%, rgba(168,85,247,0.1) 0%, transparent 50%)"></div>
+
+      <div class="relative flex-1 flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md">
+          <!-- Logo & Header -->
+          <div class="text-center mb-8">
+            <img src="img/logo.png" alt="Crack PTE" class="h-16 mx-auto mb-4 rounded-2xl animate-float">
+            <h1 class="text-3xl font-extrabold text-white mb-2">Welcome Back</h1>
+            <p class="text-gray-400">Sign in to continue your PTE journey</p>
+          </div>
+
+          <!-- Login Card -->
+          <div class="glass neon-border rounded-2xl p-8">
+            <div id="login-error" class="hidden mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/20 text-red-400 text-sm font-medium"></div>
+
+            <form onsubmit="PTE.Auth._handleLogin(event)" class="space-y-5">
+              <!-- Email -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
+                  </div>
+                  <input type="email" id="login-email" required placeholder="your@email.com"
+                    class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                  </div>
+                  <input type="password" id="login-password" required placeholder="Enter your password"
+                    class="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
+                  <button type="button" onclick="PTE.Auth._togglePassword('login-password', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Submit -->
+              <button type="submit" id="login-btn"
+                class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-xl shadow-indigo-500/20 hover:-translate-y-0.5">
+                Sign In
+              </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="mt-6 pt-6 border-t border-white/10 text-center">
+              <p class="text-gray-400 text-sm">
+                Don't have an account?
+                <a href="#/signup" class="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors ml-1">Create Account</a>
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <p class="text-center text-xs text-gray-600 mt-6">Your data is stored locally on this device.</p>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  // ── Sign Up Page ────────────────────────────────────────────
+  signup() {
+    return `
+    <div class="min-h-screen flex flex-col">
+      <!-- Background -->
+      <div class="absolute inset-0 bg-gradient-to-br from-purple-900/50 via-indigo-900/30 to-transparent pointer-events-none"></div>
+      <div class="absolute inset-0 pointer-events-none" style="background:radial-gradient(circle at 70% 20%, rgba(168,85,247,0.15) 0%, transparent 50%),radial-gradient(circle at 30% 80%, rgba(99,102,241,0.1) 0%, transparent 50%)"></div>
+
+      <div class="relative flex-1 flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md">
+          <!-- Logo & Header -->
+          <div class="text-center mb-8">
+            <img src="img/logo.png" alt="Crack PTE" class="h-16 mx-auto mb-4 rounded-2xl animate-float">
+            <h1 class="text-3xl font-extrabold text-white mb-2">Create Account</h1>
+            <p class="text-gray-400">Start tracking your PTE progress today</p>
+          </div>
+
+          <!-- Signup Card -->
+          <div class="glass neon-border rounded-2xl p-8">
+            <div id="signup-error" class="hidden mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/20 text-red-400 text-sm font-medium"></div>
+
+            <form onsubmit="PTE.Auth._handleSignup(event)" class="space-y-5">
+              <!-- Username -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                  </div>
+                  <input type="text" id="signup-username" required placeholder="Choose a username" minlength="2" maxlength="30"
+                    class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>
+                  </div>
+                  <input type="email" id="signup-email" required placeholder="your@email.com"
+                    class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                  </div>
+                  <input type="password" id="signup-password" required placeholder="Create a password (min 4 chars)" minlength="4"
+                    class="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                  <button type="button" onclick="PTE.Auth._togglePassword('signup-password', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Confirm Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                  </div>
+                  <input type="password" id="signup-confirm" required placeholder="Re-enter your password"
+                    class="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all">
+                </div>
+              </div>
+
+              <!-- Submit -->
+              <button type="submit" id="signup-btn"
+                class="w-full py-3.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-xl shadow-purple-500/20 hover:-translate-y-0.5">
+                Create Account
+              </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="mt-6 pt-6 border-t border-white/10 text-center">
+              <p class="text-gray-400 text-sm">
+                Already have an account?
+                <a href="#/login" class="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors ml-1">Sign In</a>
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <p class="text-center text-xs text-gray-600 mt-6">Your data is stored locally on this device.</p>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  // ── Profile / Account Page ──────────────────────────────────
+  profile() {
+    const user = PTE.Auth.getCurrentUser();
+    if (!user) {
+      location.hash = '#/login';
+      return '';
+    }
+
+    const initials = PTE.Auth.getInitials(user.username);
+    const stats = PTE.Store.getStats();
+    const overall = stats.overall || null;
+    const gp = PTE.Gamify ? PTE.Gamify.getProgress() : null;
+
+    let statsCards = '';
+    if (overall) {
+      statsCards = `
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="glass rounded-2xl p-5 text-center"><p class="text-3xl font-bold text-indigo-400">${overall.totalAttempts}</p><p class="text-xs text-gray-500 mt-1">Questions Done</p></div>
+        <div class="glass rounded-2xl p-5 text-center"><p class="text-3xl font-bold text-emerald-400">${overall.averageScore}</p><p class="text-xs text-gray-500 mt-1">Avg Score</p></div>
+        <div class="glass rounded-2xl p-5 text-center"><p class="text-3xl font-bold text-purple-400">${overall.bestScore}</p><p class="text-xs text-gray-500 mt-1">Best Score</p></div>
+        <div class="glass rounded-2xl p-5 text-center"><p class="text-3xl font-bold text-amber-400">${overall.streak || 0}</p><p class="text-xs text-gray-500 mt-1">Day Streak</p></div>
+      </div>`;
+    }
+
+    let badgesHtml = '';
+    if (gp && gp.badges.length > 0) {
+      badgesHtml = `
+      <div class="mb-8">
+        <h3 class="text-lg font-bold text-white mb-4">Badges Earned</h3>
+        <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+          ${gp.badges.map(b => `
+            <div class="glass rounded-xl p-3 text-center group cursor-default" title="${b.name}: ${b.desc}">
+              <span class="text-2xl block mb-1">${b.icon}</span>
+              <p class="text-xs text-gray-400 truncate">${b.name}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    }
+
+    return `
+    ${PTE.UI.navbar('profile')}
+    <main class="min-h-screen py-10 px-4">
+      <div class="max-w-3xl mx-auto">
+
+        <!-- Profile Header -->
+        <div class="glass neon-border rounded-2xl p-8 mb-8">
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <div class="w-24 h-24 rounded-2xl flex items-center justify-center text-3xl font-bold text-white shadow-xl" style="background:${user.avatarColor}">
+              ${initials}
+            </div>
+            <div class="flex-1 text-center sm:text-left">
+              <h1 class="text-2xl font-extrabold text-white mb-1">${user.username}</h1>
+              <p class="text-gray-400 text-sm mb-2">${user.email}</p>
+              <div class="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
+                <span class="text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full">Member since ${user.createdDate}</span>
+                ${gp ? `<span class="badge badge-level">${gp.level.icon} Level ${gp.level.level} — ${gp.level.title}</span>` : ''}
+                ${gp ? `<span class="badge badge-xp">⚡ ${gp.xp} XP</span>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        ${statsCards}
+
+        <!-- Badges -->
+        ${badgesHtml}
+
+        <!-- Edit Profile -->
+        <div class="glass rounded-2xl p-6 mb-6">
+          <h3 class="text-lg font-bold text-white mb-4">Edit Profile</h3>
+          <div id="profile-msg" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Username</label>
+              <div class="flex gap-3">
+                <input type="text" id="profile-username" value="${user.username}" maxlength="30"
+                  class="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
+                <button onclick="PTE.Auth._handleUpdateProfile()" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors">
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="glass rounded-2xl p-6 mb-6">
+          <h3 class="text-lg font-bold text-white mb-4">Change Password</h3>
+          <div id="password-msg" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
+              <input type="password" id="current-password" placeholder="Enter current password"
+                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+              <input type="password" id="new-password" placeholder="Enter new password (min 4 chars)"
+                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
+            </div>
+            <button onclick="PTE.Auth._handleChangePassword()" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors">
+              Update Password
+            </button>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="glass rounded-2xl p-6 border border-red-500/20">
+          <h3 class="text-lg font-bold text-red-400 mb-4">Account Actions</h3>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="PTE.Auth.logout()" class="px-6 py-3 bg-red-500/15 border border-red-500/20 text-red-400 font-semibold rounded-xl hover:bg-red-500/25 transition-colors">
+              Sign Out
+            </button>
+            <button onclick="if(confirm('Delete your account and ALL data? This cannot be undone.')){PTE.Auth._deleteAccount()}" class="px-6 py-3 bg-red-500/10 border border-red-500/15 text-red-500/70 font-semibold rounded-xl hover:bg-red-500/20 transition-colors text-sm">
+              Delete Account
+            </button>
+          </div>
+        </div>
+
       </div>
     </main>`;
   }

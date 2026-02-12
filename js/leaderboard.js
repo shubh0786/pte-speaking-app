@@ -10,7 +10,13 @@ PTE.Leaderboard = {
   getData() { try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || { players:[], myName:'' }; } catch(e) { return { players:[], myName:'' }; } },
   save(data) { try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data)); } catch(e) {} },
 
-  getMyName() { return this.getData().myName || ''; },
+  getMyName() {
+    const stored = this.getData().myName;
+    if (stored) return stored;
+    // Fall back to auth username if available
+    if (PTE.Auth && PTE.Auth.getCurrentUser()) return PTE.Auth.getCurrentUser().username;
+    return '';
+  },
 
   setMyName(name) {
     const data = this.getData();

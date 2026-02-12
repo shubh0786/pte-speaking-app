@@ -39,32 +39,60 @@ PTE.App = {
     // Initialize Speech Recognition
     PTE.SpeechRecognizer.init();
 
-    // Setup routes
-    PTE.Router.on('/', () => this.renderPage('home'));
-    PTE.Router.on('/practice', () => this.renderPage('practice'));
-    PTE.Router.on('/progress', () => this.renderPage('progress'));
-    PTE.Router.on('/mock-test', () => this.renderPage('mock-test'));
-    PTE.Router.on('/predictions', () => this.renderPage('predictions'));
-    PTE.Router.on('/daily', () => this.renderPage('daily'));
-    PTE.Router.on('/vocab', () => this.renderPage('vocab'));
-    PTE.Router.on('/templates', () => this.renderPage('templates'));
-    PTE.Router.on('/drills', () => this.renderPage('drills'));
-    PTE.Router.on('/leaderboard', () => this.renderPage('leaderboard'));
-    PTE.Router.on('/review', () => this.renderPage('review'));
-    PTE.Router.on('/planner', () => this.renderPage('planner'));
-    PTE.Router.on('/challenge-create', () => this.renderPage('challenge-create'));
-    PTE.Router.on('/challenge/:code', (code) => this.renderPage('challenge', code));
-    PTE.Router.on('/predictions/:type', (type) => this.startPractice(type, true));
-    PTE.Router.on('/practice/:type', (type) => this.startPractice(type, false));
+    // ── Auth: Activate per-user storage if logged in ──
+    if (PTE.Auth && PTE.Auth.isLoggedIn()) {
+      PTE.Auth.activateUserStorage();
+    }
+
+    // ── Auth routes (accessible without login, redirect if already logged in) ──
+    PTE.Router.on('/login', () => {
+      if (PTE.Auth && PTE.Auth.isLoggedIn()) { location.hash = '#/'; return; }
+      this.renderPage('login');
+    });
+    PTE.Router.on('/signup', () => {
+      if (PTE.Auth && PTE.Auth.isLoggedIn()) { location.hash = '#/'; return; }
+      this.renderPage('signup');
+    });
+
+    // ── Protected routes (require login) ──
+    PTE.Router.on('/', () => this.requireAuth(() => this.renderPage('home')));
+    PTE.Router.on('/profile', () => this.requireAuth(() => this.renderPage('profile')));
+    PTE.Router.on('/practice', () => this.requireAuth(() => this.renderPage('practice')));
+    PTE.Router.on('/progress', () => this.requireAuth(() => this.renderPage('progress')));
+    PTE.Router.on('/mock-test', () => this.requireAuth(() => this.renderPage('mock-test')));
+    PTE.Router.on('/predictions', () => this.requireAuth(() => this.renderPage('predictions')));
+    PTE.Router.on('/daily', () => this.requireAuth(() => this.renderPage('daily')));
+    PTE.Router.on('/vocab', () => this.requireAuth(() => this.renderPage('vocab')));
+    PTE.Router.on('/templates', () => this.requireAuth(() => this.renderPage('templates')));
+    PTE.Router.on('/drills', () => this.requireAuth(() => this.renderPage('drills')));
+    PTE.Router.on('/leaderboard', () => this.requireAuth(() => this.renderPage('leaderboard')));
+    PTE.Router.on('/review', () => this.requireAuth(() => this.renderPage('review')));
+    PTE.Router.on('/planner', () => this.requireAuth(() => this.renderPage('planner')));
+    PTE.Router.on('/challenge-create', () => this.requireAuth(() => this.renderPage('challenge-create')));
+    PTE.Router.on('/challenge/:code', (code) => this.requireAuth(() => this.renderPage('challenge', code)));
+    PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
+    PTE.Router.on('/practice/:type', (type) => this.requireAuth(() => this.startPractice(type, false)));
 
     // Start router
     PTE.Router.init();
+  },
+
+  // ── Auth Guard ──────────────────────────────────────────────
+  requireAuth(callback) {
+    if (PTE.Auth && !PTE.Auth.isLoggedIn()) {
+      location.hash = '#/login';
+      return;
+    }
+    callback();
   },
 
   renderPage(page, param) {
     this.cleanup();
     const root = document.getElementById('app-root');
     switch (page) {
+      case 'login': root.innerHTML = PTE.Pages.login(); break;
+      case 'signup': root.innerHTML = PTE.Pages.signup(); break;
+      case 'profile': root.innerHTML = PTE.Pages.profile(); break;
       case 'home': root.innerHTML = PTE.Pages.home(); break;
       case 'practice': root.innerHTML = PTE.Pages.practice(); break;
       case 'progress': root.innerHTML = PTE.Analytics ? PTE.Analytics.renderPage() : PTE.Pages.progress(); break;
