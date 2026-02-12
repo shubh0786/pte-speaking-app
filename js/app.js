@@ -494,13 +494,26 @@ PTE.App = {
       if (transcriptContainer) transcriptContainer.classList.remove('hidden');
       if (pitchDisplay) pitchDisplay.classList.remove('hidden');
 
-      // Start recording
-      PTE.AudioRecorder.start();
+      // Start recording (re-init stream if it died)
+      let recStarted = PTE.AudioRecorder.start();
+      if (!recStarted) {
+        console.warn('[PTE] Recorder start failed, re-initializing stream...');
+        const micOk = await PTE.AudioRecorder.init();
+        if (micOk) {
+          this.micStream = PTE.AudioRecorder.stream;
+          recStarted = PTE.AudioRecorder.start();
+        }
+        if (!recStarted) console.error('[PTE] Recording could not start');
+      }
 
-      // Start tone analyzer (uses a separate AudioContext from same stream)
+      // Start tone analyzer (reuses AudioContext)
       if (this.micStream && PTE.ToneAnalyzer) {
-        PTE.ToneAnalyzer.init(this.micStream);
-        PTE.ToneAnalyzer.start();
+        try {
+          PTE.ToneAnalyzer.init(this.micStream);
+          PTE.ToneAnalyzer.start();
+        } catch(e) {
+          console.warn('[PTE] ToneAnalyzer start failed:', e);
+        }
       }
 
       // Start speech recognition
@@ -571,10 +584,31 @@ PTE.App = {
   // ── Enhanced Evaluation Phase ────────────────────────────────
 
   evaluatePhase() {
+    try { this._doEvaluate(); } catch(e) {
+      console.error('[PTE] Evaluation error:', e);
+      const scoreArea = document.getElementById('score-area');
+      if (scoreArea) {
+        scoreArea.classList.remove('hidden');
+        scoreArea.innerHTML = `
+        <div class="glass neon-border rounded-2xl p-6 max-w-lg mx-auto text-center">
+          <p class="text-amber-400 font-semibold mb-2">Scoring encountered an issue</p>
+          <p class="text-gray-500 text-sm mb-4">Your speech may not have been captured properly. Please try again.</p>
+          <p class="text-xs text-gray-600">Error: ${e.message || 'Unknown'}</p>
+        </div>`;
+      }
+      this.phase = 'review';
+      const btnArea = document.getElementById('action-buttons');
+      if (btnArea) btnArea.innerHTML = `
+        <button onclick="PTE.App.loadQuestion(${this.currentQuestionIndex})" class="inline-flex items-center gap-2 bg-white text-gray-700 font-semibold px-6 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all">Try Again</button>
+        <button onclick="PTE.App.nextQuestion()" class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Next Question</button>`;
+    }
+  },
+
+  _doEvaluate() {
     this.phase = 'evaluating';
     const type = this.currentTypeConfig;
     const q = this.currentQuestion;
-    const transcript = PTE.SpeechRecognizer.transcript.trim();
+    const transcript = (PTE.SpeechRecognizer.transcript || '').trim();
     const confidence = PTE.SpeechRecognizer.getAverageConfidence();
     const wordTimestamps = PTE.SpeechRecognizer.wordTimestamps;
     const recordDuration = (Date.now() - this.recordingStartTime) / 1000;
@@ -1104,6 +1138,7 @@ PTE.App = {
   fullCleanup() {
     this.cleanup();
     PTE.AudioRecorder.cleanup();
+    if (PTE.ToneAnalyzer) PTE.ToneAnalyzer.destroy();
     this.micStream = null;
   }
 };

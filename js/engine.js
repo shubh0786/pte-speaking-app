@@ -37,11 +37,33 @@ PTE.AudioRecorder = {
   },
 
   start() {
-    if (!this.stream) return false;
+    if (!this.stream) {
+      console.warn('[Recorder] No stream available');
+      return false;
+    }
+
+    // Check stream is alive
+    if (!this.stream.getTracks().some(t => t.readyState === 'live')) {
+      console.warn('[Recorder] Stream tracks are ended, need re-init');
+      return false;
+    }
+
+    // Resume AudioContext if suspended (mobile browser policy)
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      try { this.audioContext.resume(); } catch(e) {}
+    }
+
     this.audioChunks = [];
     this.audioBlob = null;
     this.audioUrl = null;
-    this.mediaRecorder = new MediaRecorder(this.stream);
+
+    try {
+      this.mediaRecorder = new MediaRecorder(this.stream);
+    } catch(e) {
+      console.error('[Recorder] Failed to create MediaRecorder:', e);
+      return false;
+    }
+
     this.mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) this.audioChunks.push(e.data);
     };
@@ -49,9 +71,16 @@ PTE.AudioRecorder = {
       this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
       this.audioUrl = URL.createObjectURL(this.audioBlob);
     };
-    this.mediaRecorder.start(100);
-    this.isRecording = true;
-    return true;
+
+    try {
+      this.mediaRecorder.start(100);
+      this.isRecording = true;
+      return true;
+    } catch(e) {
+      console.error('[Recorder] Failed to start recording:', e);
+      this.isRecording = false;
+      return false;
+    }
   },
 
   stop() {

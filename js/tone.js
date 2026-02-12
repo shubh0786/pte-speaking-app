@@ -19,11 +19,27 @@ PTE.ToneAnalyzer = {
   startTime: 0,
 
   /**
-   * Initialize with an existing audio stream
+   * Initialize with an existing audio stream.
+   * Reuses AudioContext if possible to avoid browser limits.
    */
   init(stream) {
     try {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      // Disconnect old source if any
+      if (this.sourceNode) {
+        try { this.sourceNode.disconnect(); } catch(e) {}
+        this.sourceNode = null;
+      }
+
+      // Reuse AudioContext if it's still open, otherwise create new
+      if (!this.audioContext || this.audioContext.state === 'closed') {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      // Resume if suspended (mobile)
+      if (this.audioContext.state === 'suspended') {
+        this.audioContext.resume();
+      }
+
       this.sampleRate = this.audioContext.sampleRate;
       this.sourceNode = this.audioContext.createMediaStreamSource(stream);
       
@@ -39,7 +55,7 @@ PTE.ToneAnalyzer = {
       
       return true;
     } catch (e) {
-      console.error('ToneAnalyzer init failed:', e);
+      console.error('[ToneAnalyzer] init failed:', e);
       return false;
     }
   },
@@ -388,13 +404,26 @@ PTE.ToneAnalyzer = {
     };
   },
 
+  /**
+   * Soft cleanup: stop analysis and disconnect source, but keep AudioContext alive.
+   */
   cleanup() {
     this.stop();
+    if (this.sourceNode) {
+      try { this.sourceNode.disconnect(); } catch(e) {}
+      this.sourceNode = null;
+    }
+    this.analyser = null;
+  },
+
+  /**
+   * Full destroy: close AudioContext. Only call when leaving practice entirely.
+   */
+  destroy() {
+    this.cleanup();
     if (this.audioContext && this.audioContext.state !== 'closed') {
       try { this.audioContext.close(); } catch(e) {}
     }
     this.audioContext = null;
-    this.analyser = null;
-    this.sourceNode = null;
   }
 };
