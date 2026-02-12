@@ -19,6 +19,7 @@ PTE.UI = {
       { href:'#/progress', label:'Analytics', page:'progress' },
     ];
     const moreLinks = [
+      { href:'#/accent', label:'Accent Coach', page:'accent', icon:'🗣️' },
       { href:'#/daily', label:'Daily Challenge', page:'daily', icon:'⚡' },
       { href:'#/vocab', label:'Vocab Builder', page:'vocab', icon:'🃏' },
       { href:'#/drills', label:'Pronunciation Drills', page:'drills', icon:'🎙️' },

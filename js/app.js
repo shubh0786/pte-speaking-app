@@ -65,6 +65,7 @@ PTE.App = {
     PTE.Router.on('/leaderboard', () => this.requireAuth(() => this.renderPage('leaderboard')));
     PTE.Router.on('/review', () => this.requireAuth(() => this.renderPage('review')));
     PTE.Router.on('/planner', () => this.requireAuth(() => this.renderPage('planner')));
+    PTE.Router.on('/accent', () => this.requireAuth(() => this.renderPage('accent')));
     PTE.Router.on('/challenge-create', () => this.requireAuth(() => this.renderPage('challenge-create')));
     PTE.Router.on('/challenge/:code', (code) => this.requireAuth(() => this.renderPage('challenge', code)));
     PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
@@ -115,6 +116,7 @@ PTE.App = {
       case 'leaderboard': root.innerHTML = PTE.Leaderboard ? PTE.Leaderboard.renderPage() : PTE.Pages.home(); break;
       case 'review': root.innerHTML = PTE.Spaced ? PTE.Spaced.renderPage() : PTE.Pages.home(); break;
       case 'planner': root.innerHTML = PTE.Planner ? PTE.Planner.renderPage() : PTE.Pages.home(); break;
+      case 'accent': root.innerHTML = PTE.AccentAnalyzer ? PTE.AccentAnalyzer.renderPage() : PTE.Pages.home(); break;
       case 'challenge-create': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderCreatePage() : PTE.Pages.home(); break;
       case 'challenge': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderChallengePage(param) : PTE.Pages.home(); break;
     }
@@ -583,6 +585,14 @@ PTE.App = {
     // ── Pronunciation Highlight (green/red words + click-to-pronounce) ──
     if (expectedText && transcript && !type.scoring.includes('vocabulary')) {
       html += PTE.UI.pronunciationHighlight(expectedText, transcript);
+    }
+
+    // ── Accent Analysis ──
+    if (PTE.AccentAnalyzer && expectedText && transcript && !type.scoring.includes('vocabulary')) {
+      const accentResult = PTE.AccentAnalyzer.analyze(expectedText, transcript);
+      if (accentResult && !accentResult.perfect) {
+        html += PTE.AccentAnalyzer.renderResultCard(accentResult);
+      }
     }
 
     // ── Model Answer Script ──

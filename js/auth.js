@@ -235,6 +235,7 @@ PTE.Auth = {
     if (PTE.Challenge) PTE.Challenge.STORAGE_KEY = 'crackpte_challenges' + suffix;
     if (PTE.Drills) PTE.Drills.STORAGE_KEY = 'crackpte_drills' + suffix;
     if (PTE.Planner) PTE.Planner.STORAGE_KEY = 'crackpte_planner' + suffix;
+    if (PTE.AccentAnalyzer) PTE.AccentAnalyzer.STORAGE_KEY = 'crackpte_accent' + suffix;
   },
 
   _resetStorageKeys() {
@@ -247,6 +248,7 @@ PTE.Auth = {
     if (PTE.Challenge) PTE.Challenge.STORAGE_KEY = 'crackpte_challenges';
     if (PTE.Drills) PTE.Drills.STORAGE_KEY = 'crackpte_drills';
     if (PTE.Planner) PTE.Planner.STORAGE_KEY = 'crackpte_planner';
+    if (PTE.AccentAnalyzer) PTE.AccentAnalyzer.STORAGE_KEY = 'crackpte_accent';
   },
 
   // ── Utility Functions ───────────────────────────────────────
