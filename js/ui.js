@@ -16,10 +16,22 @@ PTE.UI = {
       { href:'#/practice', label:'Practice', page:'practice' },
       { href:'#/predictions', label:'Predictions', page:'predictions' },
       { href:'#/mock-test', label:'Mock Test', page:'mock-test' },
-      { href:'#/progress', label:'Progress', page:'progress' },
+      { href:'#/progress', label:'Analytics', page:'progress' },
+    ];
+    const moreLinks = [
+      { href:'#/daily', label:'Daily Challenge', page:'daily', icon:'⚡' },
+      { href:'#/vocab', label:'Vocab Builder', page:'vocab', icon:'🃏' },
+      { href:'#/drills', label:'Pronunciation Drills', page:'drills', icon:'🎙️' },
+      { href:'#/templates', label:'Templates', page:'templates', icon:'📝' },
+      { href:'#/planner', label:'Study Planner', page:'planner', icon:'📋' },
+      { href:'#/review', label:'Spaced Review', page:'review', icon:'🧠' },
+      { href:'#/leaderboard', label:'Leaderboard', page:'leaderboard', icon:'🏆' },
+      { href:'#/challenge-create', label:'Challenge Friend', page:'challenge-create', icon:'⚔️' },
     ];
     const dLink = l => `<a href="${l.href}" class="px-2.5 py-2 rounded-lg text-sm font-medium transition-all ${activePage===l.page?'bg-indigo-500/20 text-indigo-400 neon-border':'text-gray-400 hover:bg-white/5 hover:text-gray-200'}">${l.label}</a>`;
-    const mLink = l => `<a href="${l.href}" onclick="document.getElementById('${navId}').classList.add('hidden')" class="block px-4 py-3 rounded-xl text-base font-medium transition-all ${activePage===l.page?'bg-indigo-500/20 text-indigo-400':'text-gray-300 hover:bg-white/5'}">${l.label}</a>`;
+    const mLink = l => `<a href="${l.href}" onclick="document.getElementById('${navId}').classList.add('hidden')" class="block px-4 py-3 rounded-xl text-base font-medium transition-all ${activePage===l.page?'bg-indigo-500/20 text-indigo-400':'text-gray-300 hover:bg-white/5'}">${l.icon?l.icon+' ':''}${l.label}</a>`;
+    const moreId = 'more-' + Date.now();
+    const moreActive = moreLinks.some(l => l.page === activePage);
     const xpBar = PTE.Gamify ? PTE.Gamify.renderXPBar() : '';
 
     return `
@@ -33,7 +45,15 @@ PTE.UI = {
               <span class="font-extrabold text-cyan-400 text-base sm:text-lg">PTE</span>
             </div>
           </a>
-          <div class="hidden md:flex items-center gap-1">${links.map(dLink).join('')}</div>
+          <div class="hidden md:flex items-center gap-1">
+            ${links.map(dLink).join('')}
+            <div class="relative">
+              <button onclick="document.getElementById('${moreId}').classList.toggle('hidden')" class="px-2.5 py-2 rounded-lg text-sm font-medium transition-all ${moreActive?'bg-indigo-500/20 text-indigo-400':'text-gray-400 hover:bg-white/5 hover:text-gray-200'}">More ▾</button>
+              <div id="${moreId}" class="hidden absolute right-0 top-full mt-2 w-56 glass rounded-xl border border-[var(--border)] shadow-2xl py-2 z-50">
+                ${moreLinks.map(l => `<a href="${l.href}" onclick="document.getElementById('${moreId}').classList.add('hidden')" class="flex items-center gap-3 px-4 py-2.5 text-sm transition-all ${activePage===l.page?'text-indigo-400 bg-indigo-500/10':'text-gray-400 hover:bg-white/5 hover:text-white'}"><span>${l.icon}</span>${l.label}</a>`).join('')}
+              </div>
+            </div>
+          </div>
           <div class="flex items-center gap-2">
             <div class="hidden sm:block">${xpBar}</div>
             <button onclick="document.getElementById('${navId}').classList.toggle('hidden')" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors">
@@ -42,9 +62,13 @@ PTE.UI = {
           </div>
         </div>
       </div>
-      <div id="${navId}" class="hidden md:hidden bg-[var(--bg-secondary)] border-t border-[var(--border)] px-4 py-3 space-y-1 shadow-2xl">
+      <div id="${navId}" class="hidden md:hidden bg-[var(--bg-secondary)] border-t border-[var(--border)] px-4 py-3 space-y-1 shadow-2xl max-h-[80vh] overflow-y-auto">
         <div class="sm:hidden mb-3 pb-3 border-b border-[var(--border)]">${xpBar}</div>
         ${links.map(mLink).join('')}
+        <div class="border-t border-[var(--border)] mt-2 pt-2">
+          <p class="text-xs text-gray-600 px-4 py-1 uppercase tracking-wide">Tools</p>
+          ${moreLinks.map(mLink).join('')}
+        </div>
       </div>
     </nav>`;
   },

@@ -45,6 +45,15 @@ PTE.App = {
     PTE.Router.on('/progress', () => this.renderPage('progress'));
     PTE.Router.on('/mock-test', () => this.renderPage('mock-test'));
     PTE.Router.on('/predictions', () => this.renderPage('predictions'));
+    PTE.Router.on('/daily', () => this.renderPage('daily'));
+    PTE.Router.on('/vocab', () => this.renderPage('vocab'));
+    PTE.Router.on('/templates', () => this.renderPage('templates'));
+    PTE.Router.on('/drills', () => this.renderPage('drills'));
+    PTE.Router.on('/leaderboard', () => this.renderPage('leaderboard'));
+    PTE.Router.on('/review', () => this.renderPage('review'));
+    PTE.Router.on('/planner', () => this.renderPage('planner'));
+    PTE.Router.on('/challenge-create', () => this.renderPage('challenge-create'));
+    PTE.Router.on('/challenge/:code', (code) => this.renderPage('challenge', code));
     PTE.Router.on('/predictions/:type', (type) => this.startPractice(type, true));
     PTE.Router.on('/practice/:type', (type) => this.startPractice(type, false));
 
@@ -52,25 +61,24 @@ PTE.App = {
     PTE.Router.init();
   },
 
-  renderPage(page) {
+  renderPage(page, param) {
     this.cleanup();
     const root = document.getElementById('app-root');
     switch (page) {
-      case 'home':
-        root.innerHTML = PTE.Pages.home();
-        break;
-      case 'practice':
-        root.innerHTML = PTE.Pages.practice();
-        break;
-      case 'progress':
-        root.innerHTML = PTE.Pages.progress();
-        break;
-      case 'mock-test':
-        root.innerHTML = PTE.Pages.mockTest();
-        break;
-      case 'predictions':
-        root.innerHTML = PTE.Pages.predictions();
-        break;
+      case 'home': root.innerHTML = PTE.Pages.home(); break;
+      case 'practice': root.innerHTML = PTE.Pages.practice(); break;
+      case 'progress': root.innerHTML = PTE.Analytics ? PTE.Analytics.renderPage() : PTE.Pages.progress(); break;
+      case 'mock-test': root.innerHTML = PTE.Pages.mockTest(); break;
+      case 'predictions': root.innerHTML = PTE.Pages.predictions(); break;
+      case 'daily': root.innerHTML = PTE.Daily ? PTE.Daily.renderPage() : PTE.Pages.home(); break;
+      case 'vocab': root.innerHTML = PTE.Vocab ? PTE.Vocab.renderPage() : PTE.Pages.home(); break;
+      case 'templates': root.innerHTML = PTE.Templates ? PTE.Templates.renderPage() : PTE.Pages.home(); break;
+      case 'drills': root.innerHTML = PTE.Drills ? PTE.Drills.renderPage() : PTE.Pages.home(); break;
+      case 'leaderboard': root.innerHTML = PTE.Leaderboard ? PTE.Leaderboard.renderPage() : PTE.Pages.home(); break;
+      case 'review': root.innerHTML = PTE.Spaced ? PTE.Spaced.renderPage() : PTE.Pages.home(); break;
+      case 'planner': root.innerHTML = PTE.Planner ? PTE.Planner.renderPage() : PTE.Pages.home(); break;
+      case 'challenge-create': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderCreatePage() : PTE.Pages.home(); break;
+      case 'challenge': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderChallengePage(param) : PTE.Pages.home(); break;
     }
   },
 
@@ -542,8 +550,31 @@ PTE.App = {
     // ── Model Answer Script ──
     html += PTE.UI.modelAnswerScript(type.id, q);
 
-    // Audio playback
-    if (PTE.AudioRecorder.audioUrl) {
+    // ── Audio Comparison (Side-by-Side) ──
+    if (PTE.AudioRecorder.audioUrl && expectedText) {
+      html += `
+      <div class="mt-4 glass neon-border rounded-2xl overflow-hidden max-w-lg mx-auto animate-fadeIn">
+        <div class="bg-gradient-to-r from-teal-600 to-cyan-600 p-3 text-center">
+          <h3 class="text-white font-bold text-sm">Audio Comparison</h3>
+        </div>
+        <div class="p-5">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="text-center">
+              <p class="text-xs text-cyan-400 font-semibold uppercase tracking-wide mb-2">Native</p>
+              <button onclick="PTE.pronounceText()" class="w-full py-3 rounded-xl bg-cyan-500/15 border border-cyan-500/20 text-cyan-400 font-medium text-sm hover:bg-cyan-500/25 transition-all">🔊 Play Native</button>
+            </div>
+            <div class="text-center">
+              <p class="text-xs text-rose-400 font-semibold uppercase tracking-wide mb-2">Yours</p>
+              <button onclick="document.getElementById('user-audio-compare').play()" class="w-full py-3 rounded-xl bg-rose-500/15 border border-rose-500/20 text-rose-400 font-medium text-sm hover:bg-rose-500/25 transition-all">🎙️ Play Yours</button>
+            </div>
+          </div>
+          <audio id="user-audio-compare" src="${PTE.AudioRecorder.audioUrl}" class="hidden"></audio>
+          <button onclick="PTE.App._playBothAudio()" class="w-full py-3 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 font-medium text-sm hover:bg-indigo-500/25 transition-all">
+            ▶️ Play Both (Native → Yours)
+          </button>
+        </div>
+      </div>`;
+    } else if (PTE.AudioRecorder.audioUrl) {
       html += `
       <div class="mt-4 glass rounded-xl p-4 max-w-lg mx-auto">
         <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Your Recording:</label>
@@ -578,6 +609,20 @@ PTE.App = {
       const xpResult = PTE.Gamify.awardXP(overallScore, type.id, false, this.isPredictionsMode);
       PTE.Gamify.showToast(xpResult);
     }
+
+    // ── Daily Challenge Completion ──
+    if (this._dailyMode && PTE.Daily) {
+      PTE.Daily.markCompleted(this._dailyIndex, overallScore);
+      this._dailyMode = false;
+    }
+
+    // ── Spaced Repetition Tracking ──
+    if (PTE.Spaced) {
+      PTE.Spaced.trackResult(q.id, type.id, overallScore);
+    }
+
+    // ── Leaderboard Update ──
+    if (PTE.Leaderboard) PTE.Leaderboard.updateScore();
 
     scoreArea.innerHTML = html;
 
@@ -908,6 +953,13 @@ PTE.App = {
   },
 
   // ── Utilities ────────────────────────────────────────────────
+
+  async _playBothAudio() {
+    await PTE.pronounceText();
+    await this.sleep(1000);
+    const audio = document.getElementById('user-audio-compare');
+    if (audio) audio.play();
+  },
 
   sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

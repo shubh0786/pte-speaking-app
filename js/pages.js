@@ -91,7 +91,17 @@ PTE.Pages = {
       </section>
 
       ${profileCard ? `<section class="px-4 -mt-4">${profileCard}</section>` : ''}
-      ${statsSection ? `<section class="py-8 px-4">${statsSection}</section>` : ''}
+
+      <!-- Action Cards Row -->
+      <section class="px-4 py-6">
+        <div class="max-w-4xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${PTE.Daily ? PTE.Daily.renderCard() : ''}
+          ${PTE.Planner ? PTE.Planner.renderCard() : ''}
+          ${PTE.Spaced ? PTE.Spaced.renderCard() : ''}
+        </div>
+      </section>
+
+      ${statsSection ? `<section class="py-4 px-4">${statsSection}</section>` : ''}
 
       <!-- Question Types -->
       <section class="py-12 px-4">
