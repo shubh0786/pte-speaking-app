@@ -30,10 +30,13 @@ PTE.UI = {
       <div class="max-w-6xl mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-14 sm:h-16">
           <a href="#/" class="flex items-center gap-2 sm:gap-3 group">
-            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
-              <span class="text-white font-bold text-xs sm:text-sm">PTE</span>
+            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-shadow">
+              <span class="text-white font-extrabold text-xs sm:text-sm tracking-tight">C</span>
             </div>
-            <span class="font-bold text-gray-900 text-base sm:text-lg">PTE Speaking</span>
+            <div class="flex items-baseline gap-1">
+              <span class="font-extrabold text-gray-900 text-base sm:text-lg">Crack</span>
+              <span class="font-extrabold text-indigo-600 text-base sm:text-lg">PTE</span>
+            </div>
           </a>
           <!-- Desktop nav -->
           <div class="hidden md:flex items-center gap-1">${desktopLinks}</div>

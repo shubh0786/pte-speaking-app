@@ -46,7 +46,7 @@ PTE.Pages = {
             2025/2026 Predictions from APEUni, Gurully, StormEduGo + AI Feedback
           </div>
           <h1 class="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
-            Master PTE <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">Speaking</span>
+            Crack PTE <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">Speaking</span>
           </h1>
           <p class="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto">
             Practice all 7 speaking question types with prediction questions, AI scoring, tone/pitch analysis, and detailed improvement strategies.
@@ -136,7 +136,11 @@ PTE.Pages = {
 
       <!-- Footer -->
       <footer class="bg-white border-t border-gray-100 py-8 px-4 text-center">
-        <p class="text-sm text-gray-400">PTE Speaking Practice App — Built for exam preparation. Not affiliated with Pearson.</p>
+        <div class="space-y-2">
+          <p class="text-sm font-semibold text-gray-600">Crack PTE</p>
+          <p class="text-xs text-gray-400">Designed and Developed by <span class="font-semibold text-gray-600">Sanjay Singh And Sons Solutions</span></p>
+          <p class="text-xs text-gray-300">Built for exam preparation. Not affiliated with Pearson.</p>
+        </div>
       </footer>
     </main>`;
   },

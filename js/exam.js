@@ -190,7 +190,7 @@ PTE.Exam = {
       <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold text-xs">PTE</span>
+            <span class="text-white font-extrabold text-xs">C</span>
           </div>
           <div>
             <span class="font-semibold text-sm">${this.config.name}</span>
