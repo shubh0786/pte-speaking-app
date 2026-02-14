@@ -341,17 +341,47 @@ PTE.Pages = {
           </div>
         </details>
 
-        <!-- Question Navigation -->
-        <div class="flex items-center justify-between mb-6">
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-gray-500">Question</span>
-            <select id="question-select" class="input-dark text-sm !w-auto !py-1.5 !px-3" onchange="PTE.App.loadQuestion(this.value)">
-              ${questions.map((q, i) => `<option value="${i}">Q${i + 1} of ${questions.length}</option>`).join('')}
-            </select>
-          </div>
-          <button id="btn-skip" onclick="PTE.App.nextQuestion()" class="text-sm text-gray-500 hover:text-indigo-400 font-medium transition-colors">
-            Skip →
-          </button>
+        <!-- Question Navigation with Completion Status -->
+        ${(() => {
+          const completionMap = PTE.Store.getCompletionMap(typeId);
+          const completedCount = questions.filter(q => completionMap[q.id]).length;
+          return `
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">Question</span>
+                <select id="question-select" class="input-dark text-sm !w-auto !py-1.5 !px-3" onchange="PTE.App.loadQuestion(this.value)">
+                  ${questions.map((q, i) => {
+                    const done = completionMap[q.id];
+                    const badge = done ? `\u2713 ${done.bestScore}/90` : '';
+                    return `<option value="${i}">${done ? '\u2713 ' : ''}Q${i + 1}${done ? ' — ' + done.bestScore + '/90' : ''}</option>`;
+                  }).join('')}
+                </select>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-gray-600">${completedCount}/${questions.length} done</span>
+                <button id="btn-skip" onclick="PTE.App.nextQuestion()" class="text-sm text-gray-500 hover:text-indigo-400 font-medium transition-colors">
+                  Skip →
+                </button>
+              </div>
+            </div>
+            <!-- Progress dots -->
+            <div class="flex gap-1 flex-wrap">
+              ${questions.map((q, i) => {
+                const done = completionMap[q.id];
+                if (done) {
+                  const scoreColor = done.bestScore >= 65 ? 'bg-emerald-500' : done.bestScore >= 45 ? 'bg-amber-500' : 'bg-red-500';
+                  return `<button onclick="PTE.App.loadQuestion(${i})" class="w-7 h-7 rounded-lg ${scoreColor} text-white text-xs font-bold flex items-center justify-center hover:opacity-80 transition-opacity" title="Q${i+1}: Best ${done.bestScore}/90 (${done.attempts} attempt${done.attempts > 1 ? 's' : ''})">${i+1}</button>`;
+                }
+                return `<button onclick="PTE.App.loadQuestion(${i})" class="w-7 h-7 rounded-lg bg-white/10 text-gray-500 text-xs font-medium flex items-center justify-center hover:bg-white/20 transition-colors" title="Q${i+1}: Not attempted">${i+1}</button>`;
+              }).join('')}
+            </div>
+          </div>`;
+        })()}
+
+        <!-- Previous Answer Section (shown for completed questions) -->
+        <div id="previous-answer" class="mb-4 hidden">
+          <!-- Dynamically populated by PTE.App.showQuestionContent -->
         </div>
 
         <!-- Practice Area -->

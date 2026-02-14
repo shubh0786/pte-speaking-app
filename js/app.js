@@ -307,13 +307,123 @@ PTE.App = {
     content += '</div>';
     area.innerHTML = content;
 
+    // ── Show Previous Answer if this question was already completed ──
+    this._showPreviousAnswer(q, type);
+
     // Action buttons
     btnArea.innerHTML = `
     <button id="btn-start" onclick="PTE.App.beginPractice()" 
       class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-      Begin
+      ${PTE.Store.getLatestSession(q.id) ? 'Try Again' : 'Begin'}
     </button>`;
+  },
+
+  /**
+   * Show previous answer details if the question has been attempted before.
+   * Displays: best score, last score, transcript, attempts count, date.
+   */
+  _showPreviousAnswer(q, type) {
+    const container = document.getElementById('previous-answer');
+    if (!container) return;
+
+    const sessions = PTE.Store.getSessionsByQuestion(q.id);
+    if (sessions.length === 0) {
+      container.classList.add('hidden');
+      container.innerHTML = '';
+      return;
+    }
+
+    const latest = sessions[0]; // most recent
+    const best = sessions.reduce((a, b) => b.overallScore > a.overallScore ? b : a);
+    const band = PTE.Scoring.getBand(best.overallScore);
+
+    // Build score breakdown for best attempt
+    let traitHtml = '';
+    if (best.scores) {
+      const s = best.scores;
+      if (s.contentResult) {
+        const traitName = s.contentResult.traitName === 'Appropriacy' ? 'Appropriacy' : 'Content';
+        traitHtml += `<span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400">${traitName}: ${s.contentResult.raw}/${s.contentResult.max}</span>`;
+      }
+      if (s.pronunciation !== undefined) {
+        const pColor = s.pronunciation >= 4 ? 'emerald' : s.pronunciation >= 3 ? 'blue' : 'amber';
+        traitHtml += `<span class="text-xs px-2 py-0.5 rounded-full bg-${pColor}-500/15 text-${pColor}-400">Pron: ${s.pronunciation}/5</span>`;
+      }
+      if (s.fluency !== undefined) {
+        const fColor = s.fluency >= 4 ? 'emerald' : s.fluency >= 3 ? 'blue' : 'amber';
+        traitHtml += `<span class="text-xs px-2 py-0.5 rounded-full bg-${fColor}-500/15 text-${fColor}-400">Fluency: ${s.fluency}/5</span>`;
+      }
+      if (s.vocabulary !== undefined) {
+        traitHtml += `<span class="text-xs px-2 py-0.5 rounded-full ${s.vocabulary === 1 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'}">${s.vocabulary === 1 ? 'Correct' : 'Incorrect'}</span>`;
+      }
+    }
+
+    // Score history mini chart
+    let historyDots = '';
+    if (sessions.length > 1) {
+      historyDots = sessions.slice(0, 8).map(s => {
+        const color = s.overallScore >= 65 ? '#10b981' : s.overallScore >= 45 ? '#f59e0b' : '#ef4444';
+        return `<div class="flex flex-col items-center gap-0.5">
+          <div class="w-2 h-2 rounded-full" style="background:${color}" title="${s.overallScore}/90"></div>
+          <span class="text-[9px] text-gray-600">${s.overallScore}</span>
+        </div>`;
+      }).join('');
+    }
+
+    container.classList.remove('hidden');
+    container.innerHTML = `
+    <div class="glass rounded-2xl overflow-hidden border border-emerald-500/20 animate-fadeIn">
+      <div class="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 px-5 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="text-sm font-semibold text-emerald-400">Previously Completed</span>
+        </div>
+        <span class="text-xs text-gray-500">${sessions.length} attempt${sessions.length > 1 ? 's' : ''} • Last: ${latest.date || 'N/A'}</span>
+      </div>
+      <div class="px-5 py-4">
+        <div class="flex items-center gap-4 mb-3">
+          <!-- Best Score Circle -->
+          <div class="relative flex-shrink-0">
+            <svg class="w-16 h-16 -rotate-90" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="${band.color}" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="${326.73 * (1 - best.overallScore / 90)}"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="text-lg font-extrabold text-white">${best.overallScore}</span>
+              <span class="text-[9px] text-gray-500">/90</span>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-sm font-bold text-white">Best Score</span>
+              <span class="text-xs px-2 py-0.5 rounded-full" style="background:${band.color}22;color:${band.color}">${band.label}</span>
+            </div>
+            <!-- Trait scores -->
+            <div class="flex flex-wrap gap-1.5 mb-2">${traitHtml}</div>
+            ${sessions.length > 1 ? `
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] text-gray-600 mr-1">History:</span>
+              ${historyDots}
+            </div>` : ''}
+          </div>
+        </div>
+        ${best.transcript ? `
+        <details class="group">
+          <summary class="cursor-pointer text-xs font-medium text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            View your previous answer
+          </summary>
+          <div class="mt-2 p-3 bg-white/5 rounded-xl border border-white/5">
+            <p class="text-sm text-gray-400 leading-relaxed">${best.transcript}</p>
+            <div class="mt-2 flex items-center gap-3 text-xs text-gray-600">
+              <span>Duration: ${Math.round(best.duration || 0)}s</span>
+              ${best.scores && best.scores.content !== undefined ? `<span>Content: ${best.scores.content}/90</span>` : ''}
+            </div>
+          </div>
+        </details>` : ''}
+      </div>
+    </div>`;
   },
 
   // ── Practice Phases ──────────────────────────────────────────

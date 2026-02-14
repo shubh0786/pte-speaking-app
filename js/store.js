@@ -116,6 +116,62 @@ PTE.Store = {
     return this.getAll().sessions.slice(0, limit);
   },
 
+  /**
+   * Get all sessions for a specific question by its ID.
+   * Returns array sorted by most recent first.
+   */
+  getSessionsByQuestion(questionId) {
+    return this.getAll().sessions.filter(s => s.questionId === questionId);
+  },
+
+  /**
+   * Get the best (highest score) session for a specific question.
+   * Returns null if never attempted.
+   */
+  getBestSession(questionId) {
+    const sessions = this.getSessionsByQuestion(questionId);
+    if (sessions.length === 0) return null;
+    return sessions.reduce((best, s) => s.overallScore > best.overallScore ? s : best);
+  },
+
+  /**
+   * Get the most recent session for a specific question.
+   * Returns null if never attempted.
+   */
+  getLatestSession(questionId) {
+    const sessions = this.getSessionsByQuestion(questionId);
+    return sessions.length > 0 ? sessions[0] : null;
+  },
+
+  /**
+   * Build a map of questionId → { attempts, bestScore, latestScore, latestSession }
+   * for all questions of a given type. Useful for showing completion status.
+   */
+  getCompletionMap(typeId) {
+    const sessions = this.getSessionsByType(typeId);
+    const map = {};
+    for (const s of sessions) {
+      if (!s.questionId) continue;
+      if (!map[s.questionId]) {
+        map[s.questionId] = {
+          attempts: 0,
+          bestScore: 0,
+          latestScore: 0,
+          latestSession: null
+        };
+      }
+      const entry = map[s.questionId];
+      entry.attempts++;
+      if (s.overallScore > entry.bestScore) entry.bestScore = s.overallScore;
+      // First occurrence is the latest (sessions are sorted newest-first)
+      if (!entry.latestSession) {
+        entry.latestScore = s.overallScore;
+        entry.latestSession = s;
+      }
+    }
+    return map;
+  },
+
   clearAll() {
     localStorage.removeItem(this.STORAGE_KEY);
   }
