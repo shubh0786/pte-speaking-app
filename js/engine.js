@@ -163,6 +163,11 @@ PTE.AudioRecorder = {
 };
 
 // ── Speech Recognition ─────────────────────────────────────────
+// Mobile Chrome fix: always create a fresh recognition instance on start().
+// Mobile Chrome cannot reliably restart a stopped recognition — it silently
+// fails. The `continuous` mode also stops randomly on mobile and the onend
+// auto-restart often doesn't work. Solution: create fresh instance every
+// time, and use aggressive auto-restart with delay.
 
 PTE.SpeechRecognizer = {
   recognition: null,
@@ -175,13 +180,21 @@ PTE.SpeechRecognizer = {
   onEnd: null,
   wordTimestamps: [],
   silenceCount: 0,
+  _restartCount: 0,
+  _isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
 
+  /**
+   * Create a fresh SpeechRecognition instance with all event handlers.
+   * Called both on init and on every start() for mobile reliability.
+   */
   init() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      console.warn('Speech Recognition not supported');
+      console.warn('[Speech] SpeechRecognition not supported in this browser');
       return false;
     }
+
+    // Always create a brand new instance (mobile requires this)
     this.recognition = new SpeechRecognition();
     this.recognition.continuous = true;
     this.recognition.interimResults = true;
@@ -211,21 +224,80 @@ PTE.SpeechRecognizer = {
     };
 
     this.recognition.onerror = (event) => {
-      if (event.error !== 'no-speech' && event.error !== 'aborted') {
-        console.error('Speech recognition error:', event.error);
+      console.warn('[Speech] Recognition error:', event.error);
+      // On mobile, 'no-speech' and 'network' errors are common
+      // Don't give up — let onend handler try to restart
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        // Permission denied — stop trying
+        console.error('[Speech] Microphone permission denied for speech recognition');
+        this.isListening = false;
       }
     };
 
     this.recognition.onend = () => {
       // Auto-restart if still supposed to be listening
       if (this.isListening) {
-        try { this.recognition.start(); } catch(e) { /* ignore */ }
+        this._restartCount++;
+        // Safety: don't restart infinitely (max 50 restarts per session)
+        if (this._restartCount > 50) {
+          console.warn('[Speech] Too many restarts, stopping');
+          this.isListening = false;
+          return;
+        }
+        // On mobile, create a fresh instance before restarting
+        // and add a small delay to let the browser clean up
+        const delay = this._isMobile ? 300 : 100;
+        setTimeout(() => {
+          if (!this.isListening) return;
+          try {
+            if (this._isMobile) {
+              // Mobile: must create fresh instance — old one can't be restarted
+              this._createFreshInstance();
+            }
+            this.recognition.start();
+          } catch(e) {
+            console.warn('[Speech] Restart failed:', e.message);
+            // Last resort: create new instance and try once more
+            setTimeout(() => {
+              if (!this.isListening) return;
+              try {
+                this._createFreshInstance();
+                this.recognition.start();
+              } catch(e2) {
+                console.error('[Speech] Final restart failed:', e2.message);
+              }
+            }, 500);
+          }
+        }, delay);
       } else if (this.onEnd) {
         this.onEnd(this.transcript, this.getAverageConfidence());
       }
     };
 
     return true;
+  },
+
+  /**
+   * Create a fresh recognition instance, preserving event handlers.
+   * Essential for mobile Chrome which can't restart stopped instances.
+   */
+  _createFreshInstance() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const oldOnResult = this.recognition ? this.recognition.onresult : null;
+    const oldOnError = this.recognition ? this.recognition.onerror : null;
+    const oldOnEnd = this.recognition ? this.recognition.onend : null;
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'en-US';
+    this.recognition.maxAlternatives = 1;
+
+    if (oldOnResult) this.recognition.onresult = oldOnResult;
+    if (oldOnError) this.recognition.onerror = oldOnError;
+    if (oldOnEnd) this.recognition.onend = oldOnEnd;
   },
 
   start() {
@@ -235,20 +307,27 @@ PTE.SpeechRecognizer = {
     this.confidenceScores = [];
     this.wordTimestamps = [];
     this.silenceCount = 0;
+    this._restartCount = 0;
     this.isListening = true;
 
-    // On mobile, re-create the recognition instance for a clean start
-    // (some browsers can't restart a stopped recognition)
+    // On mobile, ALWAYS create a fresh instance for reliable start
+    // Desktop can usually reuse the same instance
+    if (this._isMobile || !this.recognition) {
+      this.init();
+      this.isListening = true;
+    }
+
     try {
       this.recognition.start();
+      console.log('[Speech] Started', this._isMobile ? '(mobile - fresh instance)' : '(desktop)');
       return true;
     } catch (e) {
-      console.warn('[Speech] Restart failed, re-initializing...', e.message);
-      // Re-create the instance and try again
+      console.warn('[Speech] Start failed, creating fresh instance...', e.message);
       try {
         this.init();
         this.isListening = true;
         this.recognition.start();
+        console.log('[Speech] Started after re-init');
         return true;
       } catch (e2) {
         console.error('[Speech] Failed to start recognition:', e2);
@@ -263,6 +342,7 @@ PTE.SpeechRecognizer = {
     if (this.recognition) {
       try { this.recognition.stop(); } catch(e) { /* ignore */ }
     }
+    console.log('[Speech] Stopped | Transcript length:', this.transcript.length, '| Restarts:', this._restartCount);
     return {
       transcript: this.transcript.trim(),
       confidence: this.getAverageConfidence(),
