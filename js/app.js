@@ -19,7 +19,6 @@ PTE.App = {
   _prepResolve: null,       // stored resolve for skip prep
   toneResults: null,         // tone analysis results
   micStream: null,           // shared mic stream
-  _sessionId: 0,            // incremented on each beginPractice to cancel stale flows
 
   // ── Initialization ───────────────────────────────────────────
 
@@ -323,13 +322,8 @@ PTE.App = {
     const type = this.currentTypeConfig;
     const q = this.currentQuestion;
 
-    // ── Stale-flow guard ──
-    // Increment session ID so any lingering async flow from a previous
-    // attempt will bail out if the user clicked Try Again mid-flow.
-    this._sessionId++;
-    const mySession = this._sessionId;
-
     // ── Mobile fix: Unlock TTS inside the user gesture (tap/click) ──
+    // Must happen BEFORE any async calls to preserve the gesture context
     if (PTE.TTS) PTE.TTS.unlock();
 
     // Request mic access (reuse existing stream if still alive)
@@ -347,12 +341,6 @@ PTE.App = {
       try { await PTE.TTS.init(); } catch(e) {}
     }
 
-    // ── Explicitly clear old speech recognition data for clean slate ──
-    PTE.SpeechRecognizer.transcript = '';
-    PTE.SpeechRecognizer.interimTranscript = '';
-    PTE.SpeechRecognizer.confidenceScores = [];
-    PTE.SpeechRecognizer.wordTimestamps = [];
-
     // Hide start button and skip
     document.getElementById('action-buttons').innerHTML = '';
     const skipBtn = document.getElementById('btn-skip');
@@ -361,18 +349,15 @@ PTE.App = {
     // Phase 1: Play audio
     if (type.hasAudio) {
       await this.playAudioPhase(q);
-      if (this._sessionId !== mySession) { console.log('[PTE] Stale flow cancelled (audio)'); return; }
     }
 
     // Phase 2: Preparation time (with skip option)
     if (type.prepTime > 0) {
       await this.prepPhase(type.prepTime);
-      if (this._sessionId !== mySession) { console.log('[PTE] Stale flow cancelled (prep)'); return; }
     }
 
     // Phase 3: Recording (with tone analysis)
     await this.recordPhase(type.recordTime);
-    if (this._sessionId !== mySession) { console.log('[PTE] Stale flow cancelled (record)'); return; }
 
     // Phase 4: Evaluate with AI feedback
     this.evaluatePhase();
@@ -1137,11 +1122,6 @@ PTE.App = {
    * Keeps the mic stream alive so recording works immediately.
    */
   cleanup() {
-    // ── Cancel any in-flight beginPractice async flow ──
-    // Incrementing session ID causes the stale-flow guard checks
-    // in beginPractice to bail out if they're still running.
-    this._sessionId++;
-
     PTE.Timer.stop();
     PTE.TTS.stop();
     this.stopWaveformAnimation();
@@ -1151,12 +1131,6 @@ PTE.App = {
     if (PTE.SpeechRecognizer.isListening) {
       PTE.SpeechRecognizer.stop();
     }
-    // Clear speech recognition data so retry starts fresh
-    PTE.SpeechRecognizer.transcript = '';
-    PTE.SpeechRecognizer.interimTranscript = '';
-    PTE.SpeechRecognizer.confidenceScores = [];
-    PTE.SpeechRecognizer.wordTimestamps = [];
-
     if (PTE.ToneAnalyzer) {
       PTE.ToneAnalyzer.cleanup();
     }
@@ -1172,17 +1146,8 @@ PTE.App = {
       }
     }
     this.toneResults = null;
-    this.recordingStartTime = null;
-
-    // Resolve any pending promises so old async flows don't hang
-    if (this._prepResolve) {
-      this._prepResolve();
-      this._prepResolve = null;
-    }
-    if (this._recordResolve) {
-      this._recordResolve();
-      this._recordResolve = null;
-    }
+    this._prepResolve = null;
+    this._recordResolve = null;
     this.phase = 'idle';
   },
 
