@@ -218,17 +218,53 @@ PTE.UI = {
   },
 
   /**
-   * Score card component
+   * Score card component — displays official PTE-style scoring
+   * Shows overall score (10-90) + individual trait bands (0-5 or 0-6)
    */
   scoreCard(overallScore, scores, type, feedback) {
     const band = PTE.Scoring.getBand(overallScore);
     const typeConfig = Object.values(PTE.QUESTION_TYPES).find(t => t.id === type);
 
     let scoreBreakdown = '';
-    if (scores.content !== undefined) scoreBreakdown += this.scoreBar('Content', scores.content);
-    if (scores.pronunciation !== undefined) scoreBreakdown += this.scoreBar('Pronunciation', scores.pronunciation);
-    if (scores.fluency !== undefined) scoreBreakdown += this.scoreBar('Fluency', scores.fluency);
-    if (scores.vocabulary !== undefined) scoreBreakdown += this.scoreBar('Vocabulary', scores.vocabulary);
+
+    // Content: show task-specific band and details
+    if (scores.contentResult) {
+      const cr = scores.contentResult;
+      if (type === 'read-aloud') {
+        // Read Aloud: show word errors
+        scoreBreakdown += this.traitBar('Content', cr.raw, cr.max, `${cr.accuracy}% accuracy (${cr.errors} error${cr.errors !== 1 ? 's' : ''})`);
+      } else if (type === 'repeat-sentence') {
+        // Repeat Sentence: 0-3 scale
+        const labels = ['Almost nothing', 'Less than 50%', 'At least 50%', 'All words correct'];
+        scoreBreakdown += this.traitBar('Content', cr.band, cr.max, labels[cr.band] || '');
+      } else {
+        // DI, RL, SGD, RTS: 0-6 scale
+        const labels = ['Too limited', 'Disconnected elements', 'Minimal/superficial', 'Superficial descriptions', 'Basic relationships', 'Main features accurate', 'Full & nuanced'];
+        // RTS uses "Appropriacy" trait instead of "Content" (August 2025 change)
+        const traitName = (cr.traitName === 'Appropriacy') ? 'Appropriacy' : 'Content';
+        scoreBreakdown += this.traitBar(traitName, cr.raw, cr.max, labels[cr.raw] || '');
+      }
+    } else if (scores.content !== undefined) {
+      // Fallback for backward compat
+      scoreBreakdown += this.scoreBar('Content', scores.content);
+    }
+
+    // Pronunciation: 0-5 PTE band
+    if (scores.pronunciation !== undefined) {
+      const pLabels = ['Non-English', 'Intrusive', 'Intermediate', 'Good', 'Advanced', 'Highly Proficient'];
+      scoreBreakdown += this.traitBar('Pronunciation', scores.pronunciation, 5, pLabels[scores.pronunciation] || '');
+    }
+
+    // Oral Fluency: 0-5 PTE band
+    if (scores.fluency !== undefined) {
+      const fLabels = ['Disfluent', 'Limited', 'Intermediate', 'Good', 'Advanced', 'Highly Proficient'];
+      scoreBreakdown += this.traitBar('Oral Fluency', scores.fluency, 5, fLabels[scores.fluency] || '');
+    }
+
+    // Vocabulary: 0/1 for ASQ
+    if (scores.vocabulary !== undefined) {
+      scoreBreakdown += this.traitBar('Vocabulary', scores.vocabulary, 1, scores.vocabulary === 1 ? 'Correct' : 'Incorrect');
+    }
 
     let feedbackHtml = '';
     if (feedback && feedback.length > 0) {
@@ -236,9 +272,9 @@ PTE.UI = {
       <div class="mt-6 space-y-3">
         <h4 class="font-semibold text-gray-200 flex items-center gap-2">
           <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-          Feedback
+          PTE Feedback (Official Criteria)
         </h4>
-        ${feedback.map(f => `<div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/5"><span class="text-cyan-400 mt-0.5">•</span><p class="text-sm text-gray-400">${f}</p></div>`).join('')}
+        ${feedback.map(f => `<div class="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/5"><span class="text-cyan-400 mt-0.5 flex-shrink-0">•</span><p class="text-sm text-gray-400">${f}</p></div>`).join('')}
       </div>`;
     }
 
@@ -247,7 +283,8 @@ PTE.UI = {
       <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 p-6 text-center relative overflow-hidden">
         <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width%3D%2240%22 height%3D%2240%22 viewBox%3D%220 0 40 40%22 xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath d%3D%22M0 0h40v40H0z%22 fill%3D%22none%22/%3E%3Ccircle cx%3D%2220%22 cy%3D%2220%22 r%3D%221%22 fill%3D%22rgba(255%2C255%2C255%2C0.1)%22/%3E%3C/svg%3E')]"></div>
         <div class="relative">
-          <h3 class="text-white/70 text-sm font-medium mb-3">${typeConfig ? typeConfig.name : 'Speaking'} Score</h3>
+          <h3 class="text-white/70 text-sm font-medium mb-1">${typeConfig ? typeConfig.name : 'Speaking'} Score</h3>
+          <p class="text-white/40 text-xs mb-3">Based on official PTE Academic criteria</p>
           <div class="relative inline-flex items-center justify-center mb-3">
             <svg class="w-32 h-32 -rotate-90" viewBox="0 0 120 120">
               <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8"/>
@@ -265,13 +302,47 @@ PTE.UI = {
         </div>
       </div>
       <div class="p-6">
-        <h4 class="font-semibold text-gray-200 mb-4">Score Breakdown</h4>
+        <h4 class="font-semibold text-gray-200 mb-4 flex items-center gap-2">
+          Trait Scores
+          <span class="text-xs font-normal text-gray-500">(Official PTE Scale)</span>
+        </h4>
         <div class="space-y-4">${scoreBreakdown}</div>
         ${feedbackHtml}
       </div>
     </div>`;
   },
 
+  /**
+   * Trait bar: shows PTE band score (e.g. 4/5 Advanced) with a visual bar
+   */
+  traitBar(label, score, maxScore, descriptor) {
+    const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
+    let color;
+    const ratio = maxScore > 0 ? score / maxScore : 0;
+    if (ratio >= 0.8) color = '#10b981';       // green
+    else if (ratio >= 0.6) color = '#6366f1';   // indigo
+    else if (ratio >= 0.4) color = '#f59e0b';   // amber
+    else if (ratio >= 0.2) color = '#f97316';   // orange
+    else color = '#ef4444';                      // red
+
+    return `
+    <div>
+      <div class="flex justify-between items-center mb-1">
+        <span class="text-sm font-medium text-gray-400">${label}</span>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500">${descriptor}</span>
+          <span class="text-sm font-bold tabular-nums" style="color:${color}">${score}/${maxScore}</span>
+        </div>
+      </div>
+      <div class="h-2.5 bg-white/10 rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all duration-1000 score-bar-animate" style="width:${pct}%;background:${color};box-shadow:0 0 8px ${color}66"></div>
+      </div>
+    </div>`;
+  },
+
+  /**
+   * Legacy score bar (0-90 scale) — kept for backward compat
+   */
   scoreBar(label, score) {
     const pct = (score / 90) * 100;
     let color;

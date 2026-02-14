@@ -343,9 +343,17 @@ PTE.Exam = {
     if (typeConfig.scoring.includes('vocabulary')) {
       scores.vocabulary = PTE.Scoring.vocabularyScore(transcript, question.keywords);
     } else {
-      if (typeConfig.scoring.includes('content')) scores.content = PTE.Scoring.contentScore(transcript, expectedText, question.keywords);
-      if (typeConfig.scoring.includes('pronunciation')) scores.pronunciation = PTE.Scoring.pronunciationScore(confidence, transcript);
-      if (typeConfig.scoring.includes('fluency')) scores.fluency = PTE.Scoring.fluencyScore(wordTimestamps, recordDuration, transcript);
+      if (typeConfig.scoring.includes('content') || typeConfig.scoring.includes('appropriacy')) {
+        scores.contentResult = PTE.Scoring.contentScore(transcript, expectedText, question.keywords, type, question);
+        scores.content = scores.contentResult.max > 0
+          ? PTE.Scoring.bandTo90(scores.contentResult.raw, scores.contentResult.max)
+          : 0;
+        if (typeConfig.scoring.includes('appropriacy')) {
+          scores.contentResult.traitName = 'Appropriacy';
+        }
+      }
+      if (typeConfig.scoring.includes('pronunciation')) scores.pronunciation = PTE.Scoring.pronunciationScore(confidence, transcript, expectedText);
+      if (typeConfig.scoring.includes('fluency')) scores.fluency = PTE.Scoring.fluencyScore(wordTimestamps, recordDuration, transcript, typeConfig.recordTime);
     }
 
     const overallScore = PTE.Scoring.calculateOverall(scores, type);

@@ -613,21 +613,33 @@ PTE.App = {
     const wordTimestamps = PTE.SpeechRecognizer.wordTimestamps;
     const recordDuration = (Date.now() - this.recordingStartTime) / 1000;
 
-    // Calculate scores
+    // Calculate scores using official PTE criteria (0-5/0-6 bands)
     let scores = {};
     const expectedText = q.text || (q.speakers ? q.speakers.map(s => s.text).join(' ') : '') || q.audioText || '';
 
     if (type.scoring.includes('vocabulary')) {
       scores.vocabulary = PTE.Scoring.vocabularyScore(transcript, q.keywords);
     } else {
-      if (type.scoring.includes('content')) {
-        scores.content = PTE.Scoring.contentScore(transcript, expectedText, q.keywords);
+      // Content scoring (or Appropriacy for Respond to Situation)
+      if (type.scoring.includes('content') || type.scoring.includes('appropriacy')) {
+        // Content/Appropriacy scoring is task-specific, returns { raw, max, band, errors, accuracy }
+        scores.contentResult = PTE.Scoring.contentScore(transcript, expectedText, q.keywords, type.id, q);
+        // Convert to 0-90 display score for backward compat with UI/storage
+        scores.content = scores.contentResult.max > 0
+          ? PTE.Scoring.bandTo90(scores.contentResult.raw, scores.contentResult.max)
+          : 0;
+        // For RTS: label it as "appropriacy" in the result
+        if (type.scoring.includes('appropriacy')) {
+          scores.contentResult.traitName = 'Appropriacy';
+        }
       }
       if (type.scoring.includes('pronunciation')) {
-        scores.pronunciation = PTE.Scoring.pronunciationScore(confidence, transcript);
+        // Returns 0-5 band (official PTE scale)
+        scores.pronunciation = PTE.Scoring.pronunciationScore(confidence, transcript, expectedText);
       }
       if (type.scoring.includes('fluency')) {
-        scores.fluency = PTE.Scoring.fluencyScore(wordTimestamps, recordDuration, transcript);
+        // Returns 0-5 band (official PTE scale)
+        scores.fluency = PTE.Scoring.fluencyScore(wordTimestamps, recordDuration, transcript, type.recordTime);
       }
     }
 

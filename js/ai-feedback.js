@@ -153,31 +153,35 @@ PTE.AIFeedback = {
     };
   },
 
+  /**
+   * Pronunciation analysis — now uses 0-5 PTE band scale
+   */
   _pronunciationAnalysis(score, confidence, transcript) {
     const wordCount = transcript ? transcript.split(/\s+/).length : 0;
-
+    // score is now 0-5 (official PTE band)
+    const bandLabels = ['Non-English', 'Intrusive', 'Intermediate', 'Good', 'Advanced', 'Highly Proficient'];
     let level, detail, tips;
 
-    if (score >= 70) {
-      level = 'excellent';
-      detail = 'Your pronunciation is clear and intelligible. The speech recognition system captured your words accurately.';
+    if (score >= 4) {
+      level = bandLabels[score] || 'excellent';
+      detail = `Your pronunciation scored ${score}/5 (${bandLabels[score]}). Speech sounds are clearly produced and easily understood.`;
       tips = [
         'Continue practicing to maintain this level',
         'Focus on stress patterns in multi-syllable words',
         'Record yourself and compare with native speakers'
       ];
-    } else if (score >= 50) {
-      level = 'good';
-      detail = 'Your pronunciation is generally clear, but some words may not have been captured accurately.';
+    } else if (score === 3) {
+      level = 'Good';
+      detail = `Your pronunciation scored ${score}/5 (Good). Most sounds are correct, but some consonant/stress errors may make a few words hard to understand.`;
       tips = [
         'Practice problematic sounds (th, r, l, v, w) with tongue placement exercises',
         'Use shadowing technique: listen and speak simultaneously with native audio',
         'Focus on word endings — don\'t drop final consonants',
         'Record yourself and listen back to identify specific problem sounds'
       ];
-    } else if (score >= 30) {
-      level = 'developing';
-      detail = 'Several words were not recognized correctly, suggesting pronunciation needs improvement.';
+    } else if (score === 2) {
+      level = 'Intermediate';
+      detail = `Your pronunciation scored ${score}/5 (Intermediate). Consistent mispronunciations present — about one third of speech may be hard to understand.`;
       tips = [
         'Start with minimal pair practice (ship/sheep, bit/beat, fan/van)',
         'Practice with speech-to-text apps to see which words get misrecognized',
@@ -186,8 +190,8 @@ PTE.AIFeedback = {
         'Slow down slightly to enunciate clearly'
       ];
     } else {
-      level = 'needs-work';
-      detail = 'Many words were not recognized, indicating significant pronunciation challenges.';
+      level = score === 1 ? 'Intrusive' : 'Non-English';
+      detail = `Your pronunciation scored ${score}/5 (${bandLabels[score] || 'Needs Work'}). Many words were not understood by the recognition system.`;
       tips = [
         'Begin with individual sound practice using IPA (International Phonetic Alphabet)',
         'Use apps like ELSA Speak for targeted pronunciation drills',
@@ -198,13 +202,17 @@ PTE.AIFeedback = {
       ];
     }
 
-    return { level, score, detail, tips, confidence: Math.round(confidence * 100) };
+    return { level, score, maxScore: 5, detail, tips, confidence: Math.round(confidence * 100) };
   },
 
+  /**
+   * Fluency analysis — now uses 0-5 PTE band scale
+   */
   _fluencyAnalysis(score, transcript, duration, maxDuration) {
     const wordCount = transcript ? transcript.split(/\s+/).length : 0;
     const wpm = duration > 0 ? Math.round((wordCount / duration) * 60) : 0;
     const timeUsed = maxDuration > 0 ? Math.round((duration / maxDuration) * 100) : 0;
+    const bandLabels = ['Disfluent', 'Limited', 'Intermediate', 'Good', 'Advanced', 'Highly Proficient'];
 
     let paceAssessment, fluencyLevel, tips;
 
@@ -221,35 +229,36 @@ PTE.AIFeedback = {
       paceAssessment = `Your pace of ${wpm} WPM is too fast. Slow down to ensure clarity and accuracy.`;
     }
 
-    if (score >= 70) {
-      fluencyLevel = 'excellent';
+    // score is now 0-5 (official PTE band)
+    if (score >= 4) {
+      fluencyLevel = bandLabels[score] || 'excellent';
       tips = [
-        'Excellent fluency! Maintain this smooth, natural delivery.',
+        `Oral Fluency: ${score}/5 (${bandLabels[score]}). Smooth, natural delivery.`,
         'Continue to vary your pace slightly for emphasis on key points.'
       ];
-    } else if (score >= 50) {
-      fluencyLevel = 'good';
+    } else if (score === 3) {
+      fluencyLevel = 'Good';
       tips = [
+        `Oral Fluency: ${score}/5 (Good). Uneven but continuous — multiple hesitations noted.`,
         'Practice reading aloud for 10 minutes daily to build speaking stamina',
         'Avoid "um", "uh", and long pauses — replace with brief natural pauses',
-        'Use linking words (however, moreover, therefore) to connect ideas smoothly',
-        'Practice speaking in complete sentences without restarting'
+        'Use linking words (however, moreover, therefore) to connect ideas smoothly'
       ];
-    } else if (score >= 30) {
-      fluencyLevel = 'developing';
+    } else if (score === 2) {
+      fluencyLevel = 'Intermediate';
       tips = [
+        `Oral Fluency: ${score}/5 (Intermediate). Staccato/uneven speech with noticeable pauses.`,
         'Read aloud from English texts for 15-20 minutes daily',
         'Record yourself and count hesitations — aim to reduce them each time',
         'Practice "chunking" — speak in meaningful phrases rather than word by word',
-        'Shadow native speakers: listen and speak along simultaneously',
-        'Use the full recording time — silence hurts your score'
+        'Shadow native speakers: listen and speak along simultaneously'
       ];
     } else {
-      fluencyLevel = 'needs-work';
+      fluencyLevel = score === 1 ? 'Limited' : 'Disfluent';
       tips = [
+        `Oral Fluency: ${score}/5 (${bandLabels[score] || 'Needs Work'}). Multiple pauses and hesitations detected.`,
         'Start with short passages (2-3 sentences) and build up gradually',
         'Practice speed reading aloud to build comfort with continuous speech',
-        'Record daily reading and track improvement over time',
         'Focus on not going back to correct mistakes — keep moving forward',
         'Practice tongue twisters to improve articulatory fluency',
         'Always use the full recording time, even if you need to repeat content'
@@ -269,24 +278,35 @@ PTE.AIFeedback = {
   },
 
   _generateStrengthsAndImprovements(feedback, scores, toneResults) {
+    // Scores are now 0-5 PTE bands (pronunciation, fluency) and
+    // contentResult with raw/max for content
+    const contentGood = scores.contentResult && scores.contentResult.max > 0
+      ? (scores.contentResult.raw / scores.contentResult.max) >= 0.6
+      : (scores.content !== undefined && scores.content >= 60);
+    const contentWeak = scores.contentResult && scores.contentResult.max > 0
+      ? (scores.contentResult.raw / scores.contentResult.max) < 0.4
+      : (scores.content !== undefined && scores.content < 50);
+
     // Strengths
-    if (scores.content >= 60) feedback.strengths.push('Strong content recall — you captured the key information effectively.');
-    if (scores.pronunciation >= 60) feedback.strengths.push('Clear pronunciation — your speech is easy to understand.');
-    if (scores.fluency >= 60) feedback.strengths.push('Good fluency — smooth delivery with natural pacing.');
-    if (scores.vocabulary >= 60) feedback.strengths.push('Correct vocabulary — you identified the right answer.');
+    if (contentGood) feedback.strengths.push('Strong content coverage — you captured the key information effectively.');
+    if (scores.pronunciation >= 4) feedback.strengths.push('Excellent pronunciation (4-5/5) — your speech is clear and easily understood.');
+    else if (scores.pronunciation === 3) feedback.strengths.push('Good pronunciation (3/5) — most speech sounds are correct.');
+    if (scores.fluency >= 4) feedback.strengths.push('Great fluency (4-5/5) — smooth, natural delivery with minimal hesitations.');
+    else if (scores.fluency === 3) feedback.strengths.push('Decent fluency (3/5) — continuous speech with some hesitations.');
+    if (scores.vocabulary === 1) feedback.strengths.push('Correct vocabulary — you identified the right answer.');
     if (toneResults && toneResults.hasPitchData && toneResults.intonationScore >= 60) {
       feedback.strengths.push('Natural intonation — your voice has good pitch variation and expression.');
     }
 
     // Improvements
-    if (scores.content !== undefined && scores.content < 50) {
-      feedback.improvements.push('Content accuracy needs work — focus on capturing more key words and phrases.');
+    if (contentWeak) {
+      feedback.improvements.push('Content accuracy needs significant work — focus on capturing more key words, data points, and main ideas.');
     }
-    if (scores.pronunciation !== undefined && scores.pronunciation < 50) {
-      feedback.improvements.push('Pronunciation clarity needs improvement — practice enunciation and common English sounds.');
+    if (scores.pronunciation !== undefined && scores.pronunciation <= 2) {
+      feedback.improvements.push(`Pronunciation (${scores.pronunciation}/5) needs improvement — consistent mispronunciations detected. Practice enunciation and common English sounds.`);
     }
-    if (scores.fluency !== undefined && scores.fluency < 50) {
-      feedback.improvements.push('Fluency needs work — reduce pauses, hesitations, and aim for continuous speech.');
+    if (scores.fluency !== undefined && scores.fluency <= 2) {
+      feedback.improvements.push(`Oral Fluency (${scores.fluency}/5) needs work — reduce pauses, hesitations, and false starts. Aim for continuous, smooth speech.`);
     }
     if (toneResults && toneResults.hasPitchData) {
       if (toneResults.intonationScore < 50) {
@@ -308,7 +328,7 @@ PTE.AIFeedback = {
           { title: 'Chunk the Text', detail: 'Break the passage into meaningful phrases (3-5 words). Pause briefly between chunks rather than between individual words.' },
           { title: 'Mark Stress Words', detail: 'Mentally identify content words (nouns, verbs, adjectives) to stress. Function words (the, a, of) should be spoken quickly.' }
         );
-        if (scores.content < 60) {
+        if (scores.contentResult && scores.contentResult.accuracy < 80) {
           strategies.push({ title: 'Don\'t Skip Words', detail: 'If you stumble on a word, make your best attempt and keep going. Skipping words hurts content score more than mispronouncing them.' });
         }
         break;
@@ -369,7 +389,8 @@ PTE.AIFeedback = {
     const exercises = [];
 
     // Universal exercises
-    if (scores.pronunciation !== undefined && scores.pronunciation < 60) {
+    // Pronunciation: now 0-5 band
+    if (scores.pronunciation !== undefined && scores.pronunciation <= 3) {
       exercises.push({
         title: 'Tongue Twisters (5 min/day)',
         description: 'Practice: "She sells seashells by the seashore" — start slow, increase speed. This builds articulatory precision.',
@@ -382,7 +403,8 @@ PTE.AIFeedback = {
       });
     }
 
-    if (scores.fluency !== undefined && scores.fluency < 60) {
+    // Fluency: now 0-5 band
+    if (scores.fluency !== undefined && scores.fluency <= 3) {
       exercises.push({
         title: 'Read Aloud Daily (15 min)',
         description: 'Read newspaper articles or book passages aloud. Time yourself and aim to read smoothly without stopping.',
@@ -408,7 +430,11 @@ PTE.AIFeedback = {
       });
     }
 
-    if (scores.content !== undefined && scores.content < 60) {
+    // Content: check using contentResult or legacy content score
+    const contentWeak = scores.contentResult
+      ? (scores.contentResult.max > 0 && (scores.contentResult.raw / scores.contentResult.max) < 0.5)
+      : (scores.content !== undefined && scores.content < 60);
+    if (contentWeak) {
       exercises.push({
         title: 'Active Listening Practice (15 min)',
         description: 'Listen to 1-minute audio clips. Immediately write down key words. Compare with transcript. Repeat daily.',
@@ -469,11 +495,24 @@ PTE.AIFeedback = {
 
     let summary = `Your overall performance is at the "${band.label}" level (${overallScore}/90). `;
 
-    const best = Object.entries(scores).reduce((a, b) => (b[1] > a[1] ? b : a), ['', 0]);
-    const worst = Object.entries(scores).reduce((a, b) => (b[1] < a[1] ? b : a), ['', 90]);
+    // Trait-level summary
+    const traitSummaries = [];
+    if (scores.contentResult) {
+      const cr = scores.contentResult;
+      const pct = cr.max > 0 ? Math.round((cr.raw / cr.max) * 100) : 0;
+      traitSummaries.push(`Content: ${cr.raw}/${cr.max} (${pct}%)`);
+    }
+    if (scores.pronunciation !== undefined) {
+      const pLabels = ['Non-English', 'Intrusive', 'Intermediate', 'Good', 'Advanced', 'Highly Proficient'];
+      traitSummaries.push(`Pronunciation: ${scores.pronunciation}/5 (${pLabels[scores.pronunciation]})`);
+    }
+    if (scores.fluency !== undefined) {
+      const fLabels = ['Disfluent', 'Limited', 'Intermediate', 'Good', 'Advanced', 'Highly Proficient'];
+      traitSummaries.push(`Oral Fluency: ${scores.fluency}/5 (${fLabels[scores.fluency]})`);
+    }
 
-    if (best[0] && worst[0] && best[0] !== worst[0]) {
-      summary += `Your strongest area is ${best[0]} (${best[1]}/90), while ${worst[0]} (${worst[1]}/90) needs the most attention. `;
+    if (traitSummaries.length > 0) {
+      summary += traitSummaries.join(' | ') + '. ';
     }
 
     if (toneResults && toneResults.hasPitchData) {
@@ -497,17 +536,20 @@ PTE.AIFeedback = {
 
   _explainScores(scores, type) {
     const parts = [];
-    if (scores.content !== undefined) {
-      parts.push(`Content (${scores.content}/90): Measures how much of the expected information you included — key words, phrases, and ideas.`);
+    if (scores.contentResult) {
+      const cr = scores.contentResult;
+      parts.push(`Content (${cr.raw}/${cr.max}): Measures how completely and accurately you described the expected information. ${cr.accuracy !== undefined ? `Word accuracy: ${cr.accuracy}%.` : ''} If content = 0, your total score is 0.`);
     }
     if (scores.pronunciation !== undefined) {
-      parts.push(`Pronunciation (${scores.pronunciation}/90): Based on how accurately the speech recognition system captured your words. Higher recognition = clearer pronunciation.`);
+      const pLabel = PTE.Scoring.getTraitLabel(scores.pronunciation);
+      parts.push(`Pronunciation (${scores.pronunciation}/5 — ${pLabel}): Based on how clearly you produce speech sounds. The system evaluates vowels, consonants, word stress, and sentence-level intonation.`);
     }
     if (scores.fluency !== undefined) {
-      parts.push(`Fluency (${scores.fluency}/90): Evaluates your speaking pace, continuity, and smoothness. Natural rhythm without long pauses scores highest.`);
+      const fLabel = PTE.Scoring.getTraitLabel(scores.fluency);
+      parts.push(`Oral Fluency (${scores.fluency}/5 — ${fLabel}): Evaluates rhythm, phrasing, and continuity of speech. Smooth delivery without hesitations, repetitions, or false starts scores highest.`);
     }
     if (scores.vocabulary !== undefined) {
-      parts.push(`Vocabulary (${scores.vocabulary}/90): Whether you provided the correct answer word(s).`);
+      parts.push(`Vocabulary (${scores.vocabulary}/1): Whether you provided the correct answer word. Binary scoring: 1 = correct, 0 = incorrect.`);
     }
     return parts.join('\n');
   }

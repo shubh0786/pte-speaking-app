@@ -6,6 +6,22 @@
 window.PTE = window.PTE || {};
 
 PTE.QUESTION_TYPES = {
+  // ═══════════════════════════════════════════════════════════════
+  // Official PTE Academic Speaking & Writing — Question Types
+  // Source: PTE Academic Test Taker Score Guide (Pearson 2025)
+  // https://www.pearsonpte.com/pte-academic/scoring
+  //
+  // Scoring traits per type:
+  //   RA:  Content(word-level) + Pronunciation(0-5) + OralFluency(0-5)
+  //   RS:  Content(0-3)        + Pronunciation(0-5) + OralFluency(0-5) = max 13
+  //   DI:  Content(0-6)        + Pronunciation(0-5) + OralFluency(0-5) = max 16
+  //   RL:  Content(0-6)        + Pronunciation(0-5) + OralFluency(0-5) = max 16
+  //   ASQ: Vocabulary(0-1) = max 1
+  //   SGD: Content(0-6)        + Pronunciation(0-5) + OralFluency(0-5) = max 16
+  //   RTS: Content(0-6)        + Pronunciation(0-5) + OralFluency(0-5) = max 16
+  //
+  // If Content = 0, total score for that item = 0 (official rule).
+  // ═══════════════════════════════════════════════════════════════
   READ_ALOUD: {
     id: 'read-aloud',
     name: 'Read Aloud',
@@ -14,18 +30,24 @@ PTE.QUESTION_TYPES = {
     color: '#6366f1',
     colorLight: '#e0e7ff',
     description: 'A text appears on screen. Read the text aloud.',
+    examItems: '6-7 items',
     prepTime: 35,
     recordTime: 40,
     hasAudio: false,
     hasImage: false,
     hasText: true,
     scoring: ['content', 'pronunciation', 'fluency'],
+    skillsAssessed: ['Speaking', 'Reading'],
+    contentMax: 'varies (1 per word)',
+    pronunciationMax: 5,
+    fluencyMax: 5,
     tips: [
-      'Use the preparation time to silently read the passage',
-      'Speak clearly and at a natural pace',
-      'Do not rush — fluency matters more than speed',
-      'Stress key words naturally',
-      'If you make a mistake, continue without going back'
+      'Each word error (skip, replace, or add) costs marks — read every word',
+      'Speak clearly at 120-160 words per minute (natural pace)',
+      'Use natural stress and intonation — don\'t read robotically',
+      'If you make a mistake, keep going — do NOT go back and re-read',
+      'Practice reading the full passage silently during prep time',
+      'This question type contributes ~12% of your total PTE score'
     ]
   },
   REPEAT_SENTENCE: {
@@ -36,18 +58,24 @@ PTE.QUESTION_TYPES = {
     color: '#8b5cf6',
     colorLight: '#ede9fe',
     description: 'Listen to a sentence. Repeat the sentence exactly as you heard it.',
+    examItems: '10-12 items',
     prepTime: 0,
     recordTime: 15,
     hasAudio: true,
     hasImage: false,
     hasText: false,
     scoring: ['content', 'pronunciation', 'fluency'],
+    skillsAssessed: ['Listening', 'Speaking'],
+    contentMax: 3,
+    pronunciationMax: 5,
+    fluencyMax: 5,
     tips: [
-      'Listen carefully to every word',
-      'Try to remember the beginning, middle, and end',
-      'Speak immediately when the recording starts',
-      'Match the speaker\'s pace and intonation',
-      'Even partial repetition scores some points'
+      'Content scored 0-3: you need ALL words in correct sequence for 3/3',
+      'At least 50% correct sequence = 2/3; less than 50% = 1/3',
+      'Listen to the START and END of the sentence carefully',
+      'Begin speaking immediately — delays lose fluency marks',
+      'Even partial repetition scores some points — never stay silent',
+      'This is the HIGHEST-weight question type (~14% of total score)'
     ]
   },
   DESCRIBE_IMAGE: {
@@ -58,18 +86,25 @@ PTE.QUESTION_TYPES = {
     color: '#ec4899',
     colorLight: '#fce7f3',
     description: 'An image appears on screen. Describe the image in detail.',
+    examItems: '5-6 items',
     prepTime: 25,
     recordTime: 40,
     hasAudio: false,
     hasImage: true,
     hasText: false,
     scoring: ['content', 'pronunciation', 'fluency'],
+    skillsAssessed: ['Speaking'],
+    contentMax: 6,
+    pronunciationMax: 5,
+    fluencyMax: 5,
     tips: [
-      'Start with a general overview statement',
-      'Mention the type of image (bar chart, line graph, etc.)',
-      'Describe the main trends or features',
-      'Include specific data points and numbers',
-      'Conclude with a summary or comparison'
+      'Content scored 0-6: describe ALL elements, relationships AND implications for 6/6',
+      'Use template: "This [type] shows [title]. The highest/largest is... The lowest is..."',
+      'Mention: chart type, title/topic, highest value, lowest value, trends, conclusion',
+      'Speak for at least 35 seconds (aim for 35-38 seconds)',
+      'Use varied vocabulary — "illustrates", "depicts", "indicates", "represents"',
+      'If Content = 0 (irrelevant/nothing said), your total score = 0',
+      'This contributes ~6% of total score — pronunciation matters here'
     ]
   },
   RETELL_LECTURE: {
@@ -80,18 +115,24 @@ PTE.QUESTION_TYPES = {
     color: '#f59e0b',
     colorLight: '#fef3c7',
     description: 'Listen to a lecture. Retell what you heard in your own words.',
+    examItems: '2-3 items',
     prepTime: 10,
     recordTime: 40,
     hasAudio: true,
     hasImage: false,
     hasText: false,
     scoring: ['content', 'pronunciation', 'fluency'],
+    skillsAssessed: ['Listening', 'Speaking'],
+    contentMax: 6,
+    pronunciationMax: 5,
+    fluencyMax: 5,
     tips: [
-      'Take mental notes of key points while listening',
-      'Identify the main topic and supporting details',
-      'Use discourse markers (firstly, moreover, in conclusion)',
-      'Speak for the full 40 seconds',
-      'Cover the main points even if you miss some details'
+      'Content scored 0-6: paraphrase ALL main ideas in your OWN words for 6/6',
+      'Use connective devices: "firstly", "moreover", "in conclusion", "the speaker mentioned"',
+      'Take mental notes: topic, main points, examples, conclusion',
+      'Speak for the full 40 seconds — fill the time with relevant content',
+      'Don\'t just repeat the lecture word-for-word — paraphrase and organize logically',
+      'Content is scored by BOTH AI and a human reviewer'
     ]
   },
   ANSWER_SHORT_QUESTION: {
@@ -102,20 +143,26 @@ PTE.QUESTION_TYPES = {
     color: '#10b981',
     colorLight: '#d1fae5',
     description: 'Listen to a question. Give a short answer in one or a few words.',
+    examItems: '5-6 items',
     prepTime: 0,
     recordTime: 10,
     hasAudio: true,
     hasImage: false,
     hasText: false,
     scoring: ['vocabulary'],
+    skillsAssessed: ['Listening'],  // Official July 2025: only Listening (not Speaking)
     tips: [
-      'Give a short, direct answer — one or two words is enough',
-      'Do not explain your answer',
+      'Vocabulary: 1 = correct answer, 0 = incorrect (binary scoring)',
+      'Give a short, direct answer — one or two words only',
+      'Do NOT explain or elaborate on your answer',
       'Speak clearly and confidently',
-      'If unsure, give your best guess',
-      'Do not stay silent — always attempt an answer'
+      'If unsure, give your best guess — never stay silent',
+      'Lowest weight question (~2.5% of total) but easy marks'
     ]
   },
+  // ── NEW TASK (August 2025) ──────────────────────────────────
+  // Source: July 2025 PTE Academic Score Guide, pages 24-30
+  // https://www.pearsonpte.com/ctf-assets/yqwtwibiobs4/WUcBAMkYCC9Dj5vs2HfVA/
   SUMMARIZE_GROUP_DISCUSSION: {
     id: 'summarize-group-discussion',
     name: 'Summarize Group Discussion',
@@ -123,21 +170,34 @@ PTE.QUESTION_TYPES = {
     icon: '👥',
     color: '#0ea5e9',
     colorLight: '#e0f2fe',
-    description: 'Listen to a group discussion. Summarize the main points.',
+    description: 'Listen to a 2-3 minute group discussion with multiple speakers. Summarize the main points in your own words.',
+    examItems: '2-3 items',
     prepTime: 10,
-    recordTime: 60,
+    recordTime: 120,  // Up to 2 minutes (official: "up to 2 minutes")
     hasAudio: true,
     hasImage: false,
     hasText: false,
     scoring: ['content', 'pronunciation', 'fluency'],
+    skillsAssessed: ['Listening', 'Speaking'],
+    contentMax: 6,
+    pronunciationMax: 5,
+    fluencyMax: 5,
     tips: [
-      'Note each speaker\'s main point',
-      'Identify areas of agreement and disagreement',
-      'Use formal, academic language',
-      'Aim for 50-70 words in your summary',
-      'Structure: introduction → main points → conclusion'
+      'NEW task from August 2025 — Content scored 0-6 by AI + human reviewer',
+      'Listen to a 2-3 minute discussion, then summarize in up to 2 minutes',
+      'Take quick notes using symbols/keywords while listening',
+      'Content 6/6: paraphrase ALL speakers\' ideas, explore relationships between viewpoints, synthesize perspectives',
+      'Use formal academic third-person tone — no personal opinions ("I think")',
+      'Structure: "The discussion focused on [topic]. Speaker A argued... Speaker B suggested... Overall..."',
+      'Use linking words: "however", "in addition", "on the other hand", "in contrast"',
+      'Paraphrase — do NOT repeat speakers\' exact words',
+      'Content is scored by BOTH AI and a human reviewer — memorized templates detected'
     ]
   },
+  // ── NEW TASK (August 2025) ──────────────────────────────────
+  // Source: July 2025 PTE Academic Score Guide, pages 30-36
+  // Scoring: Appropriacy (0-6) + Pronunciation (0-5) + Oral Fluency (0-5)
+  // Note: "Appropriacy" replaces "Content" for this task type
   RESPOND_TO_SITUATION: {
     id: 'respond-to-situation',
     name: 'Respond to a Situation',
@@ -145,19 +205,28 @@ PTE.QUESTION_TYPES = {
     icon: '💬',
     color: '#f43f5e',
     colorLight: '#ffe4e6',
-    description: 'Read and listen to a scenario. Respond appropriately.',
-    prepTime: 20,
+    description: 'Listen to and read a real-life scenario. Respond appropriately in 40 seconds.',
+    examItems: '2 items',
+    prepTime: 10,       // Official: 10 seconds prep (not 20)
     recordTime: 40,
     hasAudio: true,
     hasImage: false,
     hasText: true,
-    scoring: ['content', 'pronunciation', 'fluency', 'appropriateness'],
+    scoring: ['appropriacy', 'pronunciation', 'fluency'],  // "Appropriacy" not "Content"
+    skillsAssessed: ['Listening', 'Speaking'],
+    appropriacyMax: 6,  // Appropriacy scored 0-6 (replaces content for this task)
+    pronunciationMax: 5,
+    fluencyMax: 5,
     tips: [
-      'Read the scenario carefully during prep time',
-      'Identify who you are speaking to and why',
-      'Use an appropriate tone (formal/informal)',
-      'Address all parts of the situation',
-      'Be polite and clear in your response'
+      'NEW task from August 2025 — Appropriacy scored 0-6 (not "content")',
+      'Appropriacy = how well you understood and responded to the scenario',
+      '10 seconds prep only — read the scenario quickly, identify: who, what, why',
+      'Speak for the full 40 seconds with a natural, appropriate tone',
+      'Match register to situation: formal for workplace, polite for complaints, friendly for social',
+      'Use scenario keywords in your response to show you understood the situation',
+      'Focus on clarity over complexity — simple, natural responses score better',
+      'Practice scenarios: workplace feedback, customer complaints, making requests, apologizing',
+      'Scored by AI + human reviewer — pre-memorized responses will be detected'
     ]
   }
 };
