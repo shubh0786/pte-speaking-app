@@ -558,14 +558,21 @@ PTE.App = {
       const timerContainer = document.getElementById('timer-container');
       if (timerContainer) timerContainer.classList.remove('hidden');
 
-      // Show Skip Prep button
+      // Show Skip Prep button — fixed at bottom so it's always visible on mobile
       const btnArea = document.getElementById('action-buttons');
-      btnArea.innerHTML = `
-      <button onclick="PTE.App.skipPrep()" 
-        class="inline-flex items-center gap-2 bg-white text-indigo-600 font-semibold px-6 py-3 rounded-xl border-2 border-indigo-200 hover:bg-indigo-50 transition-all">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
-        Skip Preparation — Start Recording Now
-      </button>`;
+      btnArea.innerHTML = '';
+      const prepBar = document.createElement('div');
+      prepBar.id = 'prep-fixed-bar';
+      prepBar.className = 'fixed bottom-0 left-0 right-0 z-50 p-3 bg-gradient-to-t from-gray-950 via-gray-950/95 to-transparent pointer-events-none';
+      prepBar.innerHTML = `
+      <div class="max-w-lg mx-auto flex justify-center pointer-events-auto">
+        <button onclick="PTE.App.skipPrep()" 
+          class="inline-flex items-center gap-2 bg-white text-indigo-600 font-bold px-8 py-4 rounded-2xl border-2 border-indigo-200 hover:bg-indigo-50 active:scale-95 transition-all shadow-xl text-base">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+          Skip — Start Recording Now
+        </button>
+      </div>`;
+      document.body.appendChild(prepBar);
 
       PTE.Timer.start(seconds,
         (remaining, total) => {
@@ -573,7 +580,7 @@ PTE.App = {
         },
         () => {
           this._prepResolve = null;
-          // Hide skip button when prep ends naturally
+          this._removeFixedBar();
           const btnArea = document.getElementById('action-buttons');
           if (btnArea) btnArea.innerHTML = '';
           resolve();
@@ -585,6 +592,7 @@ PTE.App = {
   skipPrep() {
     if (this.phase !== 'prep') return;
     PTE.Timer.stop();
+    this._removeFixedBar();
     const btnArea = document.getElementById('action-buttons');
     if (btnArea) btnArea.innerHTML = '';
     if (this._prepResolve) {
@@ -660,6 +668,8 @@ PTE.App = {
           } catch(e) { console.warn('[PTE] ToneAnalyzer stop error:', e); }
           try { PTE.SpeechRecognizer.stop(); } catch(e) { console.warn('[PTE] SpeechRecognizer stop error:', e); }
           if (recordingStatus) recordingStatus.classList.add('hidden');
+          // Remove fixed bottom bar
+          try { PTE.App._removeFixedBar(); } catch(e) {}
 
           // Stop recorder then resolve (recorder.stop is a promise but we must not block)
           const finishRecording = () => {
@@ -680,14 +690,22 @@ PTE.App = {
         }
       );
 
-      // Stop button
+      // Stop button — fixed at bottom of screen so user doesn't need to scroll (mobile)
       const btnArea = document.getElementById('action-buttons');
-      btnArea.innerHTML = `
-      <button onclick="PTE.App.stopRecordingEarly()" 
-        class="inline-flex items-center gap-2 bg-red-500 text-white font-semibold px-6 py-3 rounded-xl hover:bg-red-600 transition-all shadow-lg shadow-red-200">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
-        Stop Recording
-      </button>`;
+      btnArea.innerHTML = '';
+      // Create a fixed bottom bar for the stop button
+      const fixedBar = document.createElement('div');
+      fixedBar.id = 'recording-fixed-bar';
+      fixedBar.className = 'fixed bottom-0 left-0 right-0 z-50 p-3 bg-gradient-to-t from-gray-950 via-gray-950/95 to-transparent pointer-events-none';
+      fixedBar.innerHTML = `
+      <div class="max-w-lg mx-auto flex justify-center pointer-events-auto">
+        <button onclick="PTE.App.stopRecordingEarly()" 
+          class="inline-flex items-center gap-2 bg-red-500 text-white font-bold px-8 py-4 rounded-2xl hover:bg-red-600 active:scale-95 transition-all shadow-xl shadow-red-500/30 text-base">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
+          Stop Recording
+        </button>
+      </div>`;
+      document.body.appendChild(fixedBar);
     });
   },
 
@@ -705,6 +723,9 @@ PTE.App = {
     const recordingStatus = document.getElementById('recording-status');
     if (recordingStatus) recordingStatus.classList.add('hidden');
     
+    // Remove fixed bottom bar
+    this._removeFixedBar();
+    
     try { await PTE.AudioRecorder.stop(); } catch(e) {}
     try { PTE.SpeechRecognizer.stop(); } catch(e) {}
     
@@ -714,6 +735,14 @@ PTE.App = {
       this._recordResolve();
       this._recordResolve = null;
     }
+  },
+
+  /** Remove the fixed recording/prep bar from DOM */
+  _removeFixedBar() {
+    const bar = document.getElementById('recording-fixed-bar');
+    if (bar) bar.remove();
+    const prepBar = document.getElementById('prep-fixed-bar');
+    if (prepBar) prepBar.remove();
   },
 
   // ── Enhanced Evaluation Phase ────────────────────────────────
@@ -1276,6 +1305,7 @@ PTE.App = {
     PTE.Timer.stop();
     PTE.TTS.stop();
     this.stopWaveformAnimation();
+    this._removeFixedBar();
     if (PTE.AudioRecorder.isRecording) {
       try { PTE.AudioRecorder.stop(); } catch(e) {}
     }
