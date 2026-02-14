@@ -284,6 +284,8 @@ PTE.TTS = {
   voice: null,
   _unlocked: false,
   _resumeInterval: null,
+  _isChrome: /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent),
+  _isEdge: /Edg/.test(navigator.userAgent),
 
   init() {
     return new Promise((resolve) => {
@@ -295,23 +297,53 @@ PTE.TTS = {
 
       const loadVoices = () => {
         const voices = this.synth.getVoices();
-        // Prefer a natural English voice
-        this.voice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) ||
-                     voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural')) ||
-                     voices.find(v => v.lang.startsWith('en') && v.name.includes('Samantha')) ||
-                     voices.find(v => v.lang.startsWith('en-') && !v.localService) ||
-                     voices.find(v => v.lang.startsWith('en')) ||
-                     voices[0] || null;
-        console.log('[TTS] Voice selected:', this.voice ? this.voice.name : 'none', '| Total voices:', voices.length);
+        if (voices.length === 0) return;
+
+        // ── Voice Selection Priority (best natural-sounding first) ──
+        // 1. Microsoft Online (Neural) voices — best quality on Windows/Edge
+        // 2. Google voices — good quality on Chrome
+        // 3. Microsoft local voices (Zira, David, Mark) — decent offline
+        // 4. Apple voices (Samantha, Daniel) — good on macOS/iOS
+        // 5. Any remote English voice
+        // 6. Any English voice at all
+
+        const enVoices = voices.filter(v => v.lang.startsWith('en'));
+
+        this.voice =
+          // Neural / Online voices (best quality — natural, no breaks)
+          enVoices.find(v => v.name.includes('Online') && v.name.includes('Natural')) ||
+          enVoices.find(v => v.name.includes('Online')) ||
+          enVoices.find(v => v.name.includes('Neural')) ||
+          // Google voices (good on Chrome)
+          enVoices.find(v => v.name.includes('Google UK English Female')) ||
+          enVoices.find(v => v.name.includes('Google UK English Male')) ||
+          enVoices.find(v => v.name.includes('Google US English')) ||
+          enVoices.find(v => v.name.includes('Google')) ||
+          // Apple voices
+          enVoices.find(v => v.name.includes('Samantha')) ||
+          enVoices.find(v => v.name.includes('Daniel')) ||
+          enVoices.find(v => v.name.includes('Karen')) ||
+          // Microsoft desktop voices
+          enVoices.find(v => v.name.includes('Zira')) ||
+          enVoices.find(v => v.name.includes('David')) ||
+          enVoices.find(v => v.name.includes('Mark')) ||
+          // Any remote (non-local) English voice
+          enVoices.find(v => !v.localService) ||
+          // Any English voice
+          enVoices[0] ||
+          voices[0] || null;
+
+        console.log('[TTS] Voice selected:', this.voice ? `${this.voice.name} (${this.voice.lang}, local=${this.voice.localService})` : 'none', '| Total voices:', voices.length);
         resolve(true);
       };
 
-      if (this.synth.getVoices().length > 0) {
+      const voices = this.synth.getVoices();
+      if (voices.length > 0) {
         loadVoices();
       } else {
         this.synth.onvoiceschanged = loadVoices;
-        // Longer fallback for mobile (voices load slowly on iOS/Android)
-        setTimeout(loadVoices, 2000);
+        // Fallback for mobile (voices load slowly on iOS/Android)
+        setTimeout(loadVoices, 2500);
       }
     });
   },
@@ -341,111 +373,188 @@ PTE.TTS = {
     if (this.voice) return;
     if (!this.synth) return;
     const voices = this.synth.getVoices();
-    this.voice = voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
+    this.voice = voices.find(v => v.lang.startsWith('en') && !v.localService) ||
+                 voices.find(v => v.lang.startsWith('en')) ||
+                 voices[0] || null;
   },
 
-  speak(text, rate = 0.95) {
+  /**
+   * Split long text into sentence chunks for natural playback.
+   * This avoids Chrome's 15-second cutoff entirely by keeping each
+   * utterance short enough that Chrome never pauses it.
+   * Sentences are split at natural boundaries (. ! ? ; — and long commas).
+   */
+  _splitIntoChunks(text) {
+    // Split on sentence-ending punctuation, keeping the punctuation attached
+    const raw = text.match(/[^.!?;]+[.!?;]+[\s]*/g);
+    if (!raw) return [text]; // No sentence boundaries found — return whole text
+
+    // Merge very short chunks together for more natural flow
+    const chunks = [];
+    let current = '';
+    for (const sentence of raw) {
+      const trimmed = sentence.trim();
+      if (!trimmed) continue;
+      
+      if (current.length + trimmed.length < 200) {
+        // Merge small sentences for smoother delivery
+        current += (current ? ' ' : '') + trimmed;
+      } else {
+        if (current) chunks.push(current);
+        current = trimmed;
+      }
+    }
+    if (current) chunks.push(current);
+
+    // If there's remaining text after the last punctuation, append it
+    const joined = raw.join('');
+    const remainder = text.slice(joined.length).trim();
+    if (remainder) {
+      if (chunks.length > 0 && chunks[chunks.length - 1].length + remainder.length < 200) {
+        chunks[chunks.length - 1] += ' ' + remainder;
+      } else {
+        chunks.push(remainder);
+      }
+    }
+
+    return chunks.length > 0 ? chunks : [text];
+  },
+
+  /**
+   * Speak a single chunk (internal). No splitting — plays one utterance.
+   */
+  _speakChunk(text, rate) {
     return new Promise((resolve) => {
-      if (!this.synth) {
-        console.warn('[TTS] speechSynthesis not available, skipping');
-        resolve();
-        return;
-      }
-
-      if (!text || text.trim().length === 0) {
-        resolve();
-        return;
-      }
-
-      // Re-check voices (mobile may load them late)
-      this._ensureVoice();
-
-      // Cancel any ongoing speech and wait a beat for clean state
-      if (this.synth.speaking || this.synth.pending) {
-        this.synth.cancel();
-      }
+      if (!text || text.trim().length === 0) { resolve(); return; }
 
       const utterance = new SpeechSynthesisUtterance(text);
       if (this.voice) utterance.voice = this.voice;
       utterance.rate = rate;
       utterance.pitch = 1;
       utterance.volume = 1;
-      utterance.lang = 'en-US';
+      utterance.lang = this.voice ? this.voice.lang : 'en-US';
 
-      // Safety timeout: resolve even if TTS hangs (mobile issue)
-      // TTS at rate 0.9-0.95 speaks ~2.5 words/sec (NOT 5-6).
-      // Use generous estimate: ~2 words/sec + large buffer to NEVER cut off early.
       const wordCount = text.trim().split(/\s+/).length;
-      const estimatedMs = Math.max(8000, (wordCount / 2) * 1000 * (1 / rate) + 5000);
+      // Generous timeout per chunk: ~2 words/sec + buffer
+      const estimatedMs = Math.max(6000, (wordCount / 2) * 1000 * (1 / rate) + 4000);
       let resolved = false;
 
       const doResolve = (reason) => {
         if (resolved) return;
         resolved = true;
         clearTimeout(safetyTimer);
-        clearTimeout(stuckTimer);
-        this.speaking = false;
-        this._stopResumeHack();
-        console.log('[TTS] Resolved:', reason, '| Words:', wordCount);
+        if (stuckInterval) clearInterval(stuckInterval);
         resolve();
       };
 
       const safetyTimer = setTimeout(() => {
-        console.warn('[TTS] Safety timeout after', estimatedMs, 'ms for', wordCount, 'words');
+        console.warn('[TTS] Chunk timeout after', estimatedMs, 'ms');
         try { this.synth.cancel(); } catch(e) {}
-        doResolve('safety-timeout');
+        doResolve('chunk-timeout');
       }, estimatedMs);
 
-      // Secondary stuck detection: if synth stops speaking but onend never fires
-      let stuckTimer = null;
-      const startStuckCheck = () => {
-        stuckTimer = setInterval(() => {
+      // Stuck detection: synth stopped but onend never fired
+      let stuckInterval = null;
+      const stuckDelay = setTimeout(() => {
+        stuckInterval = setInterval(() => {
           if (!this.synth.speaking && !this.synth.pending && !resolved) {
-            console.warn('[TTS] Stuck detected - synth stopped but onend never fired');
-            doResolve('stuck-detection');
+            doResolve('stuck');
           }
-        }, 1000);
+        }, 500);
+      }, 1500);
+
+      utterance.onend = () => {
+        clearTimeout(stuckDelay);
+        doResolve('onend');
       };
-      // Start stuck check after a brief delay (allow synth to begin)
-      setTimeout(startStuckCheck, 2000);
-
-      utterance.onend = () => doResolve('onend');
-
       utterance.onerror = (e) => {
-        console.warn('[TTS] Speech error:', e.error || e);
+        clearTimeout(stuckDelay);
+        console.warn('[TTS] Chunk error:', e.error || e);
         doResolve('onerror');
       };
-
-      // Track boundary events to detect if speech is progressing
-      utterance.onboundary = () => {
-        // Speech is progressing — reset the resume hack timer
-        // to ensure Chrome doesn't pause it
-        this._lastBoundaryTime = Date.now();
-      };
-
-      this.speaking = true;
-
-      // Chrome bug workaround: Chrome pauses speechSynthesis after ~15 sec.
-      // Calling pause()/resume() every 5 seconds (more aggressive) prevents this.
-      this._startResumeHack();
 
       this.synth.speak(utterance);
     });
   },
 
   /**
-   * Chrome resume hack: Chrome pauses TTS after ~15 seconds.
-   * Calling pause()/resume() every 5 seconds prevents this.
-   * More aggressive interval (5s vs old 10s) to catch Chrome's ~15s pause.
+   * Main speak method — splits long text into sentence chunks and plays
+   * them sequentially with tiny natural gaps for smooth, unbroken speech.
+   *
+   * This approach:
+   * 1. Avoids Chrome's 15s pause bug (each chunk is short enough)
+   * 2. No more pause()/resume() hack that causes voice breaking
+   * 3. Natural sentence-boundary pauses sound more human
+   * 4. Each chunk completes fully before the next starts
+   */
+  async speak(text, rate = 0.95) {
+    if (!this.synth) {
+      console.warn('[TTS] speechSynthesis not available, skipping');
+      return;
+    }
+    if (!text || text.trim().length === 0) return;
+
+    // Re-check voices (mobile may load them late)
+    this._ensureVoice();
+
+    // Cancel any ongoing speech
+    if (this.synth.speaking || this.synth.pending) {
+      this.synth.cancel();
+      // Small delay after cancel to let browser clean up
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    this.speaking = true;
+    this._cancelled = false;
+
+    const wordCount = text.trim().split(/\s+/).length;
+
+    // For short text (< ~80 words / ~30 seconds), play as single utterance
+    // Chrome's 15s bug only hits longer texts, so short ones are fine as-is
+    if (wordCount <= 80) {
+      // For short text on Chrome, use the resume hack as safety net
+      if (this._isChrome) this._startResumeHack();
+      await this._speakChunk(text, rate);
+      this._stopResumeHack();
+    } else {
+      // For long text, split into sentence chunks — no resume hack needed!
+      // Each chunk is short enough that Chrome never triggers the 15s pause.
+      const chunks = this._splitIntoChunks(text);
+      console.log('[TTS] Split into', chunks.length, 'chunks for', wordCount, 'words');
+
+      for (let i = 0; i < chunks.length; i++) {
+        if (this._cancelled) break;
+        await this._speakChunk(chunks[i], rate);
+        // Tiny pause between sentences for natural rhythm (50ms — imperceptible but prevents overlap)
+        if (i < chunks.length - 1 && !this._cancelled) {
+          await new Promise(r => setTimeout(r, 50));
+        }
+      }
+    }
+
+    this.speaking = false;
+    this._stopResumeHack();
+    console.log('[TTS] Complete |', wordCount, 'words');
+  },
+
+  /**
+   * Chrome resume hack — ONLY used for short texts played as single utterance.
+   * For long texts, sentence chunking eliminates the need for this entirely.
+   *
+   * Uses resume() only (not pause+resume) to minimize audio glitching.
+   * Only triggers if Chrome has actually paused (synth.paused === true).
    */
   _startResumeHack() {
     this._stopResumeHack();
+    if (!this._isChrome) return; // Only needed on Chrome
+
     this._resumeInterval = setInterval(() => {
-      if (this.synth && this.synth.speaking) {
-        this.synth.pause();
+      if (this.synth && this.synth.speaking && this.synth.paused) {
+        // Chrome has paused the speech — resume it
+        console.log('[TTS] Chrome auto-paused detected, resuming...');
         this.synth.resume();
       }
-    }, 5000);
+    }, 3000);
   },
 
   _stopResumeHack() {
@@ -456,7 +565,10 @@ PTE.TTS = {
   },
 
   stop() {
-    if (this.synth && this.synth.speaking) this.synth.cancel();
+    this._cancelled = true;
+    if (this.synth) {
+      if (this.synth.speaking || this.synth.pending) this.synth.cancel();
+    }
     this.speaking = false;
     this._stopResumeHack();
   }

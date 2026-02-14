@@ -378,21 +378,28 @@ PTE.App = {
       let ttsWorked = false;
 
       if (q.speakers) {
+        // Group discussion: play each speaker with a natural pause between
         const speakersArea = document.getElementById('speakers-area');
         if (speakersArea) speakersArea.classList.remove('hidden');
         
-        for (const speaker of q.speakers) {
+        for (let i = 0; i < q.speakers.length; i++) {
+          const speaker = q.speakers[i];
           const speakerEl = document.getElementById(`speaker-${speaker.name.replace(/\s/g,'-')}`);
           if (speakerEl) speakerEl.style.opacity = '1';
           if (statusEl) statusEl.textContent = `${speaker.name} is speaking...`;
-          await PTE.TTS.speak(speaker.text, 0.9);
+          // Rate 0.92 — natural conversational pace, not rushed
+          await PTE.TTS.speak(speaker.text, 0.92);
           ttsWorked = true;
-          await this.sleep(500);
+          // Natural pause between speakers (longer than between sentences)
+          if (i < q.speakers.length - 1) {
+            await this.sleep(700);
+          }
         }
       } else {
         const textToSpeak = q.text || q.audioText || '';
         if (textToSpeak) {
-          await PTE.TTS.speak(textToSpeak, 0.9);
+          // Use 0.92 rate for natural pace — not too fast, not too slow
+          await PTE.TTS.speak(textToSpeak, 0.92);
           ttsWorked = true;
         }
       }
