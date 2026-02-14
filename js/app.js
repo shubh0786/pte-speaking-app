@@ -650,17 +650,33 @@ PTE.App = {
         (remaining, total) => {
           PTE.UI.updateTimer('main-timer', remaining, total, 'Recording');
         },
-        async () => {
-          this.stopWaveformAnimation();
-          // Get tone results before stopping
-          if (PTE.ToneAnalyzer && PTE.ToneAnalyzer.isAnalyzing) {
-            this.toneResults = PTE.ToneAnalyzer.stop();
-          }
-          await PTE.AudioRecorder.stop();
-          PTE.SpeechRecognizer.stop();
+        () => {
+          // NOTE: NOT async — must always call resolve() even if something fails
+          try { this.stopWaveformAnimation(); } catch(e) { console.warn('[PTE] stopWaveform error:', e); }
+          try {
+            if (PTE.ToneAnalyzer && PTE.ToneAnalyzer.isAnalyzing) {
+              this.toneResults = PTE.ToneAnalyzer.stop();
+            }
+          } catch(e) { console.warn('[PTE] ToneAnalyzer stop error:', e); }
+          try { PTE.SpeechRecognizer.stop(); } catch(e) { console.warn('[PTE] SpeechRecognizer stop error:', e); }
           if (recordingStatus) recordingStatus.classList.add('hidden');
-          this.phase = 'evaluating';
-          resolve();
+
+          // Stop recorder then resolve (recorder.stop is a promise but we must not block)
+          const finishRecording = () => {
+            this.phase = 'evaluating';
+            resolve();
+          };
+          try {
+            const stopPromise = PTE.AudioRecorder.stop();
+            if (stopPromise && stopPromise.then) {
+              stopPromise.then(finishRecording).catch(() => finishRecording());
+            } else {
+              finishRecording();
+            }
+          } catch(e) {
+            console.warn('[PTE] AudioRecorder stop error:', e);
+            finishRecording();
+          }
         }
       );
 
@@ -678,17 +694,19 @@ PTE.App = {
   async stopRecordingEarly() {
     if (this.phase !== 'recording') return;
     PTE.Timer.stop();
-    this.stopWaveformAnimation();
+    try { this.stopWaveformAnimation(); } catch(e) {}
 
-    if (PTE.ToneAnalyzer && PTE.ToneAnalyzer.isAnalyzing) {
-      this.toneResults = PTE.ToneAnalyzer.stop();
-    }
+    try {
+      if (PTE.ToneAnalyzer && PTE.ToneAnalyzer.isAnalyzing) {
+        this.toneResults = PTE.ToneAnalyzer.stop();
+      }
+    } catch(e) {}
     
     const recordingStatus = document.getElementById('recording-status');
     if (recordingStatus) recordingStatus.classList.add('hidden');
     
-    await PTE.AudioRecorder.stop();
-    PTE.SpeechRecognizer.stop();
+    try { await PTE.AudioRecorder.stop(); } catch(e) {}
+    try { PTE.SpeechRecognizer.stop(); } catch(e) {}
     
     this.phase = 'evaluating';
 
@@ -725,10 +743,15 @@ PTE.App = {
     this.phase = 'evaluating';
     const type = this.currentTypeConfig;
     const q = this.currentQuestion;
+    if (!type || !q) {
+      console.error('[PTE] Missing type or question in evaluate');
+      return;
+    }
     const transcript = (PTE.SpeechRecognizer.transcript || '').trim();
-    const confidence = PTE.SpeechRecognizer.getAverageConfidence();
-    const wordTimestamps = PTE.SpeechRecognizer.wordTimestamps;
-    const recordDuration = (Date.now() - this.recordingStartTime) / 1000;
+    const confidence = PTE.SpeechRecognizer.getAverageConfidence() || 0;
+    const wordTimestamps = PTE.SpeechRecognizer.wordTimestamps || [];
+    const recordDuration = this.recordingStartTime ? (Date.now() - this.recordingStartTime) / 1000 : 0;
+    const speechAvailable = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
     // Calculate scores using official PTE criteria (0-5/0-6 bands)
     let scores = {};
@@ -780,11 +803,29 @@ PTE.App = {
 
     // Build the results UI
     const scoreArea = document.getElementById('score-area');
+    if (!scoreArea) return;
     scoreArea.classList.remove('hidden');
+
+    // Mobile notice if speech recognition was unavailable
+    let html = '';
+    if (!speechAvailable || (!transcript && recordDuration > 3)) {
+      html += `
+      <div class="glass rounded-2xl p-4 max-w-lg mx-auto mb-4 border border-amber-500/20 animate-fadeIn">
+        <div class="flex items-start gap-3">
+          <span class="text-amber-400 text-lg flex-shrink-0">&#9888;</span>
+          <div>
+            <p class="text-amber-400 font-semibold text-sm mb-1">${!speechAvailable ? 'Speech Recognition Not Available' : 'No Speech Detected'}</p>
+            <p class="text-gray-500 text-xs leading-relaxed">${!speechAvailable
+              ? 'Your browser does not support speech-to-text. Scoring requires Chrome (desktop or Android). Safari and Firefox do not support this feature yet. Your recording was still captured.'
+              : 'We could not detect any speech in your recording. Please make sure your microphone is working and speak clearly. You can play back your recording below.'}</p>
+          </div>
+        </div>
+      </div>`;
+    }
 
     // Basic score card
     const basicFeedback = PTE.Scoring.getFeedback(scores, type.id);
-    let html = PTE.UI.scoreCard(overallScore, scores, type.id, basicFeedback);
+    html += PTE.UI.scoreCard(overallScore, scores, type.id, basicFeedback);
 
     // ── Tone Analysis Section ──
     if (this.toneResults && this.toneResults.hasPitchData) {
