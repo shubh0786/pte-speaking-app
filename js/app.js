@@ -192,11 +192,11 @@ PTE.App = {
 
     // Source badge for prediction questions
     if (q.source) {
-      const freqColors = { 'very-high': 'bg-red-100 text-red-700', 'high': 'bg-amber-100 text-amber-700', 'medium': 'bg-blue-100 text-blue-700' };
-      const freqClass = freqColors[q.frequency] || 'bg-gray-100 text-gray-600';
+      const freqColors = { 'very-high': 'bg-red-500/15 text-red-400 border border-red-500/20', 'high': 'bg-amber-500/15 text-amber-400 border border-amber-500/20', 'medium': 'bg-blue-500/15 text-blue-400 border border-blue-500/20' };
+      const freqClass = freqColors[q.frequency] || 'bg-white/5 text-gray-400 border border-white/10';
       content += `
       <div class="flex items-center gap-2 mb-4">
-        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">Source: ${q.source}</span>
+        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">Source: ${q.source}</span>
         ${q.frequency ? `<span class="text-xs font-semibold px-2 py-1 rounded-full ${freqClass}">Frequency: ${q.frequency.replace('-', ' ')}</span>` : ''}
       </div>`;
     }
@@ -206,7 +206,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Read the following text aloud:</label>
-        <div class="bg-gray-50 rounded-xl p-5 text-gray-800 leading-relaxed text-lg border border-gray-100" id="question-text">${q.text}</div>
+        <div class="bg-white/5 rounded-xl p-5 text-gray-200 leading-relaxed text-lg border border-white/10" id="question-text">${q.text}</div>
       </div>`;
     }
 
@@ -215,7 +215,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Scenario:</label>
-        <div class="bg-blue-50 border border-blue-100 rounded-xl p-5 text-blue-800 leading-relaxed">${q.scenario}</div>
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 text-blue-300 leading-relaxed">${q.scenario}</div>
       </div>`;
     }
 
@@ -224,7 +224,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 block">Describe the image below:</label>
-        <div class="bg-white rounded-xl p-4 border border-gray-200" id="chart-container">${PTE.Charts.generate(q)}</div>
+        <div class="bg-white rounded-xl p-4 border border-gray-200 [&_text]:fill-gray-700" id="chart-container">${PTE.Charts.generate(q)}</div>
       </div>`;
     }
 
@@ -646,6 +646,25 @@ PTE.App = {
         const el = document.getElementById('transcript-text');
         if (el) {
           el.innerHTML = `<span class="text-gray-800">${final}</span><span class="text-gray-400 italic">${interim}</span>`;
+        }
+
+        // ── Live Filler Word Detection ──
+        // Detects hesitation markers in real-time
+        if (interim) {
+          const words = interim.trim().toLowerCase().split(/\s+/);
+          const lastWord = words[words.length - 1];
+          const fillers = ['um', 'uh', 'er', 'ah', 'hmm'];
+          
+          if (fillers.includes(lastWord)) {
+            // Debounce to prevent spamming (1.5s cooldown)
+            const now = Date.now();
+            if (!this._lastFillerTime || (now - this._lastFillerTime > 1500)) {
+              this._lastFillerTime = now;
+              if (PTE.UI && PTE.UI.showFluencyWarning) {
+                PTE.UI.showFluencyWarning(lastWord);
+              }
+            }
+          }
         }
       };
       PTE.SpeechRecognizer.start();
