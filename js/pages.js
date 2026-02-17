@@ -94,6 +94,76 @@ PTE.Pages = {
 
       ${profileCard ? `<section class="px-4 -mt-4">${profileCard}</section>` : ''}
 
+      <!-- Onboarding Checklist (first-time users) -->
+      ${(() => {
+        if (!overall || overall.totalAttempts < 10) {
+          const hasRA = stats['read-aloud'] && stats['read-aloud'].totalAttempts > 0;
+          const hasMock = PTE.Store.getAll().sessions.some(s => s.type === 'mock-test');
+          const hasMultiType = Object.values(PTE.QUESTION_TYPES).filter(t => stats[t.id] && stats[t.id].totalAttempts > 0).length >= 3;
+          const score70 = overall && overall.bestScore >= 70;
+          const allDone = hasRA && hasMock && hasMultiType && score70;
+          if (allDone) return '';
+          
+          return `
+          <section class="px-4 py-4">
+            <div class="max-w-4xl mx-auto onboarding-card">
+              <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    Getting Started
+                  </h3>
+                  <button onclick="localStorage.setItem('crackpte_onboarding_hidden','1');this.closest('section').remove()" class="text-xs text-gray-500 hover:text-gray-300 transition-colors">Dismiss</button>
+                </div>
+                <p class="text-sm text-gray-400 mb-4">Complete these steps to get the most out of Crack PTE:</p>
+                <div class="space-y-3">
+                  <a href="#/practice/read-aloud" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group">
+                    <div class="onboarding-check ${hasRA ? 'done' : ''}">
+                      ${hasRA ? '<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>' : '<span class="text-xs text-gray-500">1</span>'}
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-sm font-semibold ${hasRA ? 'text-gray-500 line-through' : 'text-white group-hover:text-indigo-400'} transition-colors">Complete your first Read Aloud</p>
+                      <p class="text-xs text-gray-500">The most common PTE Speaking question type</p>
+                    </div>
+                    ${!hasRA ? '<svg class="w-4 h-4 text-gray-600 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>' : ''}
+                  </a>
+                  <a href="#/practice" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group">
+                    <div class="onboarding-check ${hasMultiType ? 'done' : ''}">
+                      ${hasMultiType ? '<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>' : '<span class="text-xs text-gray-500">2</span>'}
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-sm font-semibold ${hasMultiType ? 'text-gray-500 line-through' : 'text-white group-hover:text-indigo-400'} transition-colors">Try 3 different question types</p>
+                      <p class="text-xs text-gray-500">Explore the variety of PTE Speaking tasks</p>
+                    </div>
+                    ${!hasMultiType ? '<svg class="w-4 h-4 text-gray-600 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>' : ''}
+                  </a>
+                  <a href="#/mock-test" class="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group">
+                    <div class="onboarding-check ${hasMock ? 'done' : ''}">
+                      ${hasMock ? '<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>' : '<span class="text-xs text-gray-500">3</span>'}
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-sm font-semibold ${hasMock ? 'text-gray-500 line-through' : 'text-white group-hover:text-indigo-400'} transition-colors">Take your first Mock Test</p>
+                      <p class="text-xs text-gray-500">Simulate the real exam experience</p>
+                    </div>
+                    ${!hasMock ? '<svg class="w-4 h-4 text-gray-600 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>' : ''}
+                  </a>
+                  <div class="flex items-center gap-3 p-3 rounded-xl">
+                    <div class="onboarding-check ${score70 ? 'done' : ''}">
+                      ${score70 ? '<svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>' : '<span class="text-xs text-gray-500">4</span>'}
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-sm font-semibold ${score70 ? 'text-gray-500 line-through' : 'text-white'} transition-colors">Score 70+ on any question</p>
+                      <p class="text-xs text-gray-500">Aim for a high score to build confidence</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>`;
+        }
+        return '';
+      })()}
+
       <!-- Action Cards Row -->
       <section class="px-4 py-6">
         <div class="max-w-4xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -173,10 +243,7 @@ PTE.Pages = {
       <main class="min-h-screen py-10 px-4">
         <div class="max-w-4xl mx-auto">
           <h1 class="text-3xl font-bold text-white mb-8">Your Progress</h1>
-          ${PTE.UI.emptyState('📊', 'No Practice Sessions Yet', 'Start practicing to see your progress here. Your scores and statistics will be tracked automatically.')}
-          <div class="text-center mt-6">
-            <a href="#/practice" class="btn-primary">Start Practicing</a>
-          </div>
+          ${PTE.UI.emptyState('📊', 'No Practice Sessions Yet', 'Start practicing to see your progress here. Your scores and statistics will be tracked automatically.', 'Start Practicing', '#/practice')}
         </div>
       </main>`;
     }
@@ -292,7 +359,7 @@ PTE.Pages = {
       ${PTE.UI.navbar(navPage)}
       <main class="min-h-screen py-10 px-4">
         <div class="max-w-4xl mx-auto">
-          ${PTE.UI.emptyState('🔍', 'Question Type Not Found', 'The requested question type does not exist.')}
+          ${PTE.UI.emptyState('🔍', 'Question Type Not Found', 'The requested question type does not exist.', 'Browse Question Types', backUrl)}
           <div class="text-center mt-4">
             <a href="${backUrl}" class="text-indigo-400 font-medium hover:text-indigo-300">Back</a>
           </div>
@@ -306,7 +373,7 @@ PTE.Pages = {
       ${PTE.UI.navbar(navPage)}
       <main class="min-h-screen py-10 px-4">
         <div class="max-w-4xl mx-auto">
-          ${PTE.UI.emptyState('📝', 'No Questions Available', 'Questions for this type are coming soon.')}
+          ${PTE.UI.emptyState('📝', 'No Questions Available', 'Questions for this type are coming soon.', 'Back to Practice', backUrl)}
         </div>
       </main>`;
     }
@@ -382,6 +449,11 @@ PTE.Pages = {
         <!-- Previous Answer Section (shown for completed questions) -->
         <div id="previous-answer" class="mb-4 hidden">
           <!-- Dynamically populated by PTE.App.showQuestionContent -->
+        </div>
+
+        <!-- Practice Flow Stepper -->
+        <div id="stepper-area" class="mb-4 hidden">
+          <!-- Dynamically updated by PTE.App -->
         </div>
 
         <!-- Practice Area -->
@@ -612,7 +684,7 @@ PTE.Pages = {
 
           <!-- Login Card -->
           <div class="glass neon-border rounded-2xl p-8">
-            <div id="login-error" class="hidden mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/20 text-red-400 text-sm font-medium"></div>
+            <div id="login-error" class="hidden mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/20 text-red-400 text-sm font-medium" role="alert" aria-live="polite"></div>
 
             <form onsubmit="PTE.Auth._handleLogin(event)" class="space-y-5">
               <!-- Email -->
@@ -684,7 +756,7 @@ PTE.Pages = {
 
           <!-- Signup Card -->
           <div class="glass neon-border rounded-2xl p-8">
-            <div id="signup-error" class="hidden mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/20 text-red-400 text-sm font-medium"></div>
+            <div id="signup-error" class="hidden mb-4 p-3 rounded-xl bg-red-500/15 border border-red-500/20 text-red-400 text-sm font-medium" role="alert" aria-live="polite"></div>
 
             <form onsubmit="PTE.Auth._handleSignup(event)" class="space-y-5">
               <!-- Username -->
@@ -866,6 +938,34 @@ PTE.Pages = {
             <button onclick="PTE.Auth._handleChangePassword()" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors">
               Update Password
             </button>
+          </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="glass rounded-2xl p-6 mb-6">
+          <h3 class="text-lg font-bold text-white mb-2">Data & Backup</h3>
+          <p class="text-sm text-gray-500 mb-4">Your data is stored locally. Export it to create a backup you can import later.</p>
+          <div id="data-msg" class="hidden mb-4 p-3 rounded-xl text-sm font-medium"></div>
+          <div class="flex items-center gap-4 mb-3">
+            <div class="flex-1 glass rounded-xl p-4 text-center">
+              <p class="text-2xl font-bold text-indigo-400">${overall ? overall.totalAttempts : 0}</p>
+              <p class="text-xs text-gray-500">Sessions saved</p>
+            </div>
+            <div class="flex-1 glass rounded-xl p-4 text-center">
+              <p class="text-2xl font-bold text-purple-400">${gp ? gp.badges.length : 0}</p>
+              <p class="text-xs text-gray-500">Badges earned</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="PTE.App._exportData()" class="px-5 py-2.5 bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 font-semibold rounded-xl hover:bg-indigo-500/25 transition-colors text-sm flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              Export Data (JSON)
+            </button>
+            <label class="px-5 py-2.5 bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 font-semibold rounded-xl hover:bg-emerald-500/25 transition-colors text-sm flex items-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              Import Data
+              <input type="file" accept=".json" class="hidden" onchange="PTE.App._importData(event)">
+            </label>
           </div>
         </div>
 

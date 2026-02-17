@@ -18,6 +18,7 @@ PTE.Effects = {
     this.initRipple();
     this.initParallax();
     this.initMobileBottomNav();
+    this.initDropdownEscape();
 
     // Re-init on page change
     window.addEventListener('hashchange', () => {
@@ -162,6 +163,29 @@ PTE.Effects = {
   },
 
   // ══════════════════════════════════════════════════
+  // DROPDOWN ESCAPE KEY HANDLER
+  // ══════════════════════════════════════════════════
+
+  initDropdownEscape() {
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.glass[id]:not(.hidden)').forEach(el => {
+          if (el.closest('nav') && !el.classList.contains('hidden') && el.id.startsWith('more-') || el.id.startsWith('user-menu-')) {
+            el.classList.add('hidden');
+          }
+        });
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('nav')) {
+        document.querySelectorAll('nav .glass[id]').forEach(el => {
+          if (!el.classList.contains('hidden')) el.classList.add('hidden');
+        });
+      }
+    });
+  },
+
+  // ══════════════════════════════════════════════════
   // RIPPLE EFFECT
   // ══════════════════════════════════════════════════
 
@@ -258,7 +282,7 @@ PTE.Effects = {
 
     nav.innerHTML = items.map(item => {
       const active = currentPage === item.page;
-      return `<a href="${item.href}" class="${active ? 'active' : ''}">
+      return `<a href="${item.href}" class="${active ? 'active' : ''}" aria-label="${item.label}" ${active ? 'aria-current="page"' : ''}>
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${item.icon}"/></svg>
         <span>${item.label}</span>
       </a>`;

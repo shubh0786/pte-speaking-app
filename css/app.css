@@ -439,6 +439,128 @@ html,body { overflow-x:hidden; max-width:100vw; }
 
 @media print { nav,#action-buttons,button,audio,canvas,details,.mobile-bottom-nav{display:none!important} }
 
+/* ══════════════════════════════════════════════════
+   PRACTICE FLOW STEPPER
+   ══════════════════════════════════════════════════ */
+
+.practice-stepper {
+  display:flex; align-items:center; justify-content:center; gap:0; padding:12px 0;
+}
+.practice-stepper .step {
+  display:flex; align-items:center; gap:0;
+}
+.practice-stepper .step-dot {
+  width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:0.7rem; font-weight:700; border:2px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05); color:var(--text-muted);
+  transition:all 0.4s var(--transition-smooth); position:relative; z-index:1;
+}
+.practice-stepper .step-dot.active {
+  border-color:var(--accent); background:var(--accent); color:#fff;
+  box-shadow:0 0 20px var(--accent-glow);
+  animation:pulseRing 2s ease-out infinite;
+}
+.practice-stepper .step-dot.done {
+  border-color:var(--emerald); background:rgba(16,185,129,0.15); color:var(--emerald);
+}
+.practice-stepper .step-line {
+  width:40px; height:2px; background:rgba(255,255,255,0.08);
+  transition:background 0.4s;
+}
+.practice-stepper .step-line.done { background:var(--emerald); }
+.practice-stepper .step-label {
+  font-size:0.6rem; font-weight:600; margin-top:4px; text-align:center;
+  color:var(--text-muted); transition:color 0.3s; white-space:nowrap;
+}
+.practice-stepper .step-label.active { color:var(--accent-light); }
+.practice-stepper .step-label.done { color:var(--emerald); }
+
+/* ══════════════════════════════════════════════════
+   SKELETON LOADERS
+   ══════════════════════════════════════════════════ */
+
+.skeleton {
+  background:linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:8px;
+}
+.skeleton-text { height:14px; margin-bottom:8px; border-radius:4px; }
+.skeleton-text:last-child { width:60%; }
+.skeleton-circle { border-radius:50%; }
+.skeleton-card {
+  background:rgba(17,24,39,0.7); border:1px solid rgba(255,255,255,0.06);
+  border-radius:16px; padding:24px; overflow:hidden;
+}
+
+/* ══════════════════════════════════════════════════
+   KEYBOARD HINTS
+   ══════════════════════════════════════════════════ */
+
+.kbd {
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 6px; font-size:0.65rem; font-weight:600; font-family:monospace;
+  background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+  border-radius:4px; color:var(--text-muted); min-width:20px;
+  box-shadow:0 1px 0 rgba(255,255,255,0.1);
+}
+
+/* ══════════════════════════════════════════════════
+   MOBILE FULLSCREEN PRACTICE MODE
+   ══════════════════════════════════════════════════ */
+
+@media (max-width:768px) {
+  body.practice-fullscreen nav.glass,
+  body.practice-fullscreen .mobile-bottom-nav,
+  body.practice-fullscreen #question-nav-area,
+  body.practice-fullscreen #previous-answer,
+  body.practice-fullscreen details { display:none!important; }
+  
+  body.practice-fullscreen { padding-bottom:0!important; }
+  
+  body.practice-fullscreen #practice-area {
+    border-radius:0!important; border:none!important;
+    min-height:100vh; margin:-2rem -1rem 0;
+    padding-top:env(safe-area-inset-top);
+  }
+  
+  body.practice-fullscreen #controls-area { padding-bottom:100px; }
+  
+  body.practice-fullscreen #question-text {
+    font-size:1.25rem!important; line-height:1.8!important;
+  }
+}
+
+/* ══════════════════════════════════════════════════
+   ONBOARDING CHECKLIST
+   ══════════════════════════════════════════════════ */
+
+.onboarding-card {
+  background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.06));
+  border:1px solid rgba(99,102,241,0.2);
+  border-radius:16px; padding:20px; position:relative; overflow:hidden;
+}
+.onboarding-card::before {
+  content:''; position:absolute; top:-50%; right:-50%;
+  width:200%; height:200%;
+  background:radial-gradient(circle at center, rgba(99,102,241,0.05) 0%, transparent 50%);
+  pointer-events:none;
+}
+.onboarding-check {
+  width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  border:2px solid rgba(255,255,255,0.15); transition:all 0.3s; flex-shrink:0;
+}
+.onboarding-check.done {
+  background:var(--emerald); border-color:var(--emerald);
+}
+
+/* ══════════════════════════════════════════════════
+   IMPROVED MOBILE BOTTOM NAV
+   ══════════════════════════════════════════════════ */
+
+.mobile-bottom-nav a span { font-size:0.65rem; font-weight:600; }
+.mobile-bottom-nav a svg { width:24px; height:24px; }
+
 /* ── Smooth touch scrolling ── */
 @supports (-webkit-overflow-scrolling: touch) {
   .overflow-y-auto { -webkit-overflow-scrolling:touch; }

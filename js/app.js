@@ -71,10 +71,13 @@ PTE.App = {
     PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
     PTE.Router.on('/practice/:type', (type) => this.requireAuth(() => this.startPractice(type, false)));
 
-    // ── 4. Start router IMMEDIATELY (renders the page) ──
+    // ── 4. Init keyboard shortcuts ──
+    this._initKeyboard();
+
+    // ── 5. Start router IMMEDIATELY (renders the page) ──
     PTE.Router.init();
 
-    // ── 5. Initialize TTS and Speech in background (non-blocking) ──
+    // ── 6. Initialize TTS and Speech in background (non-blocking) ──
     // These are only needed for practice, not for auth/navigation
     try {
       await PTE.TTS.init();
@@ -126,6 +129,54 @@ PTE.App = {
       case 'challenge-create': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderCreatePage() : PTE.Pages.home(); break;
       case 'challenge': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderChallengePage(param) : PTE.Pages.home(); break;
     }
+  },
+
+  // ── Keyboard Shortcuts ───────────────────────────────────────
+
+  _initKeyboard() {
+    if (this._keyboardInit) return;
+    this._keyboardInit = true;
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      if (!this.currentTypeConfig) return;
+
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault();
+          if (this.phase === 'idle') this.beginPractice();
+          else if (this.phase === 'recording') this.stopRecordingEarly();
+          else if (this.phase === 'prep') this.skipPrep();
+          break;
+        case 'ArrowRight':
+          if (this.phase === 'idle' || this.phase === 'review') { e.preventDefault(); this.nextQuestion(); }
+          break;
+        case 'KeyR':
+          if (this.phase === 'review') { e.preventDefault(); this.loadQuestion(this.currentQuestionIndex); }
+          break;
+        case 'Escape':
+          if (this.phase === 'recording') this.stopRecordingEarly();
+          break;
+      }
+    });
+  },
+
+  // ── Practice Flow Stepper ───────────────────────────────────
+
+  _updateStepper(phase) {
+    const el = document.getElementById('stepper-area');
+    if (!el || !this.currentTypeConfig) return;
+    el.classList.remove('hidden');
+    el.innerHTML = PTE.UI.practiceFlowStepper(phase, this.currentTypeConfig.hasAudio);
+  },
+
+  // ── Mobile Fullscreen Mode ──────────────────────────────────
+
+  _enterFullscreen() {
+    document.body.classList.add('practice-fullscreen');
+  },
+
+  _exitFullscreen() {
+    document.body.classList.remove('practice-fullscreen');
   },
 
   // ── Practice Flow ────────────────────────────────────────────
@@ -192,11 +243,11 @@ PTE.App = {
 
     // Source badge for prediction questions
     if (q.source) {
-      const freqColors = { 'very-high': 'bg-red-100 text-red-700', 'high': 'bg-amber-100 text-amber-700', 'medium': 'bg-blue-100 text-blue-700' };
-      const freqClass = freqColors[q.frequency] || 'bg-gray-100 text-gray-600';
+      const freqColors = { 'very-high': 'bg-red-500/15 text-red-400 border border-red-500/20', 'high': 'bg-amber-500/15 text-amber-400 border border-amber-500/20', 'medium': 'bg-blue-500/15 text-blue-400 border border-blue-500/20' };
+      const freqClass = freqColors[q.frequency] || 'bg-white/5 text-gray-400 border border-white/10';
       content += `
       <div class="flex items-center gap-2 mb-4">
-        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">Source: ${q.source}</span>
+        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">Source: ${q.source}</span>
         ${q.frequency ? `<span class="text-xs font-semibold px-2 py-1 rounded-full ${freqClass}">Frequency: ${q.frequency.replace('-', ' ')}</span>` : ''}
       </div>`;
     }
@@ -206,7 +257,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Read the following text aloud:</label>
-        <div class="bg-gray-50 rounded-xl p-5 text-gray-800 leading-relaxed text-lg border border-gray-100" id="question-text">${q.text}</div>
+        <div class="bg-white/5 rounded-xl p-5 text-gray-200 leading-relaxed text-lg border border-white/10" id="question-text">${q.text}</div>
       </div>`;
     }
 
@@ -215,7 +266,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Scenario:</label>
-        <div class="bg-blue-50 border border-blue-100 rounded-xl p-5 text-blue-800 leading-relaxed">${q.scenario}</div>
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 text-blue-300 leading-relaxed">${q.scenario}</div>
       </div>`;
     }
 
@@ -224,7 +275,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 block">Describe the image below:</label>
-        <div class="bg-white rounded-xl p-4 border border-gray-200" id="chart-container">${PTE.Charts.generate(q)}</div>
+        <div class="bg-white rounded-xl p-4 border border-gray-200 [&_text]:fill-gray-700" id="chart-container">${PTE.Charts.generate(q)}</div>
       </div>`;
     }
 
@@ -232,13 +283,13 @@ PTE.App = {
     if (type.hasAudio) {
       content += `
       <div id="audio-indicator" class="mb-6 hidden">
-        <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-          <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-indigo-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+        <div class="flex items-center gap-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
+          <div class="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-indigo-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
           </div>
           <div>
-            <p class="font-medium text-indigo-700 text-sm" id="audio-status">Preparing audio...</p>
-            <p class="text-xs text-indigo-400" id="audio-sub">Listen carefully</p>
+            <p class="font-medium text-indigo-300 text-sm" id="audio-status">Preparing audio...</p>
+            <p class="text-xs text-indigo-400/70" id="audio-sub">Listen carefully</p>
           </div>
         </div>
       </div>`;
@@ -249,13 +300,13 @@ PTE.App = {
       content += `
       <div id="speakers-area" class="mb-6 hidden">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Group Discussion:</label>
-        <div class="space-y-2 bg-gray-50 rounded-xl p-4 border border-gray-100">
+        <div class="space-y-2 bg-white/5 rounded-xl p-4 border border-white/10">
           ${q.speakers.map(s => `
             <div class="flex items-start gap-2 opacity-50 transition-opacity duration-300" id="speaker-${s.name.replace(/\s/g,'-')}">
-              <span class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600 flex-shrink-0 mt-0.5">${s.name.charAt(s.name.length - 1)}</span>
+              <span class="w-7 h-7 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400 flex-shrink-0 mt-0.5">${s.name.charAt(s.name.length - 1)}</span>
               <div>
-                <p class="text-xs font-semibold text-gray-500">${s.name}</p>
-                <p class="text-sm text-gray-600">${s.text}</p>
+                <p class="text-xs font-semibold text-gray-400">${s.name}</p>
+                <p class="text-sm text-gray-300">${s.text}</p>
               </div>
             </div>
           `).join('')}
@@ -273,33 +324,33 @@ PTE.App = {
         ${PTE.UI.waveform('main-waveform')}
       </div>
       <div id="pitch-display" class="hidden w-full max-w-md mx-auto">
-        <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-100">
+        <div class="flex items-center justify-between bg-white/5 rounded-xl p-3 border border-white/10">
           <div class="text-center flex-1">
-            <p class="text-xs text-gray-400">Pitch</p>
-            <p id="live-pitch" class="text-lg font-bold text-indigo-600 tabular-nums">-- Hz</p>
+            <p class="text-xs text-gray-500">Pitch</p>
+            <p id="live-pitch" class="text-lg font-bold text-indigo-400 tabular-nums">-- Hz</p>
           </div>
-          <div class="w-px h-8 bg-gray-200"></div>
+          <div class="w-px h-8 bg-white/10"></div>
           <div class="text-center flex-1">
-            <p class="text-xs text-gray-400">Volume</p>
-            <p id="live-volume" class="text-lg font-bold text-emerald-600 tabular-nums">-- dB</p>
+            <p class="text-xs text-gray-500">Volume</p>
+            <p id="live-volume" class="text-lg font-bold text-emerald-400 tabular-nums">-- dB</p>
           </div>
-          <div class="w-px h-8 bg-gray-200"></div>
+          <div class="w-px h-8 bg-white/10"></div>
           <div class="text-center flex-1">
-            <p class="text-xs text-gray-400">Intonation</p>
+            <p class="text-xs text-gray-500">Intonation</p>
             <div id="live-pitch-bars" class="flex items-end justify-center gap-0.5 h-6 mt-1">
-              ${Array(12).fill(0).map(() => '<div class="w-1.5 bg-gray-200 rounded-full" style="height:4px"></div>').join('')}
+              ${Array(12).fill(0).map(() => '<div class="w-1.5 bg-white/10 rounded-full" style="height:4px"></div>').join('')}
             </div>
           </div>
         </div>
       </div>
       <div id="transcript-container" class="hidden w-full">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">What we heard:</label>
-        <div id="transcript-text" class="bg-gray-50 rounded-xl p-4 text-gray-600 text-sm min-h-[60px] border border-gray-100"></div>
+        <div id="transcript-text" class="bg-white/5 rounded-xl p-4 text-gray-300 text-sm min-h-[60px] border border-white/10"></div>
       </div>
       <div id="recording-status" class="hidden">
         <div class="flex items-center gap-2">
           <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-          <span class="text-sm font-medium text-red-600">Recording...</span>
+          <span class="text-sm font-medium text-red-400">Recording...</span>
         </div>
       </div>
     </div>`;
@@ -312,11 +363,15 @@ PTE.App = {
 
     // Action buttons
     btnArea.innerHTML = `
-    <button id="btn-start" onclick="PTE.App.beginPractice()" 
-      class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-      ${PTE.Store.getLatestSession(q.id) ? 'Try Again' : 'Begin'}
-    </button>`;
+    <div class="flex flex-col items-center gap-2">
+      <button id="btn-start" onclick="PTE.App.beginPractice()" 
+        class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+        aria-label="${PTE.Store.getLatestSession(q.id) ? 'Try this question again' : 'Begin practice'}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+        ${PTE.Store.getLatestSession(q.id) ? 'Try Again' : 'Begin'}
+      </button>
+      ${PTE.UI.kbdHint('Space', 'to start')}
+    </div>`;
   },
 
   /**
@@ -456,20 +511,28 @@ PTE.App = {
     const skipBtn = document.getElementById('btn-skip');
     if (skipBtn) skipBtn.style.display = 'none';
 
+    // Enter mobile fullscreen mode
+    this._enterFullscreen();
+
     // Phase 1: Play audio
     if (type.hasAudio) {
+      this._updateStepper('listening');
       await this.playAudioPhase(q);
     }
 
     // Phase 2: Preparation time (with skip option)
     if (type.prepTime > 0) {
+      this._updateStepper('prep');
       await this.prepPhase(type.prepTime);
     }
 
     // Phase 3: Recording (with tone analysis)
+    this._updateStepper('recording');
     await this.recordPhase(type.recordTime);
 
     // Phase 4: Evaluate with AI feedback
+    this._exitFullscreen();
+    this._updateStepper('review');
     this.evaluatePhase();
   },
 
@@ -645,7 +708,7 @@ PTE.App = {
       PTE.SpeechRecognizer.onResult = (final, interim) => {
         const el = document.getElementById('transcript-text');
         if (el) {
-          el.innerHTML = `<span class="text-gray-800">${final}</span><span class="text-gray-400 italic">${interim}</span>`;
+          el.innerHTML = `<span class="text-gray-200">${final}</span><span class="text-gray-500 italic">${interim}</span>`;
         }
       };
       PTE.SpeechRecognizer.start();
@@ -763,8 +826,8 @@ PTE.App = {
       this.phase = 'review';
       const btnArea = document.getElementById('action-buttons');
       if (btnArea) btnArea.innerHTML = `
-        <button onclick="PTE.App.loadQuestion(${this.currentQuestionIndex})" class="inline-flex items-center gap-2 bg-white text-gray-700 font-semibold px-6 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all">Try Again</button>
-        <button onclick="PTE.App.nextQuestion()" class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Next Question</button>`;
+        <button onclick="PTE.App.loadQuestion(${this.currentQuestionIndex})" class="inline-flex items-center gap-2 glass text-gray-300 font-semibold px-6 py-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all">Try Again</button>
+        <button onclick="PTE.App.nextQuestion()" class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">Next Question</button>`;
     }
   },
 
@@ -970,14 +1033,22 @@ PTE.App = {
 
     // Review buttons
     const btnArea = document.getElementById('action-buttons');
+    // Determine score-based recommendation
+    const scoreAdvice = overallScore < 50
+      ? `<p class="text-xs text-amber-400 mb-3 text-center">Score below 50 — we recommend trying again for better practice.</p>`
+      : overallScore >= 70
+        ? `<p class="text-xs text-emerald-400 mb-3 text-center">Great score! Move to the next question to keep your momentum.</p>`
+        : '';
+
     btnArea.innerHTML = `
+    ${scoreAdvice}
     <button onclick="PTE.App.loadQuestion(${this.currentQuestionIndex})" 
-      class="inline-flex items-center gap-2 bg-white text-gray-700 font-semibold px-6 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all">
+      class="inline-flex items-center gap-2 glass text-gray-300 font-semibold px-6 py-3 rounded-xl border border-white/10 hover:bg-white/10 transition-all">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
       Try Again
     </button>
     <button onclick="PTE.App.nextQuestion()" 
-      class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">
+      class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">
       Next Question
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
     </button>`;
@@ -990,7 +1061,7 @@ PTE.App = {
   _renderToneAnalysis(tone) {
     const a = tone.analysis;
     const ratingIcons = { good: '&#10003;', ok: '~', 'needs-work': '!', caution: '!', unknown: '?' };
-    const ratingColors = { good: 'text-emerald-600 bg-emerald-50 border-emerald-200', ok: 'text-blue-600 bg-blue-50 border-blue-200', 'needs-work': 'text-red-600 bg-red-50 border-red-200', caution: 'text-amber-600 bg-amber-50 border-amber-200', unknown: 'text-gray-500 bg-gray-50 border-gray-200' };
+    const ratingColors = { good: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', ok: 'text-blue-400 bg-blue-500/10 border-blue-500/20', 'needs-work': 'text-red-400 bg-red-500/10 border-red-500/20', caution: 'text-amber-400 bg-amber-500/10 border-amber-500/20', unknown: 'text-gray-400 bg-white/5 border-white/10' };
 
     // Build pitch history mini-chart
     let pitchChart = '';
@@ -1009,7 +1080,7 @@ PTE.App = {
       pitchChart = `
       <div class="mt-4">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Pitch Over Time</label>
-        <div class="bg-gray-50 rounded-lg p-3 border border-gray-100 overflow-hidden">
+        <div class="bg-white/5 rounded-lg p-3 border border-white/10 overflow-hidden">
           <svg viewBox="0 0 ${w} ${h}" class="w-full" style="max-height:80px">
             <defs>
               <linearGradient id="pitchGrad" x1="0" y1="0" x2="0" y2="1">
@@ -1043,8 +1114,8 @@ PTE.App = {
     };
 
     return `
-    <div class="mt-6 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden max-w-lg mx-auto animate-fadeIn">
-      <div class="bg-gradient-to-r from-violet-500 to-fuchsia-500 p-4 text-center">
+    <div class="mt-6 glass neon-border rounded-2xl overflow-hidden max-w-lg mx-auto animate-fadeIn">
+      <div class="bg-gradient-to-r from-violet-600 to-fuchsia-600 p-4 text-center">
         <h3 class="text-white font-bold text-sm flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
           Voice & Tone Analysis
@@ -1052,17 +1123,17 @@ PTE.App = {
       </div>
       <div class="p-5">
         <div class="grid grid-cols-3 gap-3 text-center mb-4">
-          <div class="bg-gray-50 rounded-lg p-2">
-            <p class="text-xs text-gray-400">Avg Pitch</p>
-            <p class="text-lg font-bold text-indigo-600">${tone.avgPitch}<span class="text-xs font-normal text-gray-400"> Hz</span></p>
+          <div class="bg-white/5 rounded-lg p-2">
+            <p class="text-xs text-gray-500">Avg Pitch</p>
+            <p class="text-lg font-bold text-indigo-400">${tone.avgPitch}<span class="text-xs font-normal text-gray-500"> Hz</span></p>
           </div>
-          <div class="bg-gray-50 rounded-lg p-2">
-            <p class="text-xs text-gray-400">Pitch Range</p>
-            <p class="text-lg font-bold text-purple-600">${tone.pitchRange}<span class="text-xs font-normal text-gray-400"> Hz</span></p>
+          <div class="bg-white/5 rounded-lg p-2">
+            <p class="text-xs text-gray-500">Pitch Range</p>
+            <p class="text-lg font-bold text-purple-400">${tone.pitchRange}<span class="text-xs font-normal text-gray-500"> Hz</span></p>
           </div>
-          <div class="bg-gray-50 rounded-lg p-2">
-            <p class="text-xs text-gray-400">Intonation</p>
-            <p class="text-lg font-bold text-fuchsia-600">${tone.intonationScore}<span class="text-xs font-normal text-gray-400">/100</span></p>
+          <div class="bg-white/5 rounded-lg p-2">
+            <p class="text-xs text-gray-500">Intonation</p>
+            <p class="text-lg font-bold text-fuchsia-400">${tone.intonationScore}<span class="text-xs font-normal text-gray-500">/100</span></p>
           </div>
         </div>
         ${pitchChart}
@@ -1071,8 +1142,8 @@ PTE.App = {
           ${renderItem('Intonation', a.intonation)}
           ${renderItem('Volume', a.volume)}
         </div>
-        <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-          <p class="text-xs font-semibold text-gray-600">${a.overall.summary}</p>
+        <div class="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
+          <p class="text-xs font-semibold text-gray-300">${a.overall.summary}</p>
         </div>
       </div>
     </div>`;
@@ -1082,8 +1153,8 @@ PTE.App = {
 
   _renderAIFeedback(fb, q, type) {
     let html = `
-    <div class="mt-6 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden max-w-lg mx-auto animate-fadeIn">
-      <div class="bg-gradient-to-r from-cyan-500 to-blue-600 p-4 text-center">
+    <div class="mt-6 glass neon-border rounded-2xl overflow-hidden max-w-lg mx-auto animate-fadeIn">
+      <div class="bg-gradient-to-r from-cyan-600 to-blue-600 p-4 text-center">
         <h3 class="text-white font-bold text-sm flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
           AI Detailed Feedback
@@ -1092,7 +1163,7 @@ PTE.App = {
       <div class="p-5">`;
 
     // Overall summary
-    html += `<p class="text-sm text-gray-700 mb-4 leading-relaxed">${fb.overallSummary}</p>`;
+    html += `<p class="text-sm text-gray-300 mb-4 leading-relaxed">${fb.overallSummary}</p>`;
 
     // Strengths
     if (fb.strengths.length > 0) {
@@ -1102,7 +1173,7 @@ PTE.App = {
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
           Strengths
         </h4>
-        ${fb.strengths.map(s => `<p class="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 mb-1.5">${s}</p>`).join('')}
+        ${fb.strengths.map(s => `<p class="text-xs text-emerald-400 bg-emerald-500/10 rounded-lg px-3 py-2 mb-1.5">${s}</p>`).join('')}
       </div>`;
     }
 
@@ -1114,7 +1185,7 @@ PTE.App = {
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
           Areas to Improve
         </h4>
-        ${fb.improvements.map(s => `<p class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mb-1.5">${s}</p>`).join('')}
+        ${fb.improvements.map(s => `<p class="text-xs text-amber-400 bg-amber-500/10 rounded-lg px-3 py-2 mb-1.5">${s}</p>`).join('')}
       </div>`;
     }
 
@@ -1122,12 +1193,12 @@ PTE.App = {
     if (fb.contentAnalysis && fb.contentAnalysis.keywordResults.length > 0) {
       html += `
       <div class="mb-4">
-        <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Keyword Coverage (${fb.contentAnalysis.coverage}%)</h4>
-        <div class="h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
+        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Keyword Coverage (${fb.contentAnalysis.coverage}%)</h4>
+        <div class="h-2 bg-white/10 rounded-full overflow-hidden mb-2">
           <div class="h-full rounded-full bg-indigo-500 transition-all" style="width:${fb.contentAnalysis.coverage}%"></div>
         </div>
         <div class="flex flex-wrap gap-1.5">
-          ${fb.contentAnalysis.keywordResults.map(k => `<span class="text-xs px-2 py-0.5 rounded-full ${k.found ? 'bg-emerald-100 text-emerald-700' : 'bg-red-50 text-red-500 line-through'}">${k.keyword}</span>`).join('')}
+          ${fb.contentAnalysis.keywordResults.map(k => `<span class="text-xs px-2 py-0.5 rounded-full ${k.found ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/10 text-red-400 line-through'}">${k.keyword}</span>`).join('')}
         </div>
       </div>`;
     }
@@ -1136,11 +1207,11 @@ PTE.App = {
     if (fb.wordAnalysis && fb.wordAnalysis.missed.length > 0) {
       html += `
       <div class="mb-4">
-        <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Missed Words (${fb.wordAnalysis.missed.length})</h4>
+        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Missed Words (${fb.wordAnalysis.missed.length})</h4>
         <div class="flex flex-wrap gap-1.5">
-          ${fb.wordAnalysis.missed.map(w => `<span class="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">${w}</span>`).join('')}
+          ${fb.wordAnalysis.missed.map(w => `<span class="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">${w}</span>`).join('')}
         </div>
-        <p class="text-xs text-gray-400 mt-1">Word accuracy: ${fb.wordAnalysis.accuracy}%</p>
+        <p class="text-xs text-gray-500 mt-1">Word accuracy: ${fb.wordAnalysis.accuracy}%</p>
       </div>`;
     }
 
@@ -1149,22 +1220,22 @@ PTE.App = {
       const fl = fb.fluencyAnalysis;
       html += `
       <div class="mb-4">
-        <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Fluency Details</h4>
+        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Fluency Details</h4>
         <div class="grid grid-cols-3 gap-2 text-center mb-2">
-          <div class="bg-gray-50 rounded-lg p-2">
-            <p class="text-xs text-gray-400">Words</p>
-            <p class="text-sm font-bold text-gray-700">${fl.wordCount}</p>
+          <div class="bg-white/5 rounded-lg p-2">
+            <p class="text-xs text-gray-500">Words</p>
+            <p class="text-sm font-bold text-gray-200">${fl.wordCount}</p>
           </div>
-          <div class="bg-gray-50 rounded-lg p-2">
-            <p class="text-xs text-gray-400">Pace</p>
-            <p class="text-sm font-bold ${fl.wpm >= 100 && fl.wpm <= 180 ? 'text-emerald-600' : 'text-amber-600'}">${fl.wpm} WPM</p>
+          <div class="bg-white/5 rounded-lg p-2">
+            <p class="text-xs text-gray-500">Pace</p>
+            <p class="text-sm font-bold ${fl.wpm >= 100 && fl.wpm <= 180 ? 'text-emerald-400' : 'text-amber-400'}">${fl.wpm} WPM</p>
           </div>
-          <div class="bg-gray-50 rounded-lg p-2">
-            <p class="text-xs text-gray-400">Time Used</p>
-            <p class="text-sm font-bold text-gray-700">${fl.duration}s / ${fl.maxDuration}s</p>
+          <div class="bg-white/5 rounded-lg p-2">
+            <p class="text-xs text-gray-500">Time Used</p>
+            <p class="text-sm font-bold text-gray-200">${fl.duration}s / ${fl.maxDuration}s</p>
           </div>
         </div>
-        <p class="text-xs text-gray-600">${fl.paceAssessment}</p>
+        <p class="text-xs text-gray-400">${fl.paceAssessment}</p>
       </div>`;
     }
 
@@ -1172,9 +1243,9 @@ PTE.App = {
     if (fb.pronunciationAnalysis && fb.pronunciationAnalysis.tips.length > 0) {
       html += `
       <details class="mb-4">
-        <summary class="text-xs font-bold text-gray-600 uppercase tracking-wide cursor-pointer hover:text-indigo-600">Pronunciation Tips (${fb.pronunciationAnalysis.level})</summary>
+        <summary class="text-xs font-bold text-gray-400 uppercase tracking-wide cursor-pointer hover:text-indigo-400">Pronunciation Tips (${fb.pronunciationAnalysis.level})</summary>
         <ul class="mt-2 space-y-1">
-          ${fb.pronunciationAnalysis.tips.map(t => `<li class="text-xs text-gray-600 flex items-start gap-1.5"><span class="text-indigo-400 mt-0.5 flex-shrink-0">&#9654;</span>${t}</li>`).join('')}
+          ${fb.pronunciationAnalysis.tips.map(t => `<li class="text-xs text-gray-400 flex items-start gap-1.5"><span class="text-indigo-400 mt-0.5 flex-shrink-0">&#9654;</span>${t}</li>`).join('')}
         </ul>
       </details>`;
     }
@@ -1183,12 +1254,12 @@ PTE.App = {
     if (fb.pteStrategies.length > 0) {
       html += `
       <details class="mb-4">
-        <summary class="text-xs font-bold text-indigo-600 uppercase tracking-wide cursor-pointer hover:text-indigo-700">PTE Strategies for ${type.name}</summary>
+        <summary class="text-xs font-bold text-indigo-400 uppercase tracking-wide cursor-pointer hover:text-indigo-300">PTE Strategies for ${type.name}</summary>
         <div class="mt-2 space-y-2">
           ${fb.pteStrategies.map(s => `
-            <div class="bg-indigo-50 rounded-lg p-3 border border-indigo-100">
-              <p class="text-xs font-semibold text-indigo-800 mb-0.5">${s.title}</p>
-              <p class="text-xs text-indigo-600">${s.detail}</p>
+            <div class="bg-indigo-500/10 rounded-lg p-3 border border-indigo-500/20">
+              <p class="text-xs font-semibold text-indigo-300 mb-0.5">${s.title}</p>
+              <p class="text-xs text-indigo-400">${s.detail}</p>
             </div>
           `).join('')}
         </div>
@@ -1199,12 +1270,12 @@ PTE.App = {
     if (fb.practiceExercises.length > 0) {
       html += `
       <details class="mb-4">
-        <summary class="text-xs font-bold text-purple-600 uppercase tracking-wide cursor-pointer hover:text-purple-700">Recommended Exercises</summary>
+        <summary class="text-xs font-bold text-purple-400 uppercase tracking-wide cursor-pointer hover:text-purple-300">Recommended Exercises</summary>
         <div class="mt-2 space-y-2">
           ${fb.practiceExercises.map(ex => `
-            <div class="bg-purple-50 rounded-lg p-3 border border-purple-100">
-              <p class="text-xs font-semibold text-purple-800 mb-0.5">${ex.title}</p>
-              <p class="text-xs text-purple-600">${ex.description}</p>
+            <div class="bg-purple-500/10 rounded-lg p-3 border border-purple-500/20">
+              <p class="text-xs font-semibold text-purple-300 mb-0.5">${ex.title}</p>
+              <p class="text-xs text-purple-400">${ex.description}</p>
             </div>
           `).join('')}
         </div>
@@ -1215,9 +1286,9 @@ PTE.App = {
     if (fb.modelAnswer) {
       html += `
       <div class="mb-2">
-        <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">${fb.modelAnswer.label}</h4>
-        <div class="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
-          <p class="text-xs text-emerald-800">${fb.modelAnswer.text}</p>
+        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">${fb.modelAnswer.label}</h4>
+        <div class="bg-emerald-500/10 rounded-lg p-3 border border-emerald-500/20">
+          <p class="text-xs text-emerald-300">${fb.modelAnswer.text}</p>
           ${fb.modelAnswer.note ? `<p class="text-xs text-emerald-500 mt-1 italic">${fb.modelAnswer.note}</p>` : ''}
         </div>
       </div>`;
@@ -1225,6 +1296,55 @@ PTE.App = {
 
     html += '</div></div>';
     return html;
+  },
+
+  // ── Data Export/Import ──────────────────────────────────────
+
+  _exportData() {
+    try {
+      const data = {
+        version: 1,
+        exportDate: new Date().toISOString(),
+        progress: PTE.Store.getAll(),
+        gamify: PTE.Gamify ? PTE.Gamify.getData() : null
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `crackpte-backup-${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      const msg = document.getElementById('data-msg');
+      if (msg) { msg.className = 'mb-4 p-3 rounded-xl text-sm font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'; msg.textContent = 'Data exported successfully!'; msg.classList.remove('hidden'); }
+    } catch(e) {
+      const msg = document.getElementById('data-msg');
+      if (msg) { msg.className = 'mb-4 p-3 rounded-xl text-sm font-medium bg-red-500/15 text-red-400 border border-red-500/20'; msg.textContent = 'Export failed: ' + e.message; msg.classList.remove('hidden'); }
+    }
+  },
+
+  _importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.progress || !data.progress.sessions) throw new Error('Invalid backup file format');
+        if (!confirm(`Import ${data.progress.sessions.length} practice sessions? This will replace your current data.`)) return;
+        PTE.Store.save(data.progress);
+        if (data.gamify && PTE.Gamify) PTE.Gamify.save(data.gamify);
+        const msg = document.getElementById('data-msg');
+        if (msg) { msg.className = 'mb-4 p-3 rounded-xl text-sm font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'; msg.textContent = `Imported ${data.progress.sessions.length} sessions successfully! Refreshing...`; msg.classList.remove('hidden'); }
+        setTimeout(() => PTE.Router.navigate('/profile'), 1500);
+      } catch(err) {
+        const msg = document.getElementById('data-msg');
+        if (msg) { msg.className = 'mb-4 p-3 rounded-xl text-sm font-medium bg-red-500/15 text-red-400 border border-red-500/20'; msg.textContent = 'Import failed: ' + err.message; msg.classList.remove('hidden'); }
+      }
+    };
+    reader.readAsText(file);
   },
 
   // ── Waveform + Pitch Animation ───────────────────────────────
@@ -1302,6 +1422,7 @@ PTE.App = {
    * Keeps the mic stream alive so recording works immediately.
    */
   cleanup() {
+    this._exitFullscreen();
     PTE.Timer.stop();
     PTE.TTS.stop();
     this.stopWaveformAnimation();
