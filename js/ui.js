@@ -23,6 +23,7 @@ PTE.UI = {
       { href:'#/accent', label:'Accent Coach', page:'accent', icon:'🗣️' },
       { href:'#/weak-words', label:'Weak Word Drill', page:'weak-words', icon:'🎙️' },
       { href:'#/daily', label:'Daily Challenge', page:'daily', icon:'⚡' },
+      { href:'#/notebook', label:'Mistake Notebook', page:'notebook', icon:'📓' },
       { href:'#/vocab', label:'Vocab Builder', page:'vocab', icon:'🃏' },
       { href:'#/drills', label:'Pronunciation Drills', page:'drills', icon:'🎙️' },
       { href:'#/templates', label:'Templates', page:'templates', icon:'📝' },

@@ -172,6 +172,53 @@ PTE.Store = {
     return map;
   },
 
+  /**
+   * Get weak questions for the Mistake Notebook.
+   * Groups by questionId and keeps latest + best attempt metadata.
+   */
+  getMistakeQuestions(threshold = 55, limit = 50) {
+    const sessions = this.getAll().sessions || [];
+    const grouped = {};
+
+    for (const s of sessions) {
+      if (!s || !s.questionId || !s.type) continue;
+      if (s.type === 'mock-test') continue;
+      if (typeof s.overallScore !== 'number') continue;
+      if (s.overallScore >= threshold) continue;
+
+      const key = `${s.type}::${s.questionId}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          type: s.type,
+          questionId: s.questionId,
+          attempts: 0,
+          bestScore: 0,
+          latestScore: s.overallScore,
+          latestDate: s.date || '',
+          latestTimestamp: s.timestamp || 0,
+          latestTranscript: s.transcript || ''
+        };
+      }
+
+      const item = grouped[key];
+      item.attempts++;
+      if (s.overallScore > item.bestScore) item.bestScore = s.overallScore;
+      if ((s.timestamp || 0) > item.latestTimestamp) {
+        item.latestScore = s.overallScore;
+        item.latestDate = s.date || '';
+        item.latestTimestamp = s.timestamp || 0;
+        item.latestTranscript = s.transcript || '';
+      }
+    }
+
+    return Object.values(grouped)
+      .sort((a, b) => {
+        if (a.latestScore !== b.latestScore) return a.latestScore - b.latestScore;
+        return b.latestTimestamp - a.latestTimestamp;
+      })
+      .slice(0, Math.max(1, limit));
+  },
+
   clearAll() {
     localStorage.removeItem(this.STORAGE_KEY);
   }
