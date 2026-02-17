@@ -453,35 +453,51 @@ PTE.UI = {
 
     const expWords = expectedText.replace(/[^\w\s'-]/g, ' ').split(/\s+/).filter(w => w);
     const recNorm = (transcript || '').toLowerCase().replace(/[^\w\s'-]/g, ' ');
-    const recWordSet = new Set(recNorm.split(/\s+/).filter(w => w));
+    const recWords = recNorm.split(/\s+/).filter(w => w);
 
-    // Build a frequency map for recognized words for better matching
-    const recFreq = {};
-    recNorm.split(/\s+/).filter(w => w).forEach(w => { recFreq[w] = (recFreq[w] || 0) + 1; });
+    // Normalize expected words for comparison
+    const expNorm = expWords.map(w => w.toLowerCase().replace(/[^\w'-]/g, ''));
 
-    const usedFreq = {};
-    const wordSpans = expWords.map((word, i) => {
-      const wordLower = word.toLowerCase().replace(/[^\w'-]/g, '');
-      const isMatch = recWordSet.has(wordLower);
-      // Track usage to handle duplicates
-      if (isMatch) {
-        usedFreq[wordLower] = (usedFreq[wordLower] || 0) + 1;
+    // Use LCS to find sequence-aware matches (respects word order + duplicates)
+    const lcsResult = PTE.Scoring._lcsWords(expNorm, recWords);
+
+    // Also check phonetic closeness for missed words (Levenshtein ≤ 2)
+    const closeMatchSet = new Set();
+    for (let i = 0; i < expNorm.length; i++) {
+      if (lcsResult.expIndices.has(i)) continue;
+      for (let j = 0; j < recWords.length; j++) {
+        if (lcsResult.recIndices.has(j)) continue;
+        const dist = PTE.Scoring.levenshtein(expNorm[i], recWords[j]);
+        if (dist <= 2 && dist < Math.max(expNorm[i].length, recWords[j].length) * 0.5) {
+          closeMatchSet.add(i);
+          break;
+        }
       }
-      const matched = isMatch && (usedFreq[wordLower] || 0) <= (recFreq[wordLower] || 0);
+    }
 
-      const bgClass = matched
-        ? 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200'
-        : 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200';
+    const wordSpans = expWords.map((word, i) => {
+      const exactMatch = lcsResult.expIndices.has(i);
+      const closeMatch = closeMatchSet.has(i);
+
+      let bgClass;
+      if (exactMatch) {
+        bgClass = 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200';
+      } else if (closeMatch) {
+        bgClass = 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200';
+      } else {
+        bgClass = 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200';
+      }
       const iconSvg = `<svg class="w-3 h-3 inline-block ml-0.5 opacity-40 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>`;
 
-      // Escape single quotes for onclick
       const safeWord = word.replace(/'/g, "\\'");
-      return `<span class="group inline-flex items-center px-1.5 py-0.5 rounded-md border text-sm font-medium cursor-pointer transition-all ${bgClass}" onclick="PTE.pronounceWord('${safeWord}')" title="Click to hear pronunciation">${word}${iconSvg}</span>`;
+      const title = exactMatch ? 'Matched correctly' : closeMatch ? 'Close pronunciation (minor error)' : 'Missed — click to hear correct pronunciation';
+      return `<span class="group inline-flex items-center px-1.5 py-0.5 rounded-md border text-sm font-medium cursor-pointer transition-all ${bgClass}" onclick="PTE.pronounceWord('${safeWord}')" title="${title}">${word}${iconSvg}</span>`;
     });
 
-    const matchedCount = Object.values(usedFreq).reduce((s, v) => s + v, 0);
+    const matchedCount = lcsResult.expIndices.size;
+    const closeCount = closeMatchSet.size;
     const totalWords = expWords.length;
-    const pct = totalWords > 0 ? Math.round((matchedCount / totalWords) * 100) : 0;
+    const pct = totalWords > 0 ? Math.round(((matchedCount + closeCount * 0.5) / totalWords) * 100) : 0;
 
     return `
     <div class="mt-4 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden max-w-lg mx-auto animate-fadeIn">
@@ -496,6 +512,7 @@ PTE.UI = {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-3">
             <span class="flex items-center gap-1 text-xs"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-200 inline-block"></span> Correct</span>
+            <span class="flex items-center gap-1 text-xs"><span class="w-3 h-3 rounded bg-amber-100 border border-amber-200 inline-block"></span> Close</span>
             <span class="flex items-center gap-1 text-xs"><span class="w-3 h-3 rounded bg-red-100 border border-red-200 inline-block"></span> Missed</span>
           </div>
           <span class="text-xs font-bold ${pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-red-600'}">${pct}% matched</span>

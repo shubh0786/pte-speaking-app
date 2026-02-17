@@ -747,31 +747,106 @@ PTE.Scoring = {
   pronunciationScore(confidence, recognized, expected) {
     if (!recognized || recognized.trim().length === 0) return 0;
 
-    // Primary signal: speech recognition confidence (0-1)
-    // High confidence = speech engine understood words well = good pronunciation
-    let band = 0;
+    const recWords = this.normalizeText(recognized).split(/\s+/).filter(w => w);
+    const expWords = expected ? this.normalizeText(expected).split(/\s+/).filter(w => w) : [];
 
-    // Secondary signal: word accuracy vs expected text
-    let wordAccuracy = 1.0;
-    if (expected && expected.trim().length > 0) {
-      const recWords = this.normalizeText(recognized).split(/\s+/);
-      const expWords = this.normalizeText(expected).split(/\s+/);
-      // Count how many expected words were recognized (order-independent)
-      const expSet = new Set(expWords);
-      const matchCount = recWords.filter(w => expSet.has(w)).length;
-      wordAccuracy = matchCount / Math.max(expWords.length, 1);
+    // ── Signal 1: Sequence-aware word accuracy (LCS) ──
+    // Uses Longest Common Subsequence so word ORDER matters
+    // and duplicate words are handled correctly
+    let seqAccuracy = 1.0;
+    if (expWords.length > 0) {
+      const lcsLen = this._lcsLength(expWords, recWords);
+      const omissions = expWords.length - lcsLen;
+      const insertions = recWords.length - lcsLen;
+      const totalErrors = omissions + insertions;
+      seqAccuracy = Math.max(0, 1 - (totalErrors / Math.max(expWords.length, 1)));
     }
 
-    // Blend confidence and word accuracy for pronunciation assessment
-    // Word accuracy matters because mispronounced words won't be recognized
-    const blended = (confidence * 0.6) + (wordAccuracy * 0.4);
+    // ── Signal 2: Phoneme-approximate word matching ──
+    // For words not in LCS, check if they are "close" pronunciations
+    // (Levenshtein distance ≤ 2 = likely recognized with slight error)
+    let phoneticBonus = 0;
+    if (expWords.length > 0) {
+      const lcsSet = this._lcsWords(expWords, recWords);
+      const missedExp = expWords.filter((w, i) => !lcsSet.expIndices.has(i));
+      const unusedRec = recWords.filter((w, i) => !lcsSet.recIndices.has(i));
 
-    if (blended >= 0.92) band = 5;       // Highly proficient
-    else if (blended >= 0.80) band = 4;   // Advanced
-    else if (blended >= 0.65) band = 3;   // Good
-    else if (blended >= 0.45) band = 2;   // Intermediate
-    else if (blended >= 0.25) band = 1;   // Intrusive
-    else band = 0;                         // Non-English
+      let closeMatches = 0;
+      const usedRec = new Set();
+      for (const mw of missedExp) {
+        for (let ri = 0; ri < unusedRec.length; ri++) {
+          if (usedRec.has(ri)) continue;
+          const dist = this.levenshtein(mw, unusedRec[ri]);
+          if (dist <= 2 && dist < Math.max(mw.length, unusedRec[ri].length) * 0.5) {
+            closeMatches++;
+            usedRec.add(ri);
+            break;
+          }
+        }
+      }
+      phoneticBonus = missedExp.length > 0
+        ? (closeMatches / missedExp.length) * 0.15
+        : 0;
+    }
+
+    // ── Signal 3: Adjusted confidence ──
+    // Web Speech API confidence reflects recognition certainty, not
+    // pronunciation quality. Dampen extreme values and apply correction.
+    // Low confidence in noisy environments shouldn't kill the score;
+    // high confidence for short/easy phrases shouldn't inflate it.
+    let adjConfidence = confidence;
+
+    // Dampen overconfident scores on very short utterances
+    if (recWords.length <= 3 && confidence > 0.9) {
+      adjConfidence = 0.85;
+    }
+    // Boost slightly if many words matched but confidence was low
+    // (common with non-native accents that are still intelligible)
+    if (seqAccuracy >= 0.8 && confidence < 0.6 && confidence > 0) {
+      adjConfidence = confidence + (seqAccuracy - confidence) * 0.3;
+    }
+    // Clamp to [0, 1]
+    adjConfidence = Math.max(0, Math.min(1, adjConfidence));
+
+    // ── Signal 4: Length penalty ──
+    // If user said far fewer words than expected, pronunciation
+    // may not have been attempted for many words
+    let lengthPenalty = 0;
+    if (expWords.length > 0) {
+      const ratio = recWords.length / expWords.length;
+      if (ratio < 0.3) lengthPenalty = 0.3;
+      else if (ratio < 0.5) lengthPenalty = 0.15;
+      else if (ratio < 0.7) lengthPenalty = 0.05;
+    }
+
+    // ── Blend all signals ──
+    // seqAccuracy:  35% — strongest signal, order-aware word matching
+    // adjConfidence: 30% — recognition confidence (dampened)
+    // phoneticBonus: adds up to 15% for close-but-not-exact matches
+    // lengthPenalty: subtracted for incomplete attempts
+    const blended = Math.max(0, Math.min(1,
+      (seqAccuracy * 0.35) +
+      (adjConfidence * 0.30) +
+      (seqAccuracy * adjConfidence * 0.20) +
+      phoneticBonus -
+      lengthPenalty
+    ));
+
+    // ── Map to 0-5 PTE band ──
+    // Thresholds calibrated so that:
+    //   - Perfect read = 5
+    //   - 1-2 minor errors = 4
+    //   - Several errors but mostly understood = 3
+    //   - Many errors, ~1/3 unintelligible = 2
+    //   - Mostly unintelligible = 1
+    //   - No meaningful speech = 0
+    let band = 0;
+    if (blended >= 0.82) band = 5;
+    else if (blended >= 0.68) band = 4;
+    else if (blended >= 0.52) band = 3;
+    else if (blended >= 0.35) band = 2;
+    else if (blended >= 0.18) band = 1;
+    else band = 0;
 
     return band;
   },
@@ -1320,6 +1395,41 @@ PTE.Scoring = {
       [prev, curr] = [curr, new Array(n + 1).fill(0)];
     }
     return prev.reduce((max, v) => Math.max(max, v), 0);
+  },
+
+  /**
+   * LCS with index tracking — returns which indices in a[] and b[]
+   * are part of the longest common subsequence.
+   * Used by pronunciation scoring to identify matched vs missed words.
+   */
+  _lcsWords(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (a[i - 1] === b[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1] + 1;
+        } else {
+          dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+      }
+    }
+    // Backtrack to find actual matched indices
+    const expIndices = new Set();
+    const recIndices = new Set();
+    let i = m, j = n;
+    while (i > 0 && j > 0) {
+      if (a[i - 1] === b[j - 1]) {
+        expIndices.add(i - 1);
+        recIndices.add(j - 1);
+        i--; j--;
+      } else if (dp[i - 1][j] > dp[i][j - 1]) {
+        i--;
+      } else {
+        j--;
+      }
+    }
+    return { expIndices, recIndices, length: dp[m][n] };
   },
 
   // ═══════════════════════════════════════════════════════════════
