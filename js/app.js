@@ -14,6 +14,7 @@ PTE.App = {
   currentQuestion: null,
   phase: 'idle', // idle, listening, prep, recording, evaluating, review
   recordingStartTime: null,
+  shadowingMode: false,
   waveformInterval: null,
   _recordResolve: null,
   _prepResolve: null,       // stored resolve for skip prep
@@ -66,6 +67,9 @@ PTE.App = {
     PTE.Router.on('/review', () => this.requireAuth(() => this.renderPage('review')));
     PTE.Router.on('/planner', () => this.requireAuth(() => this.renderPage('planner')));
     PTE.Router.on('/accent', () => this.requireAuth(() => this.renderPage('accent')));
+    PTE.Router.on('/target', () => this.requireAuth(() => this.renderPage('target')));
+    PTE.Router.on('/weak-words', () => this.requireAuth(() => this.renderPage('weak-words')));
+    PTE.Router.on('/reminders', () => this.requireAuth(() => this.renderPage('reminders')));
     PTE.Router.on('/challenge-create', () => this.requireAuth(() => this.renderPage('challenge-create')));
     PTE.Router.on('/challenge/:code', (code) => this.requireAuth(() => this.renderPage('challenge', code)));
     PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
@@ -86,6 +90,9 @@ PTE.App = {
     } catch (e) {
       console.warn('[PTE] Speech recognizer init failed:', e);
     }
+
+    // Init study reminders if enabled
+    if (PTE.Reminders && PTE.Reminders.init) PTE.Reminders.init();
   },
 
   // ── Auth Guard ──────────────────────────────────────────────
@@ -123,6 +130,9 @@ PTE.App = {
       case 'review': root.innerHTML = PTE.Spaced ? PTE.Spaced.renderPage() : PTE.Pages.home(); break;
       case 'planner': root.innerHTML = PTE.Planner ? PTE.Planner.renderPage() : PTE.Pages.home(); break;
       case 'accent': root.innerHTML = PTE.AccentAnalyzer ? PTE.AccentAnalyzer.renderPage() : PTE.Pages.home(); break;
+      case 'target': root.innerHTML = PTE.TargetScore ? PTE.TargetScore.renderPage() : PTE.Pages.home(); break;
+      case 'weak-words': root.innerHTML = PTE.WeakWords ? PTE.WeakWords.renderPage() : PTE.Pages.home(); break;
+      case 'reminders': root.innerHTML = PTE.Reminders ? PTE.Reminders.renderPage() : PTE.Pages.home(); break;
       case 'challenge-create': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderCreatePage() : PTE.Pages.home(); break;
       case 'challenge': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderChallengePage(param) : PTE.Pages.home(); break;
     }
@@ -261,6 +271,19 @@ PTE.App = {
           `).join('')}
         </div>
       </div>`;
+    }
+
+    // Shadowing mode toggle (Repeat Sentence only)
+    if (type.id === 'repeat-sentence') {
+      const shadowChecked = PTE.App.shadowingMode ? 'checked' : '';
+      content += `
+    <div class="mb-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" id="shadowing-toggle" ${shadowChecked} onchange="PTE.App.shadowingMode = this.checked" class="rounded border-gray-500 bg-white/5 text-purple-500 focus:ring-purple-500">
+        <span class="text-sm font-medium text-purple-300">Shadowing mode</span>
+        <span class="text-xs text-gray-500">— Hear audio again while recording (speak along)</span>
+      </label>
+    </div>`;
     }
 
     // Timer, waveform, pitch, and controls
@@ -606,6 +629,14 @@ PTE.App = {
       this._recordResolve = resolve;
       this.phase = 'recording';
       this.recordingStartTime = Date.now();
+
+      // Shadowing mode (Repeat Sentence): play audio again while user records (speak along)
+      if (this.shadowingMode && this.currentTypeConfig?.id === 'repeat-sentence' && this.currentQuestion) {
+        const text = this.currentQuestion.text || this.currentQuestion.audioText || '';
+        if (text && PTE.TTS) {
+          PTE.TTS.speak(text, 0.92); // Fire and forget — plays while recording
+        }
+      }
 
       const timerContainer = document.getElementById('timer-container');
       const waveformContainer = document.getElementById('waveform-container');

@@ -236,6 +236,9 @@ PTE.Auth = {
     if (PTE.Drills) PTE.Drills.STORAGE_KEY = 'crackpte_drills' + suffix;
     if (PTE.Planner) PTE.Planner.STORAGE_KEY = 'crackpte_planner' + suffix;
     if (PTE.AccentAnalyzer) PTE.AccentAnalyzer.STORAGE_KEY = 'crackpte_accent' + suffix;
+    if (PTE.TargetScore) PTE.TargetScore.STORAGE_KEY = 'crackpte_target' + suffix;
+    if (PTE.WeakWords) PTE.WeakWords.STORAGE_KEY = 'crackpte_weakwords' + suffix;
+    if (PTE.Reminders) PTE.Reminders.STORAGE_KEY = 'crackpte_reminders' + suffix;
   },
 
   _resetStorageKeys() {
@@ -249,6 +252,9 @@ PTE.Auth = {
     if (PTE.Drills) PTE.Drills.STORAGE_KEY = 'crackpte_drills';
     if (PTE.Planner) PTE.Planner.STORAGE_KEY = 'crackpte_planner';
     if (PTE.AccentAnalyzer) PTE.AccentAnalyzer.STORAGE_KEY = 'crackpte_accent';
+    if (PTE.TargetScore) PTE.TargetScore.STORAGE_KEY = 'crackpte_target';
+    if (PTE.WeakWords) PTE.WeakWords.STORAGE_KEY = 'crackpte_weakwords';
+    if (PTE.Reminders) PTE.Reminders.STORAGE_KEY = 'crackpte_reminders';
   },
 
   // ── Utility Functions ───────────────────────────────────────

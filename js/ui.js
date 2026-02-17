@@ -19,7 +19,9 @@ PTE.UI = {
       { href:'#/progress', label:'Analytics', page:'progress' },
     ];
     const moreLinks = [
+      { href:'#/target', label:'Target Score', page:'target', icon:'🎯' },
       { href:'#/accent', label:'Accent Coach', page:'accent', icon:'🗣️' },
+      { href:'#/weak-words', label:'Weak Word Drill', page:'weak-words', icon:'🎙️' },
       { href:'#/daily', label:'Daily Challenge', page:'daily', icon:'⚡' },
       { href:'#/vocab', label:'Vocab Builder', page:'vocab', icon:'🃏' },
       { href:'#/drills', label:'Pronunciation Drills', page:'drills', icon:'🎙️' },
@@ -28,6 +30,7 @@ PTE.UI = {
       { href:'#/review', label:'Spaced Review', page:'review', icon:'🧠' },
       { href:'#/leaderboard', label:'Leaderboard', page:'leaderboard', icon:'🏆' },
       { href:'#/challenge-create', label:'Challenge Friend', page:'challenge-create', icon:'⚔️' },
+      { href:'#/reminders', label:'Study Reminders', page:'reminders', icon:'🔔' },
     ];
     const dLink = l => `<a href="${l.href}" class="px-2.5 py-2 rounded-lg text-sm font-medium transition-all ${activePage===l.page?'bg-indigo-500/20 text-indigo-400 neon-border':'text-gray-400 hover:bg-white/5 hover:text-gray-200'}">${l.label}</a>`;
     const mLink = l => `<a href="${l.href}" onclick="document.getElementById('${navId}').classList.add('hidden')" class="block px-4 py-3 rounded-xl text-base font-medium transition-all ${activePage===l.page?'bg-indigo-500/20 text-indigo-400':'text-gray-300 hover:bg-white/5'}">${l.icon?l.icon+' ':''}${l.label}</a>`;

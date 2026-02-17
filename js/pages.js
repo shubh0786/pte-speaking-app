@@ -97,9 +97,11 @@ PTE.Pages = {
       <!-- Action Cards Row -->
       <section class="px-4 py-6">
         <div class="max-w-4xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${PTE.TargetScore && PTE.TargetScore.renderCard ? PTE.TargetScore.renderCard() : ''}
           ${PTE.Daily ? PTE.Daily.renderCard() : ''}
           ${PTE.Planner ? PTE.Planner.renderCard() : ''}
           ${PTE.Spaced ? PTE.Spaced.renderCard() : ''}
+          ${PTE.Reminders ? PTE.Reminders.renderCard() : ''}
         </div>
       </section>
 
