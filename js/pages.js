@@ -280,6 +280,104 @@ PTE.Pages = {
     </main>`;
   },
 
+  // ── Mistake Notebook Page ────────────────────────────────────
+  notebook() {
+    const weakItems = PTE.Store.getMistakeQuestions(55, 80);
+
+    if (!weakItems.length) {
+      return `
+      ${PTE.UI.navbar('notebook')}
+      <main class="min-h-screen py-10 px-4">
+        <div class="max-w-4xl mx-auto">
+          <h1 class="text-3xl font-bold text-white mb-2">Mistake Notebook</h1>
+          <p class="text-gray-500 mb-8">Questions where your score dropped below 55/90 will appear here for focused revision.</p>
+          ${PTE.UI.emptyState('📓', 'No Mistakes Yet', 'Great start. Keep practicing and your low-score questions will be collected here automatically.')}
+          <div class="text-center mt-6">
+            <a href="#/practice" class="btn-primary">Start Practice</a>
+          </div>
+        </div>
+      </main>`;
+    }
+
+    const cards = weakItems.map(item => {
+      const typeCfg = Object.values(PTE.QUESTION_TYPES).find(t => t.id === item.type);
+      const band = PTE.Scoring.getBand(item.latestScore || 0);
+      const q = this._findQuestionById(item.type, item.questionId);
+      const prompt = this._questionPrompt(q);
+      const transcript = (item.latestTranscript || '').trim();
+      const transcriptPreview = transcript
+        ? transcript.slice(0, 160) + (transcript.length > 160 ? '...' : '')
+        : 'No transcript captured for this attempt.';
+
+      return `
+      <div class="glass rounded-2xl p-5 card-shine">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style="background:${typeCfg ? typeCfg.color + '22' : 'rgba(99,102,241,0.15)'}">
+              ${typeCfg ? typeCfg.icon : '❓'}
+            </div>
+            <div class="min-w-0">
+              <h3 class="font-bold text-white text-sm truncate">${typeCfg ? typeCfg.name : item.type}</h3>
+              <p class="text-xs text-gray-500">Question ID: ${item.questionId}</p>
+            </div>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="background:${band.color}22;color:${band.color}">
+            Latest: ${item.latestScore}/90
+          </span>
+        </div>
+
+        <p class="text-sm text-gray-300 leading-relaxed mb-3">${prompt}</p>
+
+        <div class="bg-white/5 border border-white/10 rounded-xl p-3 mb-4">
+          <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">Last Transcript</p>
+          <p class="text-xs text-gray-400">${transcriptPreview}</p>
+        </div>
+
+        <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
+          <span>Attempts: ${item.attempts}</span>
+          <span>Best: ${item.bestScore}/90</span>
+          <span>${item.latestDate || 'Recent'}</span>
+        </div>
+
+        <a href="#/retry/${item.type}/${encodeURIComponent(item.questionId)}" class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors">
+          Retry This Question
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+      </div>`;
+    }).join('');
+
+    return `
+    ${PTE.UI.navbar('notebook')}
+    <main class="min-h-screen py-10 px-4">
+      <div class="max-w-4xl mx-auto">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-white mb-2">Mistake Notebook</h1>
+          <p class="text-gray-500">Focused revision list of weak questions (latest score under 55/90), sorted by lowest latest score first.</p>
+        </div>
+        <div class="space-y-4">${cards}</div>
+      </div>
+    </main>`;
+  },
+
+  _findQuestionById(typeId, questionId) {
+    const byId = q => q && q.id && String(q.id) === String(questionId);
+    const regular = (PTE.Questions[typeId] || []).find(byId);
+    if (regular) return regular;
+    return (PTE.Predictions && PTE.Predictions[typeId] ? PTE.Predictions[typeId] : []).find(byId) || null;
+  },
+
+  _questionPrompt(question) {
+    if (!question) return 'Question details unavailable. It may no longer exist in the current question bank.';
+    if (question.scenario) return question.scenario.slice(0, 220) + (question.scenario.length > 220 ? '...' : '');
+    if (question.text) return question.text.slice(0, 220) + (question.text.length > 220 ? '...' : '');
+    if (question.audioText) return question.audioText.slice(0, 220) + (question.audioText.length > 220 ? '...' : '');
+    if (question.speakers && question.speakers.length) {
+      const merged = question.speakers.map(s => s.text).join(' ');
+      return merged.slice(0, 220) + (merged.length > 220 ? '...' : '');
+    }
+    return 'Prompt not available for this item.';
+  },
+
   // ── Practice Question Page ───────────────────────────────────
   practiceQuestion(typeId, predictionsOnly) {
     const typeConfig = Object.values(PTE.QUESTION_TYPES).find(t => t.id === typeId);

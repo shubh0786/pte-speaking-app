@@ -65,9 +65,11 @@ PTE.App = {
     PTE.Router.on('/leaderboard', () => this.requireAuth(() => this.renderPage('leaderboard')));
     PTE.Router.on('/review', () => this.requireAuth(() => this.renderPage('review')));
     PTE.Router.on('/planner', () => this.requireAuth(() => this.renderPage('planner')));
+    PTE.Router.on('/notebook', () => this.requireAuth(() => this.renderPage('notebook')));
     PTE.Router.on('/accent', () => this.requireAuth(() => this.renderPage('accent')));
     PTE.Router.on('/challenge-create', () => this.requireAuth(() => this.renderPage('challenge-create')));
     PTE.Router.on('/challenge/:code', (code) => this.requireAuth(() => this.renderPage('challenge', code)));
+    PTE.Router.on('/retry/:type/:qid', (type, qid) => this.requireAuth(() => this.startRetry(type, qid)));
     PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
     PTE.Router.on('/practice/:type', (type) => this.requireAuth(() => this.startPractice(type, false)));
 
@@ -122,6 +124,7 @@ PTE.App = {
       case 'leaderboard': root.innerHTML = PTE.Leaderboard ? PTE.Leaderboard.renderPage() : PTE.Pages.home(); break;
       case 'review': root.innerHTML = PTE.Spaced ? PTE.Spaced.renderPage() : PTE.Pages.home(); break;
       case 'planner': root.innerHTML = PTE.Planner ? PTE.Planner.renderPage() : PTE.Pages.home(); break;
+      case 'notebook': root.innerHTML = PTE.Pages.notebook ? PTE.Pages.notebook() : PTE.Pages.home(); break;
       case 'accent': root.innerHTML = PTE.AccentAnalyzer ? PTE.AccentAnalyzer.renderPage() : PTE.Pages.home(); break;
       case 'challenge-create': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderCreatePage() : PTE.Pages.home(); break;
       case 'challenge': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderChallengePage(param) : PTE.Pages.home(); break;
@@ -130,7 +133,7 @@ PTE.App = {
 
   // ── Practice Flow ────────────────────────────────────────────
 
-  startPractice(typeId, predictionsOnly) {
+  startPractice(typeId, predictionsOnly, questionId) {
     this.cleanup();
     this.currentType = typeId;
     this.currentTypeConfig = Object.values(PTE.QUESTION_TYPES).find(t => t.id === typeId);
@@ -154,7 +157,31 @@ PTE.App = {
     const root = document.getElementById('app-root');
     root.innerHTML = PTE.Pages.practiceQuestion(typeId, predictionsOnly);
 
-    this.loadQuestion(0);
+    let initialIndex = 0;
+    if (questionId) {
+      const idx = this.currentQuestions.findIndex(q => String(q.id) === String(questionId));
+      if (idx >= 0) initialIndex = idx;
+    }
+    this.loadQuestion(initialIndex);
+  },
+
+  /**
+   * Open a question by id for targeted retry.
+   * If not found in regular bank, falls back to prediction bank.
+   */
+  startRetry(typeId, qid) {
+    const questionId = decodeURIComponent(qid || '');
+    const inRegular = (PTE.Questions[typeId] || []).some(q => String(q.id) === String(questionId));
+    const inPred = ((PTE.Predictions && PTE.Predictions[typeId]) || []).some(q => String(q.id) === String(questionId));
+    if (inRegular) {
+      this.startPractice(typeId, false, questionId);
+      return;
+    }
+    if (inPred) {
+      this.startPractice(typeId, true, questionId);
+      return;
+    }
+    this.startPractice(typeId, false);
   },
 
   loadQuestion(index) {
@@ -192,11 +219,11 @@ PTE.App = {
 
     // Source badge for prediction questions
     if (q.source) {
-      const freqColors = { 'very-high': 'bg-red-100 text-red-700', 'high': 'bg-amber-100 text-amber-700', 'medium': 'bg-blue-100 text-blue-700' };
-      const freqClass = freqColors[q.frequency] || 'bg-gray-100 text-gray-600';
+      const freqColors = { 'very-high': 'bg-red-500/15 text-red-400 border border-red-500/20', 'high': 'bg-amber-500/15 text-amber-400 border border-amber-500/20', 'medium': 'bg-blue-500/15 text-blue-400 border border-blue-500/20' };
+      const freqClass = freqColors[q.frequency] || 'bg-white/5 text-gray-400 border border-white/10';
       content += `
       <div class="flex items-center gap-2 mb-4">
-        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">Source: ${q.source}</span>
+        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">Source: ${q.source}</span>
         ${q.frequency ? `<span class="text-xs font-semibold px-2 py-1 rounded-full ${freqClass}">Frequency: ${q.frequency.replace('-', ' ')}</span>` : ''}
       </div>`;
     }
@@ -206,7 +233,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Read the following text aloud:</label>
-        <div class="bg-gray-50 rounded-xl p-5 text-gray-800 leading-relaxed text-lg border border-gray-100" id="question-text">${q.text}</div>
+        <div class="bg-white/5 rounded-xl p-5 text-gray-200 leading-relaxed text-lg border border-white/10" id="question-text">${q.text}</div>
       </div>`;
     }
 
@@ -215,7 +242,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Scenario:</label>
-        <div class="bg-blue-50 border border-blue-100 rounded-xl p-5 text-blue-800 leading-relaxed">${q.scenario}</div>
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 text-blue-300 leading-relaxed">${q.scenario}</div>
       </div>`;
     }
 
@@ -224,7 +251,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 block">Describe the image below:</label>
-        <div class="bg-white rounded-xl p-4 border border-gray-200" id="chart-container">${PTE.Charts.generate(q)}</div>
+        <div class="bg-white rounded-xl p-4 border border-gray-200 [&_text]:fill-gray-700" id="chart-container">${PTE.Charts.generate(q)}</div>
       </div>`;
     }
 

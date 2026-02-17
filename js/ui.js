@@ -21,6 +21,7 @@ PTE.UI = {
     const moreLinks = [
       { href:'#/accent', label:'Accent Coach', page:'accent', icon:'🗣️' },
       { href:'#/daily', label:'Daily Challenge', page:'daily', icon:'⚡' },
+      { href:'#/notebook', label:'Mistake Notebook', page:'notebook', icon:'📓' },
       { href:'#/vocab', label:'Vocab Builder', page:'vocab', icon:'🃏' },
       { href:'#/drills', label:'Pronunciation Drills', page:'drills', icon:'🎙️' },
       { href:'#/templates', label:'Templates', page:'templates', icon:'📝' },
@@ -127,13 +128,13 @@ PTE.UI = {
     return `
     <div id="${id}" class="relative inline-flex items-center justify-center">
       <svg class="w-28 h-28 -rotate-90" viewBox="0 0 120 120">
-        <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
         <circle id="${id}-circle" cx="60" cy="60" r="52" fill="none" stroke="#6366f1" stroke-width="8" 
           stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="0"
           class="transition-all duration-1000"/>
       </svg>
       <div class="absolute flex flex-col items-center">
-        <span id="${id}-time" class="text-2xl font-bold text-gray-800 tabular-nums">0:00</span>
+        <span id="${id}-time" class="text-2xl font-bold text-white tabular-nums">0:00</span>
         <span id="${id}-label" class="text-xs text-gray-400 font-medium"></span>
       </div>
     </div>`;
@@ -175,7 +176,7 @@ PTE.UI = {
    * Waveform visualization canvas
    */
   waveform(id = 'waveform') {
-    return `<canvas id="${id}" class="w-full h-20 rounded-xl bg-gray-50" style="max-width:500px"></canvas>`;
+    return `<canvas id="${id}" class="w-full h-20 rounded-xl bg-white/5" style="max-width:500px"></canvas>`;
   },
 
   /**
@@ -481,11 +482,11 @@ PTE.UI = {
 
       let bgClass;
       if (exactMatch) {
-        bgClass = 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200';
+        bgClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/25';
       } else if (closeMatch) {
-        bgClass = 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200';
+        bgClass = 'bg-amber-500/15 text-amber-400 border-amber-500/25 hover:bg-amber-500/25';
       } else {
-        bgClass = 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200';
+        bgClass = 'bg-red-500/15 text-red-400 border-red-500/25 hover:bg-red-500/25';
       }
       const iconSvg = `<svg class="w-3 h-3 inline-block ml-0.5 opacity-40 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>`;
 
@@ -500,8 +501,8 @@ PTE.UI = {
     const pct = totalWords > 0 ? Math.round(((matchedCount + closeCount * 0.5) / totalWords) * 100) : 0;
 
     return `
-    <div class="mt-4 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden max-w-lg mx-auto animate-fadeIn">
-      <div class="bg-gradient-to-r from-emerald-500 to-teal-500 p-4">
+    <div class="mt-4 glass neon-border rounded-2xl overflow-hidden max-w-lg mx-auto animate-fadeIn">
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-4">
         <h3 class="text-white font-bold text-sm flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           Pronunciation Comparison
@@ -511,17 +512,17 @@ PTE.UI = {
       <div class="p-5">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-3">
-            <span class="flex items-center gap-1 text-xs"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-200 inline-block"></span> Correct</span>
-            <span class="flex items-center gap-1 text-xs"><span class="w-3 h-3 rounded bg-amber-100 border border-amber-200 inline-block"></span> Close</span>
-            <span class="flex items-center gap-1 text-xs"><span class="w-3 h-3 rounded bg-red-100 border border-red-200 inline-block"></span> Missed</span>
+            <span class="flex items-center gap-1 text-xs text-gray-400"><span class="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/30 inline-block"></span> Correct</span>
+            <span class="flex items-center gap-1 text-xs text-gray-400"><span class="w-3 h-3 rounded bg-amber-500/20 border border-amber-500/30 inline-block"></span> Close</span>
+            <span class="flex items-center gap-1 text-xs text-gray-400"><span class="w-3 h-3 rounded bg-red-500/20 border border-red-500/30 inline-block"></span> Missed</span>
           </div>
-          <span class="text-xs font-bold ${pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-red-600'}">${pct}% matched</span>
+          <span class="text-xs font-bold ${pct >= 70 ? 'text-emerald-400' : pct >= 40 ? 'text-amber-400' : 'text-red-400'}">${pct}% matched</span>
         </div>
         <div class="flex flex-wrap gap-1.5 leading-relaxed">
           ${wordSpans.join('\n          ')}
         </div>
-        <div class="mt-4 pt-3 border-t border-gray-100">
-          <button onclick="PTE.pronounceText()" class="inline-flex items-center gap-2 text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+        <div class="mt-4 pt-3 border-t border-white/10">
+          <button onclick="PTE.pronounceText()" class="inline-flex items-center gap-2 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Listen to full text at native speed
           </button>
@@ -539,32 +540,32 @@ PTE.UI = {
     if (!script) return '';
 
     return `
-    <div class="mt-4 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden max-w-lg mx-auto animate-fadeIn">
-      <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4">
+    <div class="mt-4 glass neon-border rounded-2xl overflow-hidden max-w-lg mx-auto animate-fadeIn">
+      <div class="bg-gradient-to-r from-amber-600 to-orange-600 p-4">
         <h3 class="text-white font-bold text-sm flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           Model Answer Script
         </h3>
       </div>
       <div class="p-5">
-        ${script.intro ? `<p class="text-xs text-gray-400 mb-2 italic">${script.intro}</p>` : ''}
-        <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-3">
-          <p class="text-sm text-gray-800 leading-relaxed" id="model-answer-text">${script.text}</p>
+        ${script.intro ? `<p class="text-xs text-gray-500 mb-2 italic">${script.intro}</p>` : ''}
+        <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-3">
+          <p class="text-sm text-gray-200 leading-relaxed" id="model-answer-text">${script.text}</p>
         </div>
         <div class="flex items-center gap-3">
-          <button onclick="PTE.pronounceModelAnswer()" class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 font-medium text-xs px-4 py-2 rounded-lg hover:bg-amber-200 transition-colors">
+          <button onclick="PTE.pronounceModelAnswer()" class="inline-flex items-center gap-2 bg-amber-500/15 text-amber-400 font-medium text-xs px-4 py-2 rounded-lg hover:bg-amber-500/25 transition-colors border border-amber-500/20">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
             Listen to Model Answer
           </button>
-          <button onclick="PTE.pronounceModelAnswer(0.8)" class="inline-flex items-center gap-2 text-gray-500 font-medium text-xs px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+          <button onclick="PTE.pronounceModelAnswer(0.8)" class="inline-flex items-center gap-2 text-gray-400 font-medium text-xs px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
             Slow Speed
           </button>
         </div>
         ${script.tips ? `
-        <div class="mt-3 pt-3 border-t border-gray-100">
-          <p class="text-xs font-semibold text-gray-500 mb-1">Key points in this answer:</p>
+        <div class="mt-3 pt-3 border-t border-white/10">
+          <p class="text-xs font-semibold text-gray-400 mb-1">Key points in this answer:</p>
           <ul class="space-y-1">
-            ${script.tips.map(t => `<li class="text-xs text-gray-500 flex items-start gap-1.5"><span class="text-amber-400 mt-0.5">&#9654;</span>${t}</li>`).join('')}
+            ${script.tips.map(t => `<li class="text-xs text-gray-400 flex items-start gap-1.5"><span class="text-amber-400 mt-0.5">&#9654;</span>${t}</li>`).join('')}
           </ul>
         </div>` : ''}
       </div>
