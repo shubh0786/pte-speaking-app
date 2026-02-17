@@ -44,9 +44,10 @@ PTE.AIFeedback = {
       feedback.contentAnalysis = this._contentAnalysis(transcript, expected, keywords);
     }
 
-    // Pronunciation analysis
+      // Pronunciation analysis (accent-aware)
     if (scores.pronunciation !== undefined) {
-      feedback.pronunciationAnalysis = this._pronunciationAnalysis(scores.pronunciation, confidence, transcript);
+      const currentAccent = PTE.Accents ? PTE.Accents.getCurrentAccent() : null;
+      feedback.pronunciationAnalysis = this._pronunciationAnalysis(scores.pronunciation, confidence, transcript, currentAccent);
     }
 
     // Fluency analysis
@@ -156,11 +157,11 @@ PTE.AIFeedback = {
   /**
    * Pronunciation analysis — now uses 0-5 PTE band scale
    */
-  _pronunciationAnalysis(score, confidence, transcript) {
+  _pronunciationAnalysis(score, confidence, transcript, accent = null) {
     const wordCount = transcript ? transcript.split(/\s+/).length : 0;
     // score is now 0-5 (official PTE band)
     const bandLabels = ['Non-English', 'Intrusive', 'Intermediate', 'Good', 'Advanced', 'Highly Proficient'];
-    let level, detail, tips;
+    let level, detail, tips, accentTips = [];
 
     if (score >= 4) {
       level = bandLabels[score] || 'excellent';
@@ -202,7 +203,67 @@ PTE.AIFeedback = {
       ];
     }
 
-    return { level, score, maxScore: 5, detail, tips, confidence: Math.round(confidence * 100) };
+    // Add accent-specific tips if accent is provided
+    if (accent) {
+      accentTips = this._getAccentSpecificTips(accent, score);
+    }
+
+    return {
+      level,
+      score,
+      maxScore: 5,
+      detail,
+      tips: accentTips.length > 0 ? [...tips, ...accentTips] : tips,
+      confidence: Math.round(confidence * 100),
+      accent: accent ? accent.name : null
+    };
+  },
+
+  _getAccentSpecificTips(accent, score) {
+    const accentTips = {
+      american: [
+        'Practice the American "r" sound - it\'s pronounced in all positions',
+        'Work on the "t" flap - in words like "butter", "better", say it like a quick "d"',
+        'Short "a" sound in "cat", "man", "hat" - keep it brief',
+        'Practice vowel reduction in unstressed syllables'
+      ],
+      british: [
+        'Silent "r" at word endings - "car", "bird", "water" don\'t have "r" sounds',
+        'Long "a" in "bath", "dance", "plant" - similar to "father"',
+        'Keep "t" sounds crisp and clear in words like "butter", "better"',
+        'Practice the British vowel in "cloth" vs "lot" - they\'re different'
+      ],
+      australian: [
+        'Broad "a" sound in "dance", "chance", "plant" - sounds like "oi"',
+        'Practice the Australian vowel shift - "no" sounds like "nigh"',
+        'Keep "r" sounds at word endings like American English',
+        'Work on rising intonation at the end of statements'
+      ],
+      indian: [
+        'Practice dental consonants - "th" in "think" vs "this" (tongue touches teeth)',
+        'Work on vowel distinctions - English has more vowel sounds than Hindi',
+        'Practice consonant clusters - "strength", "month" have multiple consonants',
+        'Focus on syllable-timed rhythm rather than stress-timed'
+      ],
+      canadian: [
+        'Similar to American but practice the Canadian "eh" question tag',
+        'Work on the Canadian vowel shift in "out", "house" words',
+        'Practice pronouncing "about" as "aboot" if it comes naturally',
+        'Keep a mix of American and British influences'
+      ]
+    };
+
+    const tips = accentTips[accent.id] || [];
+    if (score < 3) {
+      // For lower scores, provide more specific accent guidance
+      return [`🎯 Accent Focus (${accent.name}): ${tips[0] || 'Practice listening to native speakers of this accent'}`];
+    } else if (score < 4) {
+      // For medium scores, provide 2 tips
+      return tips.slice(0, 2).map(tip => `🎯 ${tip}`);
+    } else {
+      // For high scores, provide 1 tip for fine-tuning
+      return tips.slice(0, 1).map(tip => `🎯 ${tip}`);
+    }
   },
 
   /**

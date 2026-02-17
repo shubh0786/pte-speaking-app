@@ -192,11 +192,11 @@ PTE.App = {
 
     // Source badge for prediction questions
     if (q.source) {
-      const freqColors = { 'very-high': 'bg-red-100 text-red-700', 'high': 'bg-amber-100 text-amber-700', 'medium': 'bg-blue-100 text-blue-700' };
-      const freqClass = freqColors[q.frequency] || 'bg-gray-100 text-gray-600';
+      const freqColors = { 'very-high': 'bg-red-500/15 text-red-400 border border-red-500/20', 'high': 'bg-amber-500/15 text-amber-400 border border-amber-500/20', 'medium': 'bg-blue-500/15 text-blue-400 border border-blue-500/20' };
+      const freqClass = freqColors[q.frequency] || 'bg-white/5 text-gray-400 border border-white/10';
       content += `
       <div class="flex items-center gap-2 mb-4">
-        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">Source: ${q.source}</span>
+        <span class="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">Source: ${q.source}</span>
         ${q.frequency ? `<span class="text-xs font-semibold px-2 py-1 rounded-full ${freqClass}">Frequency: ${q.frequency.replace('-', ' ')}</span>` : ''}
       </div>`;
     }
@@ -206,7 +206,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Read the following text aloud:</label>
-        <div class="bg-gray-50 rounded-xl p-5 text-gray-800 leading-relaxed text-lg border border-gray-100" id="question-text">${q.text}</div>
+        <div class="bg-white/5 rounded-xl p-5 text-gray-200 leading-relaxed text-lg border border-white/10" id="question-text">${q.text}</div>
       </div>`;
     }
 
@@ -215,7 +215,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 block">Scenario:</label>
-        <div class="bg-blue-50 border border-blue-100 rounded-xl p-5 text-blue-800 leading-relaxed">${q.scenario}</div>
+        <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 text-blue-300 leading-relaxed">${q.scenario}</div>
       </div>`;
     }
 
@@ -224,7 +224,7 @@ PTE.App = {
       content += `
       <div class="mb-6">
         <label class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 block">Describe the image below:</label>
-        <div class="bg-white rounded-xl p-4 border border-gray-200" id="chart-container">${PTE.Charts.generate(q)}</div>
+        <div class="bg-white rounded-xl p-4 border border-gray-200 [&_text]:fill-gray-700" id="chart-container">${PTE.Charts.generate(q)}</div>
       </div>`;
     }
 
@@ -232,13 +232,13 @@ PTE.App = {
     if (type.hasAudio) {
       content += `
       <div id="audio-indicator" class="mb-6 hidden">
-        <div class="flex items-center gap-3 bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-          <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <svg class="w-5 h-5 text-indigo-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+        <div class="flex items-center gap-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
+          <div class="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg class="w-5 h-5 text-indigo-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
           </div>
           <div>
-            <p class="font-medium text-indigo-700 text-sm" id="audio-status">Preparing audio...</p>
-            <p class="text-xs text-indigo-400" id="audio-sub">Listen carefully</p>
+            <p class="font-medium text-indigo-300 text-sm" id="audio-status">Preparing audio...</p>
+            <p class="text-xs text-indigo-400/70" id="audio-sub">Listen carefully</p>
           </div>
         </div>
       </div>`;

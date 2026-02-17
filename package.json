@@ -1,0 +1,34 @@
+{
+  "name": "crack-pte-speaking",
+  "version": "2.0.0",
+  "description": "Crack PTE Speaking with AI scoring, 500+ questions, and accent training",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . --port 8080",
+    "build": "node build.js",
+    "deploy": "node deploy.js",
+    "deploy:netlify": "node deploy.js netlify",
+    "deploy:vercel": "node deploy.js vercel",
+    "deploy:github": "node deploy.js github"
+  },
+  "keywords": [
+    "pte",
+    "speaking",
+    "practice",
+    "english",
+    "accent",
+    "ai-feedback"
+  ],
+  "author": "Sanjay Singh And Sons Solutions",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/crack-pte-speaking"
+  },
+  "homepage": "https://crackpte.netlify.app",
+  "devDependencies": {
+    "serve": "^14.2.1",
+    "netlify-cli": "^17.0.0"
+  }
+}

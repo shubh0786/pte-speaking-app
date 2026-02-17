@@ -574,6 +574,11 @@ PTE.TTS = {
     }
     if (!text || text.trim().length === 0) return;
 
+    // Use accent system if available
+    if (PTE.Accents && PTE.Accents.speakWithAccent) {
+      return PTE.Accents.speakWithAccent(text, { rate });
+    }
+
     // Re-check voices (mobile may load them late)
     this._ensureVoice();
 

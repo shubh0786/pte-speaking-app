@@ -146,6 +146,8 @@ PTE.Pages = {
 
   // ── Practice Selection Page ──────────────────────────────────
   practice() {
+    const currentAccent = PTE.Accents ? PTE.Accents.getCurrentAccent() : null;
+
     return `
     ${PTE.UI.navbar('practice')}
     <main class="min-h-screen py-10 px-4">
@@ -154,6 +156,43 @@ PTE.Pages = {
           <h1 class="text-3xl font-bold text-white mb-2">Choose a Question Type</h1>
           <p class="text-gray-500">Select a speaking task to begin practicing. Each type mirrors the real PTE Academic exam.</p>
         </div>
+
+        ${PTE.Accents ? `
+        <!-- Accent Selection -->
+        <div class="mb-8">
+          <div class="glass rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="text-xl font-semibold text-white mb-1">Practice Accent</h2>
+                <p class="text-gray-400 text-sm">Choose the accent you want to practice with for more authentic exam preparation.</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-3 py-1 bg-indigo-500/20 rounded-lg">
+                  <span class="text-lg">${currentAccent ? currentAccent.flag : '🇺🇸'}</span>
+                  <span class="text-sm font-medium text-indigo-300">${currentAccent ? currentAccent.name : 'American English'}</span>
+                </div>
+                <button onclick="PTE.UI.showAccentModal()" class="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors">
+                  Change Accent
+                </button>
+              </div>
+            </div>
+            ${currentAccent ? `
+            <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+              <div class="flex items-start gap-2">
+                <span class="text-amber-400 mt-0.5">💡</span>
+                <div class="text-sm text-amber-300">
+                  <strong>Pronunciation tips for ${currentAccent.name}:</strong>
+                  <ul class="mt-1 space-y-1">
+                    ${currentAccent.characteristics.pronunciationTips.slice(0, 3).map(tip => `<li>• ${tip}</li>`).join('')}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+        ` : ''}
+
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           ${Object.values(PTE.QUESTION_TYPES).map(t => PTE.UI.typeCard(t)).join('')}
         </div>
@@ -884,5 +923,129 @@ PTE.Pages = {
 
       </div>
     </main>`;
+  },
+
+  // ── Accent Coach Page ─────────────────────────────────────────────
+  accent() {
+    const currentAccent = PTE.Accents ? PTE.Accents.getCurrentAccent() : null;
+    const allAccents = PTE.Accents ? PTE.Accents.getAllAccents() : [];
+
+    return `
+    ${PTE.UI.navbar('accent')}
+    <main class="min-h-screen py-10 px-4">
+      <div class="max-w-6xl mx-auto">
+        <div class="mb-10">
+          <h1 class="text-3xl font-bold text-white mb-2">Accent Coach</h1>
+          <p class="text-gray-500">Practice with different English accents to prepare for PTE exams worldwide.</p>
+        </div>
+
+        <!-- Current Accent Status -->
+        ${currentAccent ? `
+        <div class="glass rounded-2xl p-6 mb-8">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-4">
+              <span class="text-4xl">${currentAccent.flag}</span>
+              <div>
+                <h2 class="text-xl font-bold text-white">Current Accent: ${currentAccent.name}</h2>
+                <p class="text-gray-400">${currentAccent.description}</p>
+              </div>
+            </div>
+            <button onclick="PTE.Accents.testAccent('${currentAccent.id}')"
+                    class="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl transition-colors">
+              🎵 Test Current Accent
+            </button>
+          </div>
+
+          <!-- Pronunciation Guide -->
+          <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4">
+            <h3 class="text-lg font-semibold text-indigo-300 mb-3">Pronunciation Guide for ${currentAccent.name}</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+              ${currentAccent.characteristics.pronunciationTips.map((tip, index) => `
+                <div class="flex items-start gap-3">
+                  <span class="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-300 text-xs flex items-center justify-center font-bold mt-0.5">${index + 1}</span>
+                  <p class="text-sm text-gray-300">${tip}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Accent Selection -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold text-white mb-6">Choose Your Practice Accent</h2>
+          <div id="accent-selection-container"></div>
+        </div>
+
+        <!-- Practice Tips -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="glass rounded-2xl p-6">
+            <h3 class="text-xl font-bold text-white mb-4">🎯 Why Practice Different Accents?</h3>
+            <ul class="space-y-3 text-gray-300">
+              <li class="flex items-start gap-3">
+                <span class="text-emerald-400 mt-0.5">•</span>
+                <span>PTE exams are conducted in multiple countries with different native accents</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-emerald-400 mt-0.5">•</span>
+                <span>Improve listening comprehension for various speaking styles</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-emerald-400 mt-0.5">•</span>
+                <span>Better prepare for real exam conditions worldwide</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-emerald-400 mt-0.5">•</span>
+                <span>Enhance your adaptability to different English varieties</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="glass rounded-2xl p-6">
+            <h3 class="text-xl font-bold text-white mb-4">💡 Pro Tips</h3>
+            <ul class="space-y-3 text-gray-300">
+              <li class="flex items-start gap-3">
+                <span class="text-amber-400 mt-0.5">💡</span>
+                <span>Start with American English if you're new to accent training</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-amber-400 mt-0.5">🎵</span>
+                <span>Use the "Test Voice" button to hear how questions sound</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-amber-400 mt-0.5">🎯</span>
+                <span>Practice regularly with your target exam accent</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="text-amber-400 mt-0.5">📊</span>
+                <span>Track your progress across different accent types</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Accent Statistics (if available) -->
+        ${PTE.Store ? `
+        <div class="mt-8">
+          <h2 class="text-2xl font-bold text-white mb-6">Your Accent Practice Stats</h2>
+          <div class="glass rounded-2xl p-6">
+            <div class="text-center text-gray-500">
+              <p>Accent-specific statistics coming soon!</p>
+              <p class="text-sm mt-2">Track your performance across different accents to see which ones you excel in.</p>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    </main>
+
+    <script>
+      // Render accent selector when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        if (PTE.Accents) {
+          PTE.Accents.renderAccentSelector('accent-selection-container');
+        }
+      });
+    </script>`;
   }
 };
