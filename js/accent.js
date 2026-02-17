@@ -498,7 +498,7 @@ PTE.AccentAnalyzer = {
       tipsHtml = result.tips.slice(0, 3).map(t => `
         <div class="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/15">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">${t.sound}</span>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">${t.sound}</span>
           </div>
           <p class="text-xs text-emerald-300/80">${t.tip}</p>
         </div>
@@ -550,7 +550,7 @@ PTE.AccentAnalyzer = {
 
         ${tipsHtml ? `
         <details open>
-          <summary class="text-xs text-emerald-400 uppercase tracking-wide font-bold cursor-pointer mb-2">Pronunciation Tips</summary>
+          <summary class="text-xs text-emerald-400 uppercase tracking-wide font-semibold cursor-pointer mb-2">Pronunciation Tips</summary>
           <div class="space-y-2">${tipsHtml}</div>
         </details>
         ` : ''}
@@ -629,9 +629,9 @@ PTE.AccentAnalyzer = {
             ${drills.slice(0, 6).map(d => `
             <div class="card rounded-xl p-3 text-center">
               <div class="flex items-center justify-center gap-3 mb-2">
-                <button onclick="PTE.pronounceWord('${d.word1}')" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-sm font-bold hover:bg-emerald-500/25 transition-colors">${d.word1}</button>
+                <button onclick="PTE.pronounceWord('${d.word1}')" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-sm font-semibold hover:bg-emerald-500/25 transition-colors">${d.word1}</button>
                 <span class="text-zinc-600 text-xs">vs</span>
-                <button onclick="PTE.pronounceWord('${d.word2}')" class="px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-500/20 text-rose-400 text-sm font-bold hover:bg-rose-500/25 transition-colors">${d.word2}</button>
+                <button onclick="PTE.pronounceWord('${d.word2}')" class="px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-500/20 text-rose-400 text-sm font-semibold hover:bg-rose-500/25 transition-colors">${d.word2}</button>
               </div>
               <p class="text-xs text-zinc-500">${d.sound}</p>
             </div>
@@ -684,7 +684,7 @@ PTE.AccentAnalyzer = {
         <!-- Accent Profile Card -->
         <div class="card-elevated rounded-xl p-6 mb-8 animate-fadeIn">
           <div class="flex flex-col sm:flex-row items-center gap-6">
-            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500 to-fuchsia-600 flex items-center justify-center text-4xl shadow-xl">${profile.accentFlag}</div>
+            <div class="w-20 h-20 rounded-xl bg-gradient-to-br from-rose-500 to-fuchsia-600 flex items-center justify-center text-4xl shadow-xl">${profile.accentFlag}</div>
             <div class="flex-1 text-center sm:text-left">
               <p class="text-[10px] text-zinc-500 uppercase tracking-wide font-semibold mb-1">Detected Accent Pattern</p>
               <h2 class="text-2xl font-extrabold text-zinc-100 mb-2">${accent}</h2>

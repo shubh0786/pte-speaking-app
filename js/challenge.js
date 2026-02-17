@@ -169,7 +169,7 @@ PTE.Challenge = {
               <span class="badge badge-level">Challenge Q${i+1}/${questions.length}</span>
               <span class="text-sm text-zinc-500">${q.typeConfig.icon} ${q.typeConfig.name}</span>
             </div>
-            <div id="practice-area" class="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden"></div>
+            <div id="practice-area" class="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] overflow-hidden"></div>
             <div id="score-area" class="mt-6 hidden"></div>
             <div id="action-buttons" class="mt-6 flex justify-center gap-4"></div>
           </div>

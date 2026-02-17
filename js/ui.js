@@ -22,15 +22,19 @@ PTE.UI = {
       { href:'#/progress', label:'Analytics', page:'progress' },
     ];
     const moreLinks = [
-      { href:'#/accent', label:'Accent Coach', page:'accent' },
-      { href:'#/daily', label:'Daily Challenge', page:'daily' },
-      { href:'#/vocab', label:'Vocab Builder', page:'vocab' },
-      { href:'#/drills', label:'Pronunciation Drills', page:'drills' },
-      { href:'#/templates', label:'Templates', page:'templates' },
-      { href:'#/planner', label:'Study Planner', page:'planner' },
-      { href:'#/review', label:'Spaced Review', page:'review' },
-      { href:'#/leaderboard', label:'Leaderboard', page:'leaderboard' },
-      { href:'#/challenge-create', label:'Challenge Friend', page:'challenge-create' },
+      { href:'#/target', label:'Target Score', page:'target', icon:'🎯' },
+      { href:'#/accent', label:'Accent Coach', page:'accent', icon:'🗣️' },
+      { href:'#/weak-words', label:'Weak Word Drill', page:'weak-words', icon:'🎙️' },
+      { href:'#/daily', label:'Daily Challenge', page:'daily', icon:'⚡' },
+      { href:'#/notebook', label:'Mistake Notebook', page:'notebook', icon:'📓' },
+      { href:'#/vocab', label:'Vocab Builder', page:'vocab', icon:'🃏' },
+      { href:'#/drills', label:'Pronunciation Drills', page:'drills', icon:'🎙️' },
+      { href:'#/templates', label:'Templates', page:'templates', icon:'📝' },
+      { href:'#/planner', label:'Study Planner', page:'planner', icon:'📋' },
+      { href:'#/review', label:'Spaced Review', page:'review', icon:'🧠' },
+      { href:'#/leaderboard', label:'Leaderboard', page:'leaderboard', icon:'🏆' },
+      { href:'#/challenge-create', label:'Challenge Friend', page:'challenge-create', icon:'⚔️' },
+      { href:'#/reminders', label:'Study Reminders', page:'reminders', icon:'🔔' },
     ];
 
     const dLink = l => `<a href="${l.href}" class="px-3 py-1.5 rounded-md text-sm font-medium transition-all ${activePage===l.page?'bg-[var(--accent-surface)] text-[var(--accent-light)]':'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'}">${l.label}</a>`;

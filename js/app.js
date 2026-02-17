@@ -66,12 +66,14 @@ PTE.App = {
     PTE.Router.on('/leaderboard', () => this.requireAuth(() => this.renderPage('leaderboard')));
     PTE.Router.on('/review', () => this.requireAuth(() => this.renderPage('review')));
     PTE.Router.on('/planner', () => this.requireAuth(() => this.renderPage('planner')));
+    PTE.Router.on('/notebook', () => this.requireAuth(() => this.renderPage('notebook')));
     PTE.Router.on('/accent', () => this.requireAuth(() => this.renderPage('accent')));
     PTE.Router.on('/target', () => this.requireAuth(() => this.renderPage('target')));
     PTE.Router.on('/weak-words', () => this.requireAuth(() => this.renderPage('weak-words')));
     PTE.Router.on('/reminders', () => this.requireAuth(() => this.renderPage('reminders')));
     PTE.Router.on('/challenge-create', () => this.requireAuth(() => this.renderPage('challenge-create')));
     PTE.Router.on('/challenge/:code', (code) => this.requireAuth(() => this.renderPage('challenge', code)));
+    PTE.Router.on('/retry/:type/:qid', (type, qid) => this.requireAuth(() => this.startRetry(type, qid)));
     PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
     PTE.Router.on('/practice/:type', (type) => this.requireAuth(() => this.startPractice(type, false)));
 
@@ -132,6 +134,7 @@ PTE.App = {
       case 'leaderboard': root.innerHTML = PTE.Leaderboard ? PTE.Leaderboard.renderPage() : PTE.Pages.home(); break;
       case 'review': root.innerHTML = PTE.Spaced ? PTE.Spaced.renderPage() : PTE.Pages.home(); break;
       case 'planner': root.innerHTML = PTE.Planner ? PTE.Planner.renderPage() : PTE.Pages.home(); break;
+      case 'notebook': root.innerHTML = PTE.Pages.notebook ? PTE.Pages.notebook() : PTE.Pages.home(); break;
       case 'accent': root.innerHTML = PTE.AccentAnalyzer ? PTE.AccentAnalyzer.renderPage() : PTE.Pages.home(); break;
       case 'target': root.innerHTML = PTE.TargetScore ? PTE.TargetScore.renderPage() : PTE.Pages.home(); break;
       case 'weak-words': root.innerHTML = PTE.WeakWords ? PTE.WeakWords.renderPage() : PTE.Pages.home(); break;
@@ -191,7 +194,7 @@ PTE.App = {
 
   // ── Practice Flow ────────────────────────────────────────────
 
-  startPractice(typeId, predictionsOnly) {
+  startPractice(typeId, predictionsOnly, questionId) {
     this.cleanup();
     this.currentType = typeId;
     this.currentTypeConfig = Object.values(PTE.QUESTION_TYPES).find(t => t.id === typeId);
@@ -215,7 +218,31 @@ PTE.App = {
     const root = document.getElementById('app-root');
     root.innerHTML = PTE.Pages.practiceQuestion(typeId, predictionsOnly);
 
-    this.loadQuestion(0);
+    let initialIndex = 0;
+    if (questionId) {
+      const idx = this.currentQuestions.findIndex(q => String(q.id) === String(questionId));
+      if (idx >= 0) initialIndex = idx;
+    }
+    this.loadQuestion(initialIndex);
+  },
+
+  /**
+   * Open a question by id for targeted retry.
+   * If not found in regular bank, falls back to prediction bank.
+   */
+  startRetry(typeId, qid) {
+    const questionId = decodeURIComponent(qid || '');
+    const inRegular = (PTE.Questions[typeId] || []).some(q => String(q.id) === String(questionId));
+    const inPred = ((PTE.Predictions && PTE.Predictions[typeId]) || []).some(q => String(q.id) === String(questionId));
+    if (inRegular) {
+      this.startPractice(typeId, false, questionId);
+      return;
+    }
+    if (inPred) {
+      this.startPractice(typeId, true, questionId);
+      return;
+    }
+    this.startPractice(typeId, false);
   },
 
   loadQuestion(index) {
