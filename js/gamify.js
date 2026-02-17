@@ -183,7 +183,7 @@ PTE.Gamify = {
     return `<div class="flex items-center gap-2">
       <span class="badge badge-level">${p.level.icon} Lv${p.level.level}</span>
       <div class="xp-bar-bg w-16 sm:w-24"><div class="xp-bar-fill" style="width:${p.progress}%"></div></div>
-      <span class="text-xs text-indigo-400 font-bold tabular-nums hidden sm:inline">${p.xp} XP</span>
+      <span class="text-xs text-[var(--accent-light)] font-semibold font-mono tabular-nums hidden sm:inline">${p.xp} XP</span>
       ${p.streak > 0 ? `<span class="badge badge-streak">🔥${p.streak}</span>` : ''}
     </div>`;
   },
@@ -191,27 +191,27 @@ PTE.Gamify = {
   /** Render XP gain toast */
   renderXPToast(result) {
     let html = `<div id="xp-toast" class="fixed top-20 right-4 z-[100] animate-slideDown" style="animation-duration:0.3s">
-      <div class="glass neon-border rounded-2xl p-4 min-w-[220px] shadow-2xl">
+      <div class="card-elevated rounded-xl p-4 min-w-[220px] shadow-2xl">
         <div class="flex items-center gap-3 mb-2">
-          <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-lg" style="animation:xpPulse 0.5s ease-out">⚡</div>
+          <div class="w-10 h-10 rounded-xl bg-[var(--accent-surface)] flex items-center justify-center text-lg" style="animation:xpPulse 0.5s ease-out">⚡</div>
           <div>
-            <p class="text-sm font-bold text-indigo-400">+${result.xpGained} XP</p>
-            <p class="text-xs text-gray-500">${result.totalXP} total</p>
+            <p class="text-sm font-semibold font-mono text-[var(--accent-light)]">+${result.xpGained} XP</p>
+            <p class="text-xs font-mono text-zinc-500">${result.totalXP} total</p>
           </div>
         </div>`;
     result.events.forEach(e => {
-      html += `<p class="text-xs text-emerald-400 ml-13">${e}</p>`;
+      html += `<p class="text-xs text-green-400 ml-13">${e}</p>`;
     });
     if (result.leveledUp) {
-      html += `<div class="mt-2 p-2 rounded-lg bg-purple-500/20 border border-purple-500/30 text-center" style="animation:levelUp 0.6s ease-out">
-        <p class="text-purple-400 font-bold text-sm">${result.newLevel.icon} LEVEL UP!</p>
-        <p class="text-xs text-purple-300">${result.newLevel.title}</p>
+      html += `<div class="mt-2 p-2 rounded-lg bg-[var(--violet)]/15 border border-[rgba(167,139,250,0.15)] text-center" style="animation:levelUp 0.6s ease-out">
+        <p class="text-[var(--violet)] font-semibold text-sm">${result.newLevel.icon} LEVEL UP!</p>
+        <p class="text-xs text-[var(--violet)]">${result.newLevel.title}</p>
       </div>`;
     }
     result.newBadges.forEach(b => {
-      html += `<div class="mt-2 p-2 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center gap-2">
+      html += `<div class="mt-2 p-2 rounded-lg bg-amber-500/8 border border-amber-500/10 flex items-center gap-2">
         <span class="text-xl">${b.icon}</span>
-        <div><p class="text-xs font-bold text-amber-400">Badge: ${b.name}</p><p class="text-xs text-amber-300/60">${b.desc}</p></div>
+        <div><p class="text-xs font-semibold text-amber-400">Badge: ${b.name}</p><p class="text-xs text-amber-400/60">${b.desc}</p></div>
       </div>`;
     });
     html += `</div></div>`;
