@@ -58,12 +58,12 @@ PTE.Leaderboard = {
       ${PTE.UI.navbar('leaderboard')}
       <main class="min-h-screen py-10 px-4">
         <div class="max-w-md mx-auto text-center">
-          <span class="text-5xl mb-4 block animate-float">🏆</span>
-          <h1 class="text-3xl font-bold text-white mb-2">Leaderboard</h1>
-          <p class="text-gray-500 mb-8">Enter your display name to join the leaderboard.</p>
-          <div class="glass rounded-2xl p-6 neon-border">
-            <input id="lb-name-input" type="text" placeholder="Your display name" maxlength="20" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-center font-medium focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none mb-4">
-            <button onclick="const n=document.getElementById('lb-name-input').value;if(n.trim()){PTE.Leaderboard.setMyName(n);PTE.App.renderPage('leaderboard')}" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold hover:opacity-90 transition-all">Join Leaderboard</button>
+          <span class="text-5xl mb-4 block">🏆</span>
+          <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Leaderboard</h1>
+          <p class="text-zinc-500 mb-8">Enter your display name to join the leaderboard.</p>
+          <div class="card-elevated rounded-xl p-6">
+            <input id="lb-name-input" type="text" placeholder="Your display name" maxlength="20" class="w-full bg-white/[0.02] border border-[var(--border)] rounded-xl px-4 py-3 text-zinc-100 text-center font-medium focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(109,92,255,0.15)] outline-none mb-4">
+            <button onclick="const n=document.getElementById('lb-name-input').value;if(n.trim()){PTE.Leaderboard.setMyName(n);PTE.App.renderPage('leaderboard')}" class="w-full py-3 rounded-xl bg-gradient-to-r from-[var(--accent)] to-purple-600 text-zinc-100 font-semibold hover:opacity-90 transition-all">Join Leaderboard</button>
           </div>
         </div>
       </main>`;
@@ -73,16 +73,16 @@ PTE.Leaderboard = {
     const rankIcons = ['🥇','🥈','🥉'];
 
     const rows = players.map((p, i) => `
-      <div class="flex items-center gap-4 py-3 ${i < players.length - 1 ? 'border-b border-white/5' : ''} ${p.isMe ? 'bg-indigo-500/10 -mx-4 px-4 rounded-lg' : ''}">
-        <span class="w-8 text-center font-bold ${i < 3 ? 'text-2xl' : 'text-gray-500 text-sm'}">${i < 3 ? rankIcons[i] : i + 1}</span>
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg ${p.isMe ? 'bg-indigo-500/20' : 'bg-white/5'}">${p.levelIcon || '🌱'}</div>
+      <div class="flex items-center gap-4 py-3 ${i < players.length - 1 ? 'border-b border-[var(--border)]' : ''} ${p.isMe ? 'bg-[var(--accent-surface)] -mx-4 px-4 rounded-lg' : ''}">
+        <span class="w-8 text-center font-semibold ${i < 3 ? 'text-2xl' : 'text-zinc-500 text-sm'}">${i < 3 ? rankIcons[i] : i + 1}</span>
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg ${p.isMe ? 'bg-[var(--accent-surface)]' : 'bg-white/[0.02]'}">${p.levelIcon || '🌱'}</div>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold ${p.isMe ? 'text-indigo-400' : 'text-white'} truncate">${p.name} ${p.isMe ? '(You)' : ''}</p>
-          <p class="text-xs text-gray-600">Level ${p.level} • Best: ${p.score}/90 ${p.streak > 0 ? '• 🔥' + p.streak : ''}</p>
+          <p class="text-sm font-semibold ${p.isMe ? 'text-[var(--accent-light)]' : 'text-zinc-100'} truncate">${p.name} ${p.isMe ? '(You)' : ''}</p>
+          <p class="text-xs text-zinc-600">Level ${p.level} • Best: ${p.score}/90 ${p.streak > 0 ? '• 🔥' + p.streak : ''}</p>
         </div>
         <div class="text-right">
-          <p class="text-sm font-extrabold text-indigo-400">${(p.xp||0).toLocaleString()}</p>
-          <p class="text-xs text-gray-600">XP</p>
+          <p class="text-sm font-extrabold font-mono text-[var(--accent-light)]">${(p.xp||0).toLocaleString()}</p>
+          <p class="text-xs text-zinc-600">XP</p>
         </div>
       </div>
     `).join('');
@@ -93,13 +93,13 @@ PTE.Leaderboard = {
       <div class="max-w-2xl mx-auto">
         <div class="text-center mb-8">
           <span class="text-5xl mb-3 block">🏆</span>
-          <h1 class="text-3xl font-bold text-white mb-2">Leaderboard</h1>
-          <p class="text-gray-500">Ranked by total XP earned</p>
+          <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Leaderboard</h1>
+          <p class="text-zinc-500">Ranked by total XP earned</p>
         </div>
-        <div class="glass neon-border rounded-2xl p-4 sm:p-6">
-          ${rows || '<p class="text-gray-500 text-center py-8">No players yet. Start practicing to appear here!</p>'}
+        <div class="card-elevated rounded-xl p-4 sm:p-6">
+          ${rows || '<p class="text-zinc-500 text-center py-8">No players yet. Start practicing to appear here!</p>'}
         </div>
-        <p class="text-center text-xs text-gray-600 mt-4">Practice more to climb the rankings!</p>
+        <p class="text-center text-xs text-zinc-600 mt-4">Practice more to climb the rankings!</p>
       </div>
     </main>`;
   }

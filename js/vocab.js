@@ -63,9 +63,9 @@ PTE.Vocab = {
       <main class="min-h-screen py-10 px-4">
         <div class="max-w-2xl mx-auto text-center py-20">
           <span class="text-5xl mb-4 block">🎉</span>
-          <h2 class="text-2xl font-bold text-white mb-2">${this.filter === 'unlearned' ? 'All Mastered!' : 'No Cards'}</h2>
-          <p class="text-gray-500 mb-4">${this.filter === 'unlearned' ? 'You\'ve mastered all vocabulary cards!' : 'Switch filter to see cards.'}</p>
-          <button onclick="PTE.Vocab.filter='all';PTE.App.renderPage('vocab')" class="text-indigo-400 font-medium">Show All Cards</button>
+          <h2 class="text-2xl font-semibold text-zinc-100 mb-2">${this.filter === 'unlearned' ? 'All Mastered!' : 'No Cards'}</h2>
+          <p class="text-zinc-500 mb-4">${this.filter === 'unlearned' ? 'You\'ve mastered all vocabulary cards!' : 'Switch filter to see cards.'}</p>
+          <button onclick="PTE.Vocab.filter='all';PTE.App.renderPage('vocab')" class="text-[var(--accent-light)] font-medium">Show All Cards</button>
         </div>
       </main>`;
     }
@@ -80,13 +80,13 @@ PTE.Vocab = {
       <div class="max-w-2xl mx-auto">
         <div class="flex items-center justify-between mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-white">Vocabulary Builder</h1>
-            <p class="text-sm text-gray-500">${mastered}/${total} mastered (${pct}%)</p>
+            <h1 class="text-2xl font-semibold text-zinc-100">Vocabulary Builder</h1>
+            <p class="text-sm text-zinc-500">${mastered}/${total} mastered (${pct}%)</p>
           </div>
           <div class="flex gap-2">
             ${['all','unlearned','mastered'].map(f => `
               <button onclick="PTE.Vocab.filter='${f}';PTE.Vocab.currentIndex=0;PTE.App.renderPage('vocab')" 
-                class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${this.filter===f ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'text-gray-500 hover:bg-white/5'}">${f.charAt(0).toUpperCase()+f.slice(1)}</button>
+                class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${this.filter===f ? 'bg-[var(--accent-surface)] text-[var(--accent-light)] border border-[rgba(109,92,255,0.12)]' : 'text-zinc-500 hover:bg-white/[0.02]'}">${f.charAt(0).toUpperCase()+f.slice(1)}</button>
             `).join('')}
           </div>
         </div>
@@ -95,19 +95,19 @@ PTE.Vocab = {
         <div class="xp-bar-bg mb-6"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
 
         <!-- Card counter -->
-        <p class="text-center text-sm text-gray-500 mb-4">${this.currentIndex + 1} / ${cards.length}</p>
+        <p class="text-center text-sm text-zinc-500 mb-4 font-mono">${this.currentIndex + 1} / ${cards.length}</p>
 
         <!-- Flashcard -->
-        <div id="flashcard" onclick="PTE.Vocab.flip()" class="glass neon-border rounded-2xl p-8 min-h-[250px] flex flex-col items-center justify-center cursor-pointer transition-all hover:border-indigo-500/40 mb-6 select-none">
+        <div id="flashcard" onclick="PTE.Vocab.flip()" class="card-elevated rounded-xl p-8 min-h-[250px] flex flex-col items-center justify-center cursor-pointer transition-all hover:border-[rgba(109,92,255,0.2)] mb-6 select-none">
           <div id="card-front" class="${this.flipped ? 'hidden' : ''}">
-            <p class="text-xs text-gray-500 uppercase tracking-wide mb-4">Question</p>
-            <p class="text-lg text-white text-center leading-relaxed font-medium">${card.text}</p>
-            <p class="text-xs text-gray-600 mt-6">Tap to reveal answer</p>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-wide mb-4">Question</p>
+            <p class="text-lg text-zinc-100 text-center leading-relaxed font-medium">${card.text}</p>
+            <p class="text-xs text-zinc-600 mt-6">Tap to reveal answer</p>
           </div>
           <div id="card-back" class="${this.flipped ? '' : 'hidden'}">
             <p class="text-xs text-emerald-400 uppercase tracking-wide mb-3">Answer</p>
             <p class="text-3xl font-extrabold text-emerald-400 text-center mb-4">${card.answer}</p>
-            <button onclick="event.stopPropagation();PTE.pronounceWord('${safeAnswer}')" class="inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-4 py-2 rounded-lg transition-colors">
+            <button onclick="event.stopPropagation();PTE.pronounceWord('${safeAnswer}')" class="inline-flex items-center gap-2 text-sm text-[var(--accent-light)] hover:text-[var(--accent)] bg-[var(--accent-surface)] px-4 py-2 rounded-lg transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
               Pronounce
             </button>
@@ -117,10 +117,10 @@ PTE.Vocab = {
 
         <!-- Action Buttons (visible only when flipped) -->
         <div id="card-actions" class="flex gap-4 justify-center ${this.flipped ? '' : 'invisible'}">
-          <button onclick="PTE.Vocab.answer(false)" class="flex-1 max-w-[200px] py-4 rounded-xl font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-all text-sm">
+          <button onclick="PTE.Vocab.answer(false)" class="flex-1 max-w-[200px] py-4 rounded-xl font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition-all text-sm">
             ❌ Didn't Know
           </button>
-          <button onclick="PTE.Vocab.answer(true)" class="flex-1 max-w-[200px] py-4 rounded-xl font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-sm">
+          <button onclick="PTE.Vocab.answer(true)" class="flex-1 max-w-[200px] py-4 rounded-xl font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-sm">
             ✅ Knew It
           </button>
         </div>

@@ -82,18 +82,18 @@ PTE.Daily = {
     const finished = ch.finished;
 
     return `
-    <div class="glass neon-border rounded-2xl p-5 ${finished ? 'border-emerald-500/30' : ''}">
+    <div class="card-elevated rounded-xl p-5 ${finished ? 'border-emerald-500/30' : ''}">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-3">
-          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-xl shadow-lg">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500/80 to-orange-600/80 flex items-center justify-center text-xl shadow-lg">
             ${finished ? '✅' : '⚡'}
           </div>
           <div>
-            <h3 class="font-bold text-white text-sm">Daily Challenge</h3>
-            <p class="text-xs text-gray-500">${finished ? 'Completed! +50 XP' : `${done}/${total} questions`}</p>
+            <h3 class="font-semibold text-zinc-100 text-sm">Daily Challenge</h3>
+            <p class="text-xs text-zinc-500">${finished ? 'Completed! +50 XP' : `${done}/${total} questions`}</p>
           </div>
         </div>
-        ${!finished ? `<a href="#/daily" class="text-xs font-bold text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 transition-all hover:bg-amber-500/20">Play</a>` : `<span class="badge badge-xp">+${ch.totalXP} XP</span>`}
+        ${!finished ? `<a href="#/daily" class="text-xs font-semibold text-amber-400 hover:text-amber-300 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 transition-all hover:bg-amber-500/20">Play</a>` : `<span class="badge badge-xp">+${ch.totalXP} XP</span>`}
       </div>
       <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:${pct}%;${finished ? 'background:linear-gradient(90deg,#10b981,#34d399)' : ''}"></div></div>
     </div>`;
@@ -107,13 +107,13 @@ PTE.Daily = {
       const name = q.typeConfig ? q.typeConfig.name : q.type;
       const done = q.completed;
       return `
-      <div class="glass rounded-xl p-4 flex items-center gap-4 ${done ? 'opacity-60' : 'glass-hover cursor-pointer'}" ${!done ? `onclick="PTE.Daily.startQuestion(${i})"` : ''}>
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl ${done ? 'bg-emerald-500/20' : 'bg-indigo-500/20'}">${done ? '✅' : icon}</div>
+      <div class="card rounded-xl p-4 flex items-center gap-4 ${done ? 'opacity-60' : 'card-hover cursor-pointer'}" ${!done ? `onclick="PTE.Daily.startQuestion(${i})"` : ''}>
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl ${done ? 'bg-emerald-500/20' : 'bg-[var(--accent-surface)]'}">${done ? '✅' : icon}</div>
         <div class="flex-1">
-          <p class="text-sm font-medium ${done ? 'text-gray-500' : 'text-white'}">${name}</p>
-          <p class="text-xs text-gray-600">${done ? `Score: ${q.score}/90` : 'Tap to start'}</p>
+          <p class="text-sm font-medium ${done ? 'text-zinc-500' : 'text-zinc-100'}">${name}</p>
+          <p class="text-xs text-zinc-600">${done ? `Score: ${q.score}/90` : 'Tap to start'}</p>
         </div>
-        <span class="text-xs font-bold ${done ? 'text-emerald-400' : 'text-gray-500'}">${i + 1}/${qs.length}</span>
+        <span class="text-xs font-semibold font-mono ${done ? 'text-emerald-400' : 'text-zinc-500'}">${i + 1}/${qs.length}</span>
       </div>`;
     }).join('');
 
@@ -122,12 +122,12 @@ PTE.Daily = {
     <main class="min-h-screen py-10 px-4">
       <div class="max-w-2xl mx-auto">
         <div class="mb-8 text-center">
-          <span class="text-5xl mb-3 block animate-float">${ch.finished ? '🎉' : '⚡'}</span>
-          <h1 class="text-3xl font-bold text-white mb-2">Daily Challenge</h1>
-          <p class="text-gray-500">${ch.finished ? 'All done for today! Come back tomorrow.' : 'Complete all 5 questions to earn bonus XP'}</p>
+          <span class="text-5xl mb-3 block">${ch.finished ? '🎉' : '⚡'}</span>
+          <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Daily Challenge</h1>
+          <p class="text-zinc-500">${ch.finished ? 'All done for today! Come back tomorrow.' : 'Complete all 5 questions to earn bonus XP'}</p>
         </div>
         <div class="space-y-3">${rows}</div>
-        ${ch.finished ? `<div class="mt-6 text-center"><a href="#/" class="text-indigo-400 text-sm font-medium hover:text-indigo-300">Back to Home</a></div>` : ''}
+        ${ch.finished ? `<div class="mt-6 text-center"><a href="#/" class="text-[var(--accent-light)] text-sm font-medium hover:text-[var(--accent)]">Back to Home</a></div>` : ''}
       </div>
     </main>`;
   },

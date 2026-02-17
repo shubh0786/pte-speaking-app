@@ -42,16 +42,16 @@ PTE.Templates = {
       const cards = section.templates.map(t => {
         const escaped = t.text.replace(/'/g, "\\'").replace(/\n/g, '\\n');
         return `
-        <div class="glass rounded-xl p-5 mb-3">
+        <div class="card rounded-xl p-5 mb-3">
           <div class="flex items-center justify-between mb-3">
-            <h4 class="font-bold text-white text-sm">${t.name}</h4>
+            <h4 class="font-semibold text-zinc-100 text-sm">${t.name}</h4>
             <div class="flex gap-2">
-              <button onclick="PTE.TTS.speak(\`${t.text.replace(/`/g,"'").replace(/\n/g,' ')}\`, 0.9)" class="text-xs text-indigo-400 hover:text-indigo-300 px-2 py-1 rounded bg-indigo-500/10 transition-colors" title="Listen">🔊 Listen</button>
+              <button onclick="PTE.TTS.speak(\`${t.text.replace(/`/g,"'").replace(/\n/g,' ')}\`, 0.9)" class="text-xs text-[var(--accent-light)] hover:text-[var(--accent)] px-2 py-1 rounded bg-[var(--accent-surface)] transition-colors" title="Listen">🔊 Listen</button>
               <button onclick="navigator.clipboard.writeText(\`${t.text.replace(/`/g,"'").replace(/\n/g,'\\n')}\`).then(()=>this.textContent='Copied!')" class="text-xs text-cyan-400 hover:text-cyan-300 px-2 py-1 rounded bg-cyan-500/10 transition-colors" title="Copy">📋 Copy</button>
             </div>
           </div>
-          <div class="bg-white/5 rounded-lg p-4 mb-3 border border-white/5">
-            <p class="text-sm text-gray-300 whitespace-pre-line leading-relaxed">${t.text}</p>
+          <div class="bg-white/[0.02] rounded-lg p-4 mb-3 border border-[var(--border)]">
+            <p class="text-sm text-zinc-300 whitespace-pre-line leading-relaxed">${t.text}</p>
           </div>
           <div class="flex items-start gap-2 text-xs text-amber-400/80">
             <span class="mt-0.5">💡</span>
@@ -64,7 +64,7 @@ PTE.Templates = {
       <div class="mb-8">
         <div class="flex items-center gap-3 mb-4">
           <span class="text-2xl">${section.icon}</span>
-          <h2 class="text-xl font-bold text-white">${section.title}</h2>
+          <h2 class="text-xl font-semibold text-zinc-100">${section.title}</h2>
         </div>
         ${cards}
       </div>`;
@@ -75,8 +75,8 @@ PTE.Templates = {
     <main class="min-h-screen py-10 px-4">
       <div class="max-w-3xl mx-auto">
         <div class="mb-8">
-          <h1 class="text-3xl font-bold text-white mb-2">Templates Library</h1>
-          <p class="text-gray-500">Proven response templates for every PTE Speaking question type. Listen, copy, and practice.</p>
+          <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Templates Library</h1>
+          <p class="text-zinc-500">Proven response templates for every PTE Speaking question type. Listen, copy, and practice.</p>
         </div>
         ${sections}
       </div>

@@ -52,14 +52,14 @@ PTE.Planner = {
   renderCard() {
     const data = this.getData();
     if (!data) return `
-    <a href="#/planner" class="block glass rounded-2xl p-5 border-purple-500/20 hover:border-purple-500/30 transition-all">
+    <a href="#/planner" class="block card rounded-xl p-5 border-[rgba(109,92,255,0.12)] card-hover transition-all">
       <div class="flex items-center gap-3">
         <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-xl shadow-lg">📋</div>
         <div class="flex-1">
-          <h3 class="font-bold text-white text-sm">Study Planner</h3>
-          <p class="text-xs text-gray-500">Set your target score and exam date</p>
+          <h3 class="font-semibold text-zinc-100 text-sm">Study Planner</h3>
+          <p class="text-xs text-zinc-500">Set your target score and exam date</p>
         </div>
-        <span class="text-xs font-bold text-purple-400 px-3 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20">Setup</span>
+        <span class="text-xs font-semibold text-[var(--accent-light)] px-3 py-1.5 rounded-lg bg-[var(--accent-surface)] border border-[rgba(109,92,255,0.12)]">Setup</span>
       </div>
     </a>`;
 
@@ -68,16 +68,16 @@ PTE.Planner = {
     const pct = tp ? tp.pct : 0;
 
     return `
-    <a href="#/planner" class="block glass rounded-2xl p-5 ${pct >= 100 ? 'border-emerald-500/30' : 'border-purple-500/20'} transition-all">
+    <a href="#/planner" class="block card rounded-xl p-5 ${pct >= 100 ? 'border-emerald-500/30' : 'border-[rgba(109,92,255,0.12)]'} card-hover transition-all">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-xl bg-gradient-to-br ${pct >= 100 ? 'from-emerald-500 to-teal-600' : 'from-purple-500 to-pink-600'} flex items-center justify-center text-xl shadow-lg">${pct >= 100 ? '✅' : '📋'}</div>
           <div>
-            <h3 class="font-bold text-white text-sm">Today's Plan</h3>
-            <p class="text-xs text-gray-500">Target: ${data.targetScore}+ ${daysLeft !== null ? `• ${daysLeft} days left` : ''}</p>
+            <h3 class="font-semibold text-zinc-100 text-sm">Today's Plan</h3>
+            <p class="text-xs text-zinc-500">Target: ${data.targetScore}+ ${daysLeft !== null ? `• ${daysLeft} days left` : ''}</p>
           </div>
         </div>
-        <span class="text-sm font-extrabold ${pct >= 100 ? 'text-emerald-400' : 'text-purple-400'}">${pct}%</span>
+        <span class="text-sm font-extrabold font-mono ${pct >= 100 ? 'text-emerald-400' : 'text-purple-400'}">${pct}%</span>
       </div>
       <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:${pct}%;${pct >= 100 ? 'background:linear-gradient(90deg,#10b981,#34d399)' : ''}"></div></div>
     </a>`;
@@ -92,27 +92,27 @@ PTE.Planner = {
       <main class="min-h-screen py-10 px-4">
         <div class="max-w-md mx-auto">
           <div class="text-center mb-8">
-            <span class="text-5xl mb-3 block animate-float">📋</span>
-            <h1 class="text-3xl font-bold text-white mb-2">Study Planner</h1>
-            <p class="text-gray-500">Set your target and I'll create a daily practice plan for you.</p>
+            <span class="text-5xl mb-3 block">📋</span>
+            <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Study Planner</h1>
+            <p class="text-zinc-500">Set your target and I'll create a daily practice plan for you.</p>
           </div>
-          <div class="glass neon-border rounded-2xl p-6 space-y-5">
+          <div class="card-elevated rounded-xl p-6 space-y-5">
             <div>
-              <label class="text-sm font-semibold text-gray-300 mb-2 block">Target Score</label>
+              <label class="text-sm font-semibold text-zinc-300 mb-2 block">Target Score</label>
               <div class="grid grid-cols-3 gap-3">
                 ${Object.entries(this.TARGETS).map(([score, cfg]) => `
-                  <button onclick="document.querySelectorAll('.target-btn').forEach(b=>b.classList.remove('border-indigo-500','text-indigo-400'));this.classList.add('border-indigo-500','text-indigo-400');document.getElementById('target-score').value=${score}" class="target-btn py-3 rounded-xl glass border border-white/10 text-center text-sm font-bold text-gray-400 hover:border-indigo-500/50 transition-all">
-                    ${score}+<br><span class="text-xs font-normal text-gray-600">${cfg.label.split('(')[1]?.replace(')','') || ''}</span>
+                  <button onclick="document.querySelectorAll('.target-btn').forEach(b=>b.classList.remove('border-[var(--accent)]','text-[var(--accent-light)]'));this.classList.add('border-[var(--accent)]','text-[var(--accent-light)]');document.getElementById('target-score').value=${score}" class="target-btn py-3 rounded-xl card border border-[var(--border)] text-center text-sm font-semibold text-zinc-400 hover:border-[rgba(109,92,255,0.3)] transition-all">
+                    ${score}+<br><span class="text-xs font-normal text-zinc-600">${cfg.label.split('(')[1]?.replace(')','') || ''}</span>
                   </button>
                 `).join('')}
               </div>
               <input type="hidden" id="target-score" value="65">
             </div>
             <div>
-              <label class="text-sm font-semibold text-gray-300 mb-2 block">Exam Date</label>
-              <input type="date" id="exam-date" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none">
+              <label class="text-sm font-semibold text-zinc-300 mb-2 block">Exam Date</label>
+              <input type="date" id="exam-date" class="w-full bg-white/[0.02] border border-[var(--border)] rounded-xl px-4 py-3 text-zinc-100 focus:border-[var(--accent)] outline-none">
             </div>
-            <button onclick="PTE.Planner.savePlan()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold hover:opacity-90 transition-all">Create My Plan</button>
+            <button onclick="PTE.Planner.savePlan()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-[var(--accent)] to-purple-600 text-zinc-100 font-semibold hover:opacity-90 transition-all">Create My Plan</button>
           </div>
         </div>
       </main>`;
@@ -130,13 +130,13 @@ PTE.Planner = {
         if (!tc) continue;
         const done = info.done >= info.needed;
         planRows += `
-        <div class="flex items-center gap-3 py-3 border-b border-white/5">
+        <div class="flex items-center gap-3 py-3 border-b border-[var(--border)]">
           <span class="text-lg">${tc.icon}</span>
           <div class="flex-1">
-            <p class="text-sm font-medium ${done ? 'text-gray-500 line-through' : 'text-white'}">${tc.name}</p>
-            <p class="text-xs text-gray-600">${info.done}/${info.needed} done</p>
+            <p class="text-sm font-medium ${done ? 'text-zinc-500 line-through' : 'text-zinc-100'}">${tc.name}</p>
+            <p class="text-xs text-zinc-600">${info.done}/${info.needed} done</p>
           </div>
-          ${done ? '<span class="text-emerald-400 text-sm">✅</span>' : `<a href="#/practice/${typeId}" class="text-xs font-bold text-indigo-400 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all">Practice</a>`}
+          ${done ? '<span class="text-emerald-400 text-sm">✅</span>' : `<a href="#/practice/${typeId}" class="text-xs font-semibold text-[var(--accent-light)] px-3 py-1.5 rounded-lg bg-[var(--accent-surface)] border border-[rgba(109,92,255,0.12)] hover:bg-[var(--accent-surface)] transition-all">Practice</a>`}
         </div>`;
       }
     }
@@ -146,7 +146,7 @@ PTE.Planner = {
     <main class="min-h-screen py-10 px-4">
       <div class="max-w-2xl mx-auto">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-bold text-white mb-2">Study Planner</h1>
+          <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Study Planner</h1>
           <div class="flex items-center justify-center gap-4 text-sm">
             <span class="badge badge-level">Target: ${data.targetScore}+</span>
             ${daysLeft !== null ? `<span class="badge badge-streak">${daysLeft} days left</span>` : ''}
@@ -154,17 +154,17 @@ PTE.Planner = {
         </div>
 
         ${tp ? `
-        <div class="glass neon-border rounded-2xl p-6 mb-6">
+        <div class="card-elevated rounded-xl p-6 mb-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="font-bold text-white">Today's Plan</h3>
-            <span class="text-lg font-extrabold ${tp.pct >= 100 ? 'text-emerald-400' : 'text-indigo-400'}">${tp.pct}%</span>
+            <h3 class="font-semibold text-zinc-100">Today's Plan</h3>
+            <span class="text-lg font-extrabold font-mono ${tp.pct >= 100 ? 'text-emerald-400' : 'text-[var(--accent-light)]'}">${tp.pct}%</span>
           </div>
           <div class="xp-bar-bg mb-4"><div class="xp-bar-fill" style="width:${tp.pct}%"></div></div>
           ${planRows}
         </div>` : ''}
 
         <div class="text-center">
-          <button onclick="localStorage.removeItem('crackpte_planner');PTE.App.renderPage('planner')" class="text-xs text-gray-600 hover:text-rose-400 transition-colors">Reset Plan</button>
+          <button onclick="localStorage.removeItem('crackpte_planner');PTE.App.renderPage('planner')" class="text-xs text-zinc-600 hover:text-rose-400 transition-colors">Reset Plan</button>
         </div>
       </div>
     </main>`;

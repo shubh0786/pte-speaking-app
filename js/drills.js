@@ -87,7 +87,7 @@ PTE.Drills = {
     const cats = this.getCategories();
     this.currentIndex = Math.min(this.currentIndex, words.length - 1);
     const word = words[this.currentIndex];
-    if (!word) return `${PTE.UI.navbar('drills')}<main class="min-h-screen py-10 px-4"><div class="max-w-2xl mx-auto text-center py-20"><p class="text-gray-500">No words found.</p></div></main>`;
+    if (!word) return `${PTE.UI.navbar('drills')}<main class="min-h-screen py-10 px-4"><div class="max-w-2xl mx-auto text-center py-20"><p class="text-zinc-500">No words found.</p></div></main>`;
 
     const safeW = word.w.replace(/'/g, "\\'");
 
@@ -97,21 +97,21 @@ PTE.Drills = {
       <div class="max-w-2xl mx-auto">
         <div class="flex items-center justify-between mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-white">Pronunciation Drills</h1>
-            <p class="text-sm text-gray-500">${words.length} words</p>
+            <h1 class="text-2xl font-semibold text-zinc-100">Pronunciation Drills</h1>
+            <p class="text-sm text-zinc-500">${words.length} words</p>
           </div>
           <div class="flex gap-1 flex-wrap justify-end">
-            ${cats.map(c => `<button onclick="PTE.Drills.category='${c}';PTE.Drills.currentIndex=0;PTE.App.renderPage('drills')" class="text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${this.category===c ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'text-gray-500 hover:bg-white/5'}">${c==='all'?'All':c}</button>`).join('')}
+            ${cats.map(c => `<button onclick="PTE.Drills.category='${c}';PTE.Drills.currentIndex=0;PTE.App.renderPage('drills')" class="text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${this.category===c ? 'bg-[var(--accent-surface)] text-[var(--accent-light)] border border-[rgba(109,92,255,0.12)]' : 'text-zinc-500 hover:bg-white/[0.02]'}">${c==='all'?'All':c}</button>`).join('')}
           </div>
         </div>
 
-        <p class="text-center text-sm text-gray-500 mb-4">${this.currentIndex + 1} / ${words.length}</p>
+        <p class="text-center text-sm text-zinc-500 mb-4 font-mono">${this.currentIndex + 1} / ${words.length}</p>
 
         <!-- Word Card -->
-        <div class="glass neon-border rounded-2xl p-8 text-center mb-6">
+        <div class="card-elevated rounded-xl p-8 text-center mb-6">
           <span class="badge badge-level mb-3">${word.cat}</span>
-          <h2 class="text-4xl font-extrabold text-white mb-2 neon-text">${word.w}</h2>
-          <p class="text-sm text-gray-500 mb-6 font-mono">${word.ipa}</p>
+          <h2 class="text-4xl font-extrabold text-zinc-100 mb-2">${word.w}</h2>
+          <p class="text-sm text-zinc-500 mb-6 font-mono">${word.ipa}</p>
           <div class="flex justify-center gap-3 flex-wrap">
             <button onclick="PTE.pronounceWord('${safeW}')" class="inline-flex items-center gap-2 text-sm font-medium text-cyan-400 bg-cyan-500/10 px-5 py-2.5 rounded-xl border border-cyan-500/20 hover:bg-cyan-500/20 transition-all">
               🔊 Listen Native
@@ -121,13 +121,13 @@ PTE.Drills = {
             </button>
           </div>
           <div id="drill-result" class="mt-4 hidden"></div>
-          ${word.accuracy !== null ? `<p class="text-xs text-gray-600 mt-4">Past accuracy: ${word.accuracy}% (${word.attempts} attempts)</p>` : ''}
+          ${word.accuracy !== null ? `<p class="text-xs text-zinc-600 mt-4">Past accuracy: <span class="font-mono">${word.accuracy}%</span> (${word.attempts} attempts)</p>` : ''}
         </div>
 
         <!-- Navigation -->
         <div class="flex gap-3 justify-center">
-          <button onclick="PTE.Drills.prev()" class="px-6 py-3 glass rounded-xl text-gray-400 hover:text-white transition-colors font-medium text-sm">← Previous</button>
-          <button onclick="PTE.Drills.next()" class="px-6 py-3 bg-indigo-500/20 border border-indigo-500/30 rounded-xl text-indigo-400 hover:bg-indigo-500/30 transition-colors font-medium text-sm">Next →</button>
+          <button onclick="PTE.Drills.prev()" class="px-6 py-3 card rounded-xl text-zinc-400 hover:text-zinc-100 transition-colors font-medium text-sm">← Previous</button>
+          <button onclick="PTE.Drills.next()" class="px-6 py-3 bg-[var(--accent-surface)] border border-[rgba(109,92,255,0.12)] rounded-xl text-[var(--accent-light)] hover:bg-[var(--accent-surface)] transition-colors font-medium text-sm">Next →</button>
         </div>
       </div>
     </main>`;
@@ -157,8 +157,8 @@ PTE.Drills = {
         this.recordAttempt(word, match);
         result.innerHTML = `
           <div class="p-3 rounded-lg ${match ? 'bg-emerald-500/15 border border-emerald-500/20' : 'bg-rose-500/15 border border-rose-500/20'}">
-            <p class="text-sm font-bold ${match ? 'text-emerald-400' : 'text-rose-400'}">${match ? '✅ Great pronunciation!' : '❌ Try again'}</p>
-            <p class="text-xs text-gray-500 mt-1">Heard: "${transcript}" (${Math.round(confidence*100)}% confidence)</p>
+            <p class="text-sm font-semibold ${match ? 'text-emerald-400' : 'text-rose-400'}">${match ? '✅ Great pronunciation!' : '❌ Try again'}</p>
+            <p class="text-xs text-zinc-500 mt-1">Heard: "${transcript}" (<span class="font-mono">${Math.round(confidence*100)}%</span> confidence)</p>
           </div>`;
         result.classList.remove('hidden');
         if (match && PTE.Gamify) PTE.Gamify.awardXP(70, 'pronunciation-drill', false, false);

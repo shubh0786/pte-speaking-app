@@ -73,21 +73,21 @@ PTE.Challenge = {
     ${PTE.UI.navbar('home')}
     <main class="min-h-screen py-10 px-4">
       <div class="max-w-2xl mx-auto text-center">
-        <span class="text-5xl mb-4 block animate-float">⚔️</span>
-        <h1 class="text-3xl font-bold text-white mb-2">Challenge a Friend</h1>
-        <p class="text-gray-500 mb-8">Generate a link with 5 random questions. Share it with your friend and compare scores!</p>
+        <span class="text-5xl mb-4 block">⚔️</span>
+        <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Challenge a Friend</h1>
+        <p class="text-zinc-500 mb-8">Generate a link with 5 random questions. Share it with your friend and compare scores!</p>
 
-        <div class="glass neon-border rounded-2xl p-6 mb-6">
-          <button onclick="PTE.Challenge.generateLink()" id="gen-btn" class="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-indigo-500/20">
+        <div class="card-elevated rounded-xl p-6 mb-6">
+          <button onclick="PTE.Challenge.generateLink()" id="gen-btn" class="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--accent)] to-purple-600 text-zinc-100 font-semibold text-lg hover:opacity-90 transition-all shadow-xl shadow-[rgba(109,92,255,0.15)]">
             ⚡ Generate Challenge
           </button>
           <div id="challenge-link-area" class="hidden mt-6">
-            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Share this link:</label>
+            <label class="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide mb-2 block">Share this link:</label>
             <div class="flex gap-2">
-              <input id="challenge-url" readonly class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-cyan-400 text-sm font-mono truncate">
-              <button onclick="navigator.clipboard.writeText(document.getElementById('challenge-url').value).then(()=>this.textContent='Copied!')" class="px-4 py-3 rounded-xl bg-cyan-500/15 border border-cyan-500/20 text-cyan-400 font-bold text-sm hover:bg-cyan-500/25 transition-all">Copy</button>
+              <input id="challenge-url" readonly class="flex-1 bg-white/[0.02] border border-[var(--border)] rounded-xl px-4 py-3 text-cyan-400 text-sm font-mono truncate">
+              <button onclick="navigator.clipboard.writeText(document.getElementById('challenge-url').value).then(()=>this.textContent='Copied!')" class="px-4 py-3 rounded-xl bg-cyan-500/15 border border-cyan-500/20 text-cyan-400 font-semibold text-sm hover:bg-cyan-500/25 transition-all">Copy</button>
             </div>
-            <p class="text-xs text-gray-600 mt-3">Your friend opens this link and answers the same 5 questions. Then compare scores!</p>
+            <p class="text-xs text-zinc-600 mt-3">Your friend opens this link and answers the same 5 questions. Then compare scores!</p>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ PTE.Challenge = {
   renderChallengePage(code) {
     const questions = this.getQuestions(code);
     if (questions.length === 0) {
-      return `${PTE.UI.navbar('home')}<main class="min-h-screen py-10 px-4"><div class="max-w-2xl mx-auto text-center py-20"><span class="text-5xl mb-4 block">❌</span><h2 class="text-2xl font-bold text-white mb-2">Invalid Challenge</h2><p class="text-gray-500">This challenge link is invalid or expired.</p></div></main>`;
+      return `${PTE.UI.navbar('home')}<main class="min-h-screen py-10 px-4"><div class="max-w-2xl mx-auto text-center py-20"><span class="text-5xl mb-4 block">❌</span><h2 class="text-2xl font-semibold text-zinc-100 mb-2">Invalid Challenge</h2><p class="text-zinc-500">This challenge link is invalid or expired.</p></div></main>`;
     }
 
     // Check if already completed
@@ -123,20 +123,20 @@ PTE.Challenge = {
     }
 
     const rows = questions.map((q, i) => `
-      <div class="flex items-center gap-3 py-3 ${i < questions.length - 1 ? 'border-b border-white/5' : ''}">
-        <span class="w-8 h-8 rounded-lg flex items-center justify-center text-lg bg-indigo-500/20">${q.typeConfig.icon}</span>
-        <span class="text-sm font-medium text-white">${q.typeConfig.name}</span>
+      <div class="flex items-center gap-3 py-3 ${i < questions.length - 1 ? 'border-b border-[var(--border)]' : ''}">
+        <span class="w-8 h-8 rounded-lg flex items-center justify-center text-lg bg-[var(--accent-surface)]">${q.typeConfig.icon}</span>
+        <span class="text-sm font-medium text-zinc-100">${q.typeConfig.name}</span>
       </div>`).join('');
 
     return `
     ${PTE.UI.navbar('home')}
     <main class="min-h-screen py-10 px-4">
       <div class="max-w-2xl mx-auto text-center">
-        <span class="text-5xl mb-4 block animate-float">⚔️</span>
-        <h1 class="text-3xl font-bold text-white mb-2">Challenge Accepted!</h1>
-        <p class="text-gray-500 mb-6">${questions.length} questions to answer</p>
-        <div class="glass rounded-2xl p-5 mb-6 text-left">${rows}</div>
-        <button onclick="PTE.Challenge.startChallenge('${code}')" class="w-full max-w-sm py-4 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold text-lg hover:opacity-90 transition-all shadow-xl">⚡ Start Challenge</button>
+        <span class="text-5xl mb-4 block">⚔️</span>
+        <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Challenge Accepted!</h1>
+        <p class="text-zinc-500 mb-6">${questions.length} questions to answer</p>
+        <div class="card rounded-xl p-5 mb-6 text-left">${rows}</div>
+        <button onclick="PTE.Challenge.startChallenge('${code}')" class="w-full max-w-sm py-4 rounded-xl bg-gradient-to-r from-[var(--accent)] to-purple-600 text-zinc-100 font-semibold text-lg hover:opacity-90 transition-all shadow-xl">⚡ Start Challenge</button>
       </div>
     </main>`;
   },
@@ -167,7 +167,7 @@ PTE.Challenge = {
           <div class="max-w-3xl mx-auto">
             <div class="flex items-center justify-between mb-4">
               <span class="badge badge-level">Challenge Q${i+1}/${questions.length}</span>
-              <span class="text-sm text-gray-500">${q.typeConfig.icon} ${q.typeConfig.name}</span>
+              <span class="text-sm text-zinc-500">${q.typeConfig.icon} ${q.typeConfig.name}</span>
             </div>
             <div id="practice-area" class="bg-[var(--bg-card)] rounded-2xl border border-[var(--border)] overflow-hidden"></div>
             <div id="score-area" class="mt-6 hidden"></div>
@@ -207,10 +207,10 @@ PTE.Challenge = {
     results.sort((a, b) => b.avg - a.avg);
 
     const rows = results.map((r, i) => `
-      <div class="flex items-center gap-4 py-3 ${i < results.length - 1 ? 'border-b border-white/5' : ''}">
-        <span class="w-8 text-center font-bold ${i === 0 ? 'text-2xl' : 'text-gray-500'}">${i === 0 ? '🥇' : i === 1 ? '🥈' : i + 1}</span>
-        <div class="flex-1"><p class="text-sm font-bold text-white">${r.name}</p><p class="text-xs text-gray-600">${r.date}</p></div>
-        <span class="text-lg font-extrabold text-indigo-400">${r.avg}/90</span>
+      <div class="flex items-center gap-4 py-3 ${i < results.length - 1 ? 'border-b border-[var(--border)]' : ''}">
+        <span class="w-8 text-center font-semibold ${i === 0 ? 'text-2xl' : 'text-zinc-500'}">${i === 0 ? '🥇' : i === 1 ? '🥈' : i + 1}</span>
+        <div class="flex-1"><p class="text-sm font-semibold text-zinc-100">${r.name}</p><p class="text-xs text-zinc-600">${r.date}</p></div>
+        <span class="text-lg font-extrabold font-mono text-[var(--accent-light)]">${r.avg}/90</span>
       </div>`).join('');
 
     return `
@@ -218,11 +218,11 @@ PTE.Challenge = {
     <main class="min-h-screen py-10 px-4">
       <div class="max-w-2xl mx-auto text-center">
         <span class="text-5xl mb-4 block">🏆</span>
-        <h1 class="text-3xl font-bold text-white mb-2">Challenge Results</h1>
-        <div class="glass neon-border rounded-2xl p-6 mt-6 text-left">${rows}</div>
+        <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Challenge Results</h1>
+        <div class="card-elevated rounded-xl p-6 mt-6 text-left">${rows}</div>
         <div class="flex gap-4 justify-center mt-6">
-          <a href="#/challenge-create" class="px-6 py-3 glass rounded-xl text-indigo-400 font-semibold text-sm hover:bg-white/5 transition-all">New Challenge</a>
-          <a href="#/" class="px-6 py-3 bg-indigo-500/20 border border-indigo-500/30 rounded-xl text-indigo-400 font-semibold text-sm hover:bg-indigo-500/30 transition-all">Home</a>
+          <a href="#/challenge-create" class="px-6 py-3 card rounded-xl text-[var(--accent-light)] font-semibold text-sm hover:bg-white/[0.02] transition-all">New Challenge</a>
+          <a href="#/" class="px-6 py-3 bg-[var(--accent-surface)] border border-[rgba(109,92,255,0.12)] rounded-xl text-[var(--accent-light)] font-semibold text-sm hover:bg-[rgba(109,92,255,0.15)] transition-all">Home</a>
         </div>
       </div>
     </main>`;
@@ -236,8 +236,8 @@ PTE.Challenge = {
     const rows = recent.map(code => {
       const results = data[code];
       const best = results.reduce((a, b) => a.avg > b.avg ? a : b);
-      return `<div class="flex items-center gap-3 py-2"><span class="text-gray-600 text-xs font-mono truncate flex-1">${code.slice(0,20)}...</span><span class="text-sm font-bold text-indigo-400">${best.avg}/90</span></div>`;
+      return `<div class="flex items-center gap-3 py-2"><span class="text-zinc-600 text-xs font-mono truncate flex-1">${code.slice(0,20)}...</span><span class="text-sm font-semibold font-mono text-[var(--accent-light)]">${best.avg}/90</span></div>`;
     }).join('');
-    return `<div class="glass rounded-2xl p-5 text-left mt-6"><h3 class="font-bold text-white text-sm mb-3">Recent Challenges</h3>${rows}</div>`;
+    return `<div class="card rounded-xl p-5 text-left mt-6"><h3 class="font-semibold text-zinc-100 text-sm mb-3">Recent Challenges</h3>${rows}</div>`;
   }
 };

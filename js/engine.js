@@ -269,8 +269,15 @@ PTE.SpeechRecognizer = {
             }, 500);
           }
         }, delay);
-      } else if (this.onEnd) {
-        this.onEnd(this.transcript, this.getAverageConfidence());
+      } else {
+        // Promote any remaining interim results before firing onEnd
+        if (this.interimTranscript) {
+          this.transcript += this.interimTranscript;
+          this.interimTranscript = '';
+        }
+        if (this.onEnd) {
+          this.onEnd(this.transcript, this.getAverageConfidence());
+        }
       }
     };
 
@@ -341,6 +348,20 @@ PTE.SpeechRecognizer = {
     this.isListening = false;
     if (this.recognition) {
       try { this.recognition.stop(); } catch(e) { /* ignore */ }
+    }
+    // Promote any remaining interim results to final transcript so they aren't lost
+    if (this.interimTranscript) {
+      console.log('[Speech] Promoting interim to final:', this.interimTranscript);
+      this.transcript += this.interimTranscript;
+      if (this.wordTimestamps.length === 0 || this.interimTranscript.trim()) {
+        this.wordTimestamps.push({ time: Date.now(), words: this.interimTranscript.trim().split(/\s+/).length });
+      }
+      // Interim results lack confidence scores; use a moderate default
+      // so pronunciation isn't unfairly zeroed when only interim text exists
+      if (this.confidenceScores.length === 0) {
+        this.confidenceScores.push(0.7);
+      }
+      this.interimTranscript = '';
     }
     console.log('[Speech] Stopped | Transcript length:', this.transcript.length, '| Restarts:', this._restartCount);
     return {

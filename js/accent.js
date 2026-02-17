@@ -477,15 +477,15 @@ PTE.AccentAnalyzer = {
       problemWordsHtml = result.problemWords.slice(0, 6).map(pw => {
         const safeWord = pw.expected.replace(/'/g, "\\'");
         return `
-        <div class="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+        <div class="flex items-center justify-between py-2 border-b border-[var(--border)] last:border-0">
           <div class="flex items-center gap-2">
             <span class="text-red-400 font-mono text-sm">"${pw.expected}"</span>
-            <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            <svg class="w-3 h-3 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
             <span class="text-amber-400 font-mono text-sm">"${pw.heard}"</span>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-xs px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20">${pw.sound}</span>
-            <button onclick="PTE.pronounceWord('${safeWord}')" class="text-indigo-400 hover:text-indigo-300" title="Hear correct pronunciation">
+            <button onclick="PTE.pronounceWord('${safeWord}')" class="text-[var(--accent-light)] hover:text-[var(--accent)]" title="Hear correct pronunciation">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
             </button>
           </div>
@@ -513,9 +513,9 @@ PTE.AccentAnalyzer = {
     }
 
     return `
-    <div class="mt-6 glass neon-border rounded-2xl overflow-hidden max-w-lg mx-auto animate-fadeIn">
+    <div class="mt-6 card-elevated rounded-xl overflow-hidden max-w-lg mx-auto animate-fadeIn">
       <div class="bg-gradient-to-r from-rose-600 via-pink-600 to-fuchsia-600 p-4 text-center">
-        <h3 class="text-white font-bold text-sm flex items-center justify-center gap-2">
+        <h3 class="text-zinc-100 font-semibold text-sm flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
           Accent Coach
         </h3>
@@ -524,27 +524,27 @@ PTE.AccentAnalyzer = {
         ${result.detectedAccent ? `
         <div class="flex items-center justify-between mb-4">
           <div>
-            <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Detected Pattern</p>
-            <p class="text-lg font-bold text-white">${accent}</p>
+            <p class="text-[10px] text-zinc-500 uppercase tracking-wide font-semibold">Detected Pattern</p>
+            <p class="text-lg font-semibold text-zinc-100">${accent}</p>
           </div>
           <div class="text-right">
-            <p class="text-xs text-gray-500">Confidence</p>
-            <p class="text-2xl font-extrabold text-rose-400">${result.confidence}%</p>
+            <p class="text-[10px] text-zinc-500">Confidence</p>
+            <p class="text-2xl font-extrabold font-mono text-rose-400">${result.confidence}%</p>
           </div>
         </div>
         ` : ''}
 
         ${soundBadges ? `
         <div class="mb-4">
-          <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">Problem Sounds</p>
+          <p class="text-[10px] text-zinc-500 uppercase tracking-wide font-semibold mb-2">Problem Sounds</p>
           <div class="flex flex-wrap gap-2">${soundBadges}</div>
         </div>
         ` : ''}
 
         ${problemWordsHtml ? `
         <div class="mb-4">
-          <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-2">Words That Cost You Marks</p>
-          <div class="glass rounded-xl p-3">${problemWordsHtml}</div>
+          <p class="text-[10px] text-zinc-500 uppercase tracking-wide font-semibold mb-2">Words That Cost You Marks</p>
+          <div class="card rounded-xl p-3">${problemWordsHtml}</div>
         </div>
         ` : ''}
 
@@ -555,8 +555,8 @@ PTE.AccentAnalyzer = {
         </details>
         ` : ''}
 
-        <div class="mt-4 pt-3 border-t border-white/5 text-center">
-          <a href="#/accent" class="text-xs text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">View Full Accent Profile &rarr;</a>
+        <div class="mt-4 pt-3 border-t border-[var(--border)] text-center">
+          <a href="#/accent" class="text-xs text-[var(--accent-light)] font-semibold hover:text-[var(--accent)] transition-colors">View Full Accent Profile &rarr;</a>
         </div>
       </div>
     </div>`;
@@ -572,9 +572,9 @@ PTE.AccentAnalyzer = {
       return `${PTE.UI.navbar('accent')}
       <main class="min-h-screen py-10 px-4">
         <div class="max-w-3xl mx-auto text-center py-20">
-          <span class="text-6xl mb-4 block animate-float">🗣️</span>
-          <h2 class="text-2xl font-bold text-white mb-3">Accent Coach</h2>
-          <p class="text-gray-500 mb-6 max-w-md mx-auto">Practice some speaking questions first. After a few attempts, we'll analyze your accent patterns and show you exactly which sounds to work on.</p>
+          <span class="text-6xl mb-4 block">🗣️</span>
+          <h2 class="text-2xl font-semibold text-zinc-100 mb-3">Accent Coach</h2>
+          <p class="text-zinc-500 mb-6 max-w-md mx-auto">Practice some speaking questions first. After a few attempts, we'll analyze your accent patterns and show you exactly which sounds to work on.</p>
           <a href="#/practice" class="btn-primary">Start Practicing</a>
         </div>
       </main>`;
@@ -588,11 +588,11 @@ PTE.AccentAnalyzer = {
       const pct = Math.round((s.count / maxCount) * 100);
       return `
       <div class="flex items-center gap-3">
-        <span class="w-24 text-sm font-semibold text-gray-300 text-right">${s.sound}</span>
-        <div class="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
+        <span class="w-24 text-sm font-semibold text-zinc-300 text-right">${s.sound}</span>
+        <div class="flex-1 h-3 bg-white/[0.02] rounded-full overflow-hidden">
           <div class="h-full rounded-full bg-gradient-to-r from-rose-500 to-pink-500 transition-all duration-700" style="width:${pct}%"></div>
         </div>
-        <span class="text-xs text-gray-500 w-8">${s.count}x</span>
+        <span class="text-xs text-zinc-500 font-mono w-8">${s.count}x</span>
       </div>`;
     }).join('');
 
@@ -600,14 +600,14 @@ PTE.AccentAnalyzer = {
     const recentWords = profile.recentProblemWords.map(pw => {
       const safeWord = pw.expected.replace(/'/g, "\\'");
       return `
-      <div class="flex items-center justify-between py-2.5 border-b border-white/5">
+      <div class="flex items-center justify-between py-2.5 border-b border-[var(--border)]">
         <div class="flex items-center gap-3">
-          <button onclick="PTE.pronounceWord('${safeWord}')" class="w-8 h-8 rounded-lg bg-indigo-500/15 flex items-center justify-center text-indigo-400 hover:bg-indigo-500/25 transition-colors flex-shrink-0">
+          <button onclick="PTE.pronounceWord('${safeWord}')" class="w-8 h-8 rounded-lg bg-[var(--accent-surface)] flex items-center justify-center text-[var(--accent-light)] hover:bg-[rgba(109,92,255,0.15)] transition-colors flex-shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
           </button>
           <div>
-            <span class="text-sm font-medium text-white">${pw.expected}</span>
-            <span class="text-gray-600 mx-1">→</span>
+            <span class="text-sm font-medium text-zinc-100">${pw.expected}</span>
+            <span class="text-zinc-600 mx-1">→</span>
             <span class="text-sm text-red-400">${pw.heard}</span>
           </div>
         </div>
@@ -622,18 +622,18 @@ PTE.AccentAnalyzer = {
       const drills = this.DRILLS[topSound] || [];
       if (drills.length > 0) {
         drillSection = `
-        <div class="glass rounded-2xl p-6 mb-6 neon-border">
-          <h3 class="text-lg font-bold text-white mb-1">Practice Drills: "${topSound}" Sound</h3>
-          <p class="text-xs text-gray-500 mb-4">Click each word to hear its correct pronunciation. Practice saying them clearly.</p>
+        <div class="card-elevated rounded-xl p-6 mb-6">
+          <h3 class="text-lg font-semibold text-zinc-100 mb-1">Practice Drills: "${topSound}" Sound</h3>
+          <p class="text-xs text-zinc-500 mb-4">Click each word to hear its correct pronunciation. Practice saying them clearly.</p>
           <div class="grid grid-cols-2 gap-3">
             ${drills.slice(0, 6).map(d => `
-            <div class="glass rounded-xl p-3 text-center">
+            <div class="card rounded-xl p-3 text-center">
               <div class="flex items-center justify-center gap-3 mb-2">
                 <button onclick="PTE.pronounceWord('${d.word1}')" class="px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-sm font-bold hover:bg-emerald-500/25 transition-colors">${d.word1}</button>
-                <span class="text-gray-600 text-xs">vs</span>
+                <span class="text-zinc-600 text-xs">vs</span>
                 <button onclick="PTE.pronounceWord('${d.word2}')" class="px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-500/20 text-rose-400 text-sm font-bold hover:bg-rose-500/25 transition-colors">${d.word2}</button>
               </div>
-              <p class="text-xs text-gray-500">${d.sound}</p>
+              <p class="text-xs text-zinc-500">${d.sound}</p>
             </div>
             `).join('')}
           </div>
@@ -646,22 +646,22 @@ PTE.AccentAnalyzer = {
     if (profile.detectedAccent && this.ACCENTS[profile.detectedAccent]) {
       const patterns = this.ACCENTS[profile.detectedAccent].patterns;
       accentTips = `
-      <div class="glass rounded-2xl p-6 mb-6">
-        <h3 class="text-lg font-bold text-white mb-4">Common ${profile.accentName} Accent Patterns</h3>
+      <div class="card rounded-xl p-6 mb-6">
+        <h3 class="text-lg font-semibold text-zinc-100 mb-4">Common ${profile.accentName} Accent Patterns</h3>
         <div class="space-y-3">
           ${patterns.map(p => `
           <details class="group">
-            <summary class="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-white/5 hover:bg-white/8 transition-colors">
+            <summary class="flex items-center justify-between cursor-pointer p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
               <div class="flex items-center gap-3">
-                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20">${p.sound}</span>
-                <span class="text-sm text-gray-300">${p.desc}</span>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/20">${p.sound}</span>
+                <span class="text-sm text-zinc-300">${p.desc}</span>
               </div>
-              <svg class="w-4 h-4 text-gray-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg class="w-4 h-4 text-zinc-500 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </summary>
             <div class="mt-2 ml-3 p-3 border-l-2 border-rose-500/20">
-              <p class="text-xs text-gray-400 mb-2">${p.tip}</p>
+              <p class="text-xs text-zinc-400 mb-2">${p.tip}</p>
               <div class="flex flex-wrap gap-1.5">
-                ${p.examples.slice(0, 4).map(ex => `<span class="text-xs px-2 py-0.5 rounded bg-white/5 text-gray-400">${ex}</span>`).join('')}
+                ${p.examples.slice(0, 4).map(ex => `<span class="text-xs px-2 py-0.5 rounded bg-white/[0.02] text-zinc-400">${ex}</span>`).join('')}
               </div>
             </div>
           </details>
@@ -676,21 +676,21 @@ PTE.AccentAnalyzer = {
 
         <!-- Header -->
         <div class="text-center mb-8">
-          <span class="text-5xl mb-3 block animate-float">🗣️</span>
-          <h1 class="text-3xl font-bold text-white mb-2">Accent Coach</h1>
-          <p class="text-gray-500">Your personalized pronunciation profile based on ${profile.totalAnalyses} practice attempts.</p>
+          <span class="text-5xl mb-3 block">🗣️</span>
+          <h1 class="text-3xl font-semibold text-zinc-100 mb-2">Accent Coach</h1>
+          <p class="text-zinc-500">Your personalized pronunciation profile based on ${profile.totalAnalyses} practice attempts.</p>
         </div>
 
         <!-- Accent Profile Card -->
-        <div class="glass-premium neon-border rounded-2xl p-6 mb-8 animate-fadeIn">
+        <div class="card-elevated rounded-xl p-6 mb-8 animate-fadeIn">
           <div class="flex flex-col sm:flex-row items-center gap-6">
             <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500 to-fuchsia-600 flex items-center justify-center text-4xl shadow-xl">${profile.accentFlag}</div>
             <div class="flex-1 text-center sm:text-left">
-              <p class="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Detected Accent Pattern</p>
-              <h2 class="text-2xl font-extrabold text-white mb-2">${accent}</h2>
+              <p class="text-[10px] text-zinc-500 uppercase tracking-wide font-semibold mb-1">Detected Accent Pattern</p>
+              <h2 class="text-2xl font-extrabold text-zinc-100 mb-2">${accent}</h2>
               <div class="flex items-center justify-center sm:justify-start gap-3">
                 <span class="badge" style="background:rgba(244,63,94,0.15);color:#fb7185;border:1px solid rgba(244,63,94,0.25)">${profile.confidence}% match</span>
-                <span class="text-xs text-gray-500">${profile.totalAnalyses} analyses</span>
+                <span class="text-xs text-zinc-500 font-mono">${profile.totalAnalyses} analyses</span>
               </div>
             </div>
           </div>
@@ -698,8 +698,8 @@ PTE.AccentAnalyzer = {
 
         <!-- Problem Sounds -->
         ${soundBars ? `
-        <div class="glass rounded-2xl p-6 mb-6">
-          <h3 class="text-lg font-bold text-white mb-4">Problem Sounds (Most Frequent)</h3>
+        <div class="card rounded-xl p-6 mb-6">
+          <h3 class="text-lg font-semibold text-zinc-100 mb-4">Problem Sounds (Most Frequent)</h3>
           <div class="space-y-3">${soundBars}</div>
         </div>` : ''}
 
@@ -708,9 +708,9 @@ PTE.AccentAnalyzer = {
 
         <!-- Recent Problem Words -->
         ${recentWords ? `
-        <div class="glass rounded-2xl p-6 mb-6">
-          <h3 class="text-lg font-bold text-white mb-1">Words That Cost You Marks</h3>
-          <p class="text-xs text-gray-500 mb-4">Click the speaker icon to hear the correct pronunciation.</p>
+        <div class="card rounded-xl p-6 mb-6">
+          <h3 class="text-lg font-semibold text-zinc-100 mb-1">Words That Cost You Marks</h3>
+          <p class="text-xs text-zinc-500 mb-4">Click the speaker icon to hear the correct pronunciation.</p>
           <div>${recentWords}</div>
         </div>` : ''}
 
@@ -719,7 +719,7 @@ PTE.AccentAnalyzer = {
 
         <!-- Note -->
         <div class="text-center py-4">
-          <p class="text-xs text-gray-600 max-w-md mx-auto">This analysis is based on speech recognition patterns. Keep practicing to improve accuracy. Accent is not a flaw — this tool helps you optimize for PTE scoring.</p>
+          <p class="text-xs text-zinc-600 max-w-md mx-auto">This analysis is based on speech recognition patterns. Keep practicing to improve accuracy. Accent is not a flaw — this tool helps you optimize for PTE scoring.</p>
         </div>
 
       </div>
