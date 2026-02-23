@@ -206,7 +206,7 @@ PTE.AIFeedback = {
   },
 
   /**
-   * Fluency analysis — now uses 0-5 PTE band scale
+   * Fluency analysis — uses 0-5 PTE band scale with detailed diagnostic breakdown
    */
   _fluencyAnalysis(score, transcript, duration, maxDuration) {
     const wordCount = transcript ? transcript.split(/\s+/).length : 0;
@@ -229,40 +229,108 @@ PTE.AIFeedback = {
       paceAssessment = `Your pace of ${wpm} WPM is too fast. Slow down to ensure clarity and accuracy.`;
     }
 
-    // score is now 0-5 (official PTE band)
+    // Diagnostic sub-scores (0-100 each)
+    const paceScore = (wpm >= 120 && wpm <= 160) ? 100 :
+                      (wpm >= 100 && wpm <= 180) ? Math.max(0, 100 - Math.abs(wpm - 140) * 2) :
+                      Math.max(0, 100 - Math.abs(wpm - 140) * 3);
+    const timeScore = Math.min(100, timeUsed > 85 ? 100 : timeUsed > 60 ? 80 : timeUsed > 40 ? 50 : 20);
+    const continuityScore = score >= 5 ? 100 : score === 4 ? 85 : score === 3 ? 65 : score === 2 ? 40 : score === 1 ? 20 : 0;
+    const rhythmScore = (wpm >= 110 && wpm <= 170 && score >= 3) ? Math.min(100, 60 + score * 8) :
+                        (wpm >= 80 && wpm <= 200) ? Math.min(100, 30 + score * 10) : Math.max(0, score * 15);
+
+    const diagnostics = {
+      pace: { score: paceScore, label: 'Speaking Pace', desc: paceScore >= 80 ? 'On target' : paceScore >= 50 ? 'Needs adjustment' : 'Significantly off target' },
+      continuity: { score: continuityScore, label: 'Continuity', desc: continuityScore >= 80 ? 'Smooth flow' : continuityScore >= 50 ? 'Some hesitations' : 'Frequent pauses detected' },
+      rhythm: { score: rhythmScore, label: 'Rhythm & Stress', desc: rhythmScore >= 80 ? 'Natural rhythm' : rhythmScore >= 50 ? 'Somewhat uneven' : 'Choppy delivery' },
+      timeUse: { score: timeScore, label: 'Time Utilization', desc: timeScore >= 80 ? 'Good use of time' : timeScore >= 50 ? 'Could speak longer' : 'Finished too early' }
+    };
+
+    // Identify weakest area for targeted coaching
+    const weakest = Object.entries(diagnostics).sort((a, b) => a[1].score - b[1].score)[0];
+    const strongest = Object.entries(diagnostics).sort((a, b) => b[1].score - a[1].score)[0];
+
+    // Targeted drills based on weakest area
+    const targetedDrills = [];
+    if (weakest[0] === 'pace' || paceScore < 60) {
+      targetedDrills.push({ name: 'Pace Trainer', desc: 'Practice speaking at target WPM with visual pacer guidance', link: '#/fluency', exercise: 'pace-trainer', icon: '🎯' });
+      targetedDrills.push({ name: 'Timed Reading', desc: 'Read passages aloud and hit the target pace', link: '#/fluency', exercise: 'timed-reading', icon: '📖' });
+    }
+    if (weakest[0] === 'continuity' || continuityScore < 60) {
+      targetedDrills.push({ name: 'Fluency Streak', desc: 'Speak continuously without pausing — build your stamina', link: '#/fluency', exercise: 'fluency-streak', icon: '🔥' });
+      targetedDrills.push({ name: 'Shadowing', desc: 'Listen and speak simultaneously to build continuous flow', link: '#/fluency', exercise: 'shadowing', icon: '🔊' });
+    }
+    if (weakest[0] === 'rhythm' || rhythmScore < 60) {
+      targetedDrills.push({ name: 'Phrase Linking', desc: 'Connect words naturally for smoother rhythm', link: '#/fluency', exercise: 'phrase-linking', icon: '🔗' });
+      targetedDrills.push({ name: 'Tongue Twisters', desc: 'Build articulatory speed and clarity', link: '#/fluency', exercise: 'tongue-twisters', icon: '👅' });
+    }
+    if (weakest[0] === 'timeUse' || timeScore < 60) {
+      targetedDrills.push({ name: 'Fluency Streak', desc: 'Train yourself to speak for longer durations', link: '#/fluency', exercise: 'fluency-streak', icon: '🔥' });
+      targetedDrills.push({ name: 'Timed Reading', desc: 'Practice filling the full recording time', link: '#/fluency', exercise: 'timed-reading', icon: '📖' });
+    }
+    // Always include at least 2 drills
+    if (targetedDrills.length === 0) {
+      targetedDrills.push({ name: 'Pace Trainer', desc: 'Fine-tune your speaking speed for PTE', link: '#/fluency', exercise: 'pace-trainer', icon: '🎯' });
+      targetedDrills.push({ name: 'Shadowing', desc: 'Maintain your excellent rhythm with native speakers', link: '#/fluency', exercise: 'shadowing', icon: '🔊' });
+    }
+
+    // Build coaching message based on score band
+    let coachingMessage = '';
     if (score >= 4) {
       fluencyLevel = bandLabels[score] || 'excellent';
+      coachingMessage = `Excellent fluency! Your speech flows naturally with minimal hesitations. Your strongest area is ${strongest[1].label.toLowerCase()}. To maintain this level, keep practicing with varied content and challenge yourself with faster pace targets.`;
       tips = [
         `Oral Fluency: ${score}/5 (${bandLabels[score]}). Smooth, natural delivery.`,
-        'Continue to vary your pace slightly for emphasis on key points.'
+        'Continue to vary your pace slightly for emphasis on key points.',
+        'Challenge yourself with the Fast & Fluent pace level in the Pace Trainer.'
       ];
     } else if (score === 3) {
       fluencyLevel = 'Good';
+      coachingMessage = `Good fluency with room to improve. Your ${weakest[1].label.toLowerCase()} needs the most attention — ${weakest[1].desc.toLowerCase()}. Focus on the targeted drills below to move from Band 3 to Band 4.`;
       tips = [
-        `Oral Fluency: ${score}/5 (Good). Uneven but continuous — multiple hesitations noted.`,
-        'Practice reading aloud for 10 minutes daily to build speaking stamina',
-        'Avoid "um", "uh", and long pauses — replace with brief natural pauses',
-        'Use linking words (however, moreover, therefore) to connect ideas smoothly'
+        `Oral Fluency: ${score}/5 (Good). Uneven but continuous — some hesitations noted.`,
+        'Practice reading aloud for 10 minutes daily to build speaking stamina.',
+        'Avoid "um", "uh", and long pauses — replace with brief natural pauses.',
+        'Use linking words (however, moreover, therefore) to connect ideas smoothly.',
+        'Try the Shadowing exercise in Fluency Lab to build natural pacing.'
       ];
     } else if (score === 2) {
       fluencyLevel = 'Intermediate';
+      coachingMessage = `Your fluency is at an intermediate level. The biggest issue is ${weakest[1].label.toLowerCase()} — ${weakest[1].desc.toLowerCase()}. Daily practice with the drills below can help you reach Band 3-4 within 2-3 weeks.`;
       tips = [
         `Oral Fluency: ${score}/5 (Intermediate). Staccato/uneven speech with noticeable pauses.`,
-        'Read aloud from English texts for 15-20 minutes daily',
-        'Record yourself and count hesitations — aim to reduce them each time',
-        'Practice "chunking" — speak in meaningful phrases rather than word by word',
-        'Shadow native speakers: listen and speak along simultaneously'
+        'Read aloud from English texts for 15-20 minutes daily.',
+        'Record yourself and count hesitations — aim to reduce them each time.',
+        'Practice "chunking" — speak in meaningful phrases rather than word by word.',
+        'Use the Fluency Streak exercise to build continuous speaking stamina.',
+        'Shadow native speakers: listen and speak along simultaneously.'
       ];
     } else {
       fluencyLevel = score === 1 ? 'Limited' : 'Disfluent';
+      coachingMessage = `Your fluency needs significant work. Focus on ${weakest[1].label.toLowerCase()} first — ${weakest[1].desc.toLowerCase()}. Start with the easier drills and build up gradually. Even 10 minutes of daily practice will show improvement within a week.`;
       tips = [
         `Oral Fluency: ${score}/5 (${bandLabels[score] || 'Needs Work'}). Multiple pauses and hesitations detected.`,
-        'Start with short passages (2-3 sentences) and build up gradually',
-        'Practice speed reading aloud to build comfort with continuous speech',
-        'Focus on not going back to correct mistakes — keep moving forward',
-        'Practice tongue twisters to improve articulatory fluency',
-        'Always use the full recording time, even if you need to repeat content'
+        'Start with short passages (2-3 sentences) and build up gradually.',
+        'Practice speed reading aloud to build comfort with continuous speech.',
+        'Focus on not going back to correct mistakes — keep moving forward.',
+        'Use Tongue Twisters in the Fluency Lab to improve articulatory fluency.',
+        'Always use the full recording time, even if you need to repeat content.',
+        'Try the Fluency Streak — aim for 15 seconds of continuous speech first.'
       ];
+    }
+
+    // Band progression guidance
+    const nextBand = Math.min(5, score + 1);
+    const bandGap = nextBand - score;
+    let progressionTip = '';
+    if (score < 5) {
+      const bandRequirements = {
+        1: 'Reduce long pauses to fewer than 3. Aim for at least 50 WPM.',
+        2: 'Speak in phrases of 2+ words. Reduce hesitations to under 3 per response.',
+        3: 'Maintain 80-200 WPM with only 1 long pause max. Speak in 3+ word chunks.',
+        4: 'Hit 100-180 WPM with zero long pauses and at most 1 hesitation.',
+        5: 'Achieve 110-170 WPM with zero pauses, zero hesitations, and 8+ words per continuous phrase.'
+      };
+      progressionTip = `To reach Band ${nextBand}: ${bandRequirements[nextBand]}`;
     }
 
     return {
@@ -273,7 +341,13 @@ PTE.AIFeedback = {
       maxDuration,
       timeUsed,
       paceAssessment,
-      tips
+      tips,
+      diagnostics,
+      targetedDrills,
+      coachingMessage,
+      progressionTip,
+      score,
+      bandLabel: bandLabels[score] || 'Unknown'
     };
   },
 
@@ -406,14 +480,35 @@ PTE.AIFeedback = {
     // Fluency: now 0-5 band
     if (scores.fluency !== undefined && scores.fluency <= 3) {
       exercises.push({
+        title: 'Fluency Lab — Shadowing (10 min)',
+        description: 'Listen and speak simultaneously to build natural pacing and rhythm. Go to Fluency Lab → Shadowing.',
+        difficulty: 'medium',
+        link: '#/fluency'
+      });
+      exercises.push({
+        title: 'Fluency Lab — Pace Trainer (10 min)',
+        description: 'Follow the visual pacer to train your speaking speed at the PTE target of 130-150 WPM.',
+        difficulty: 'medium',
+        link: '#/fluency'
+      });
+      if (scores.fluency <= 2) {
+        exercises.push({
+          title: 'Fluency Lab — Fluency Streak',
+          description: 'Speak continuously without pausing for as long as you can. Build stamina to eliminate hesitations.',
+          difficulty: 'easy',
+          link: '#/fluency'
+        });
+        exercises.push({
+          title: 'Fluency Lab — Tongue Twisters (5 min)',
+          description: 'Build articulatory speed and clarity with progressive difficulty levels.',
+          difficulty: 'easy',
+          link: '#/fluency'
+        });
+      }
+      exercises.push({
         title: 'Read Aloud Daily (15 min)',
         description: 'Read newspaper articles or book passages aloud. Time yourself and aim to read smoothly without stopping.',
         difficulty: 'easy'
-      });
-      exercises.push({
-        title: 'Shadowing Exercise (10 min)',
-        description: 'Play a TED talk or news clip. Speak along with the speaker simultaneously. This builds natural pacing and rhythm.',
-        difficulty: 'medium'
       });
     }
 
