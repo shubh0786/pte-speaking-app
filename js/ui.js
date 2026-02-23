@@ -28,6 +28,7 @@ PTE.UI = {
       { href:'#/daily', label:'Daily Challenge', page:'daily', icon:'⚡' },
       { href:'#/notebook', label:'Mistake Notebook', page:'notebook', icon:'📓' },
       { href:'#/vocab', label:'Vocab Builder', page:'vocab', icon:'🃏' },
+      { href:'#/fluency', label:'Fluency Lab', page:'fluency', icon:'🗣️' },
       { href:'#/drills', label:'Pronunciation Drills', page:'drills', icon:'🎙️' },
       { href:'#/templates', label:'Templates', page:'templates', icon:'📝' },
       { href:'#/planner', label:'Study Planner', page:'planner', icon:'📋' },

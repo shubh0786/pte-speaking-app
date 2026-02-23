@@ -68,6 +68,7 @@ PTE.App = {
     PTE.Router.on('/planner', () => this.requireAuth(() => this.renderPage('planner')));
     PTE.Router.on('/notebook', () => this.requireAuth(() => this.renderPage('notebook')));
     PTE.Router.on('/accent', () => this.requireAuth(() => this.renderPage('accent')));
+    PTE.Router.on('/fluency', () => this.requireAuth(() => this.renderPage('fluency')));
     PTE.Router.on('/target', () => this.requireAuth(() => this.renderPage('target')));
     PTE.Router.on('/weak-words', () => this.requireAuth(() => this.renderPage('weak-words')));
     PTE.Router.on('/reminders', () => this.requireAuth(() => this.renderPage('reminders')));
@@ -136,6 +137,7 @@ PTE.App = {
       case 'planner': root.innerHTML = PTE.Planner ? PTE.Planner.renderPage() : PTE.Pages.home(); break;
       case 'notebook': root.innerHTML = PTE.Pages.notebook ? PTE.Pages.notebook() : PTE.Pages.home(); break;
       case 'accent': root.innerHTML = PTE.AccentAnalyzer ? PTE.AccentAnalyzer.renderPage() : PTE.Pages.home(); break;
+      case 'fluency': root.innerHTML = PTE.Fluency ? PTE.Fluency.renderPage() : PTE.Pages.home(); break;
       case 'target': root.innerHTML = PTE.TargetScore ? PTE.TargetScore.renderPage() : PTE.Pages.home(); break;
       case 'weak-words': root.innerHTML = PTE.WeakWords ? PTE.WeakWords.renderPage() : PTE.Pages.home(); break;
       case 'reminders': root.innerHTML = PTE.Reminders ? PTE.Reminders.renderPage() : PTE.Pages.home(); break;

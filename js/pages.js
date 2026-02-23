@@ -117,6 +117,7 @@ PTE.Pages = {
       <section class="px-4 py-4">
         <div class="max-w-4xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           ${PTE.Daily ? PTE.Daily.renderCard() : ''}
+          ${PTE.Fluency ? PTE.Fluency.renderCard() : ''}
           ${PTE.Planner ? PTE.Planner.renderCard() : ''}
           ${PTE.Spaced ? PTE.Spaced.renderCard() : ''}
         </div>
