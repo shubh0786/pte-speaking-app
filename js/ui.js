@@ -34,6 +34,9 @@ PTE.UI = {
       { href:'#/planner', label:'Study Planner', page:'planner', icon:'📋' },
       { href:'#/review', label:'Spaced Review', page:'review', icon:'🧠' },
       { href:'#/leaderboard', label:'Leaderboard', page:'leaderboard', icon:'🏆' },
+      { href:'#/score-predictor', label:'Score Predictor', page:'score-predictor', icon:'🔮' },
+      { href:'#/smart-practice', label:'Smart Practice', page:'smart-practice', icon:'🧠' },
+      { href:'#/pressure', label:'Pressure Training', page:'pressure', icon:'⏱️' },
       { href:'#/challenge-create', label:'Challenge Friend', page:'challenge-create', icon:'⚔️' },
       { href:'#/reminders', label:'Study Reminders', page:'reminders', icon:'🔔' },
     ];

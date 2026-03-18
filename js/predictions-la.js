@@ -1,0 +1,181 @@
+/**
+ * PTE Speaking Module — Language Academy Prediction Questions (Feb & Mar 2026)
+ * Source: Language Academy (www.languageacademy.com.au) Prediction Files
+ * Read Aloud (25), Repeat Sentence (50), Re-tell Lecture (8)
+ */
+
+window.PTE = window.PTE || {};
+PTE.Predictions = PTE.Predictions || {};
+
+// ═══════════════════════════════════════════════════════════════
+// READ ALOUD — 25 LA Predictions (pra-41 → pra-65)
+// ═══════════════════════════════════════════════════════════════
+
+PTE.Predictions['read-aloud'] = PTE.Predictions['read-aloud'] || [];
+PTE.Predictions['read-aloud'].push(
+  { id:'pra-41', source:'LA-Feb26', frequency:'very-high',
+    text:'Domestication is an evolutionary, rather than political development. It is certainly not a regime humans imposed on animals some ten thousand years ago. Rather, domestication happened when a small handful of especially opportunistic species discovered through Darwinian trial and error that they were more likely to survive and prosper in an alliance with humans than on their own.',
+    keywords:['domestication','evolutionary','political','development','regime','humans','imposed','animals','thousand','years','opportunistic','species','Darwinian','trial','error','survive','prosper','alliance'] },
+  { id:'pra-42', source:'LA-Feb26', frequency:'very-high',
+    text:'The problem begins with the alphabet itself. Building a spelling system for English using letters that come from Latin, despite the two languages not sharing exactly the same set of sounds, is like building a playroom using an IKEA office set.',
+    keywords:['problem','alphabet','building','spelling','system','English','letters','Latin','languages','sharing','sounds','playroom','IKEA','office'] },
+  { id:'pra-43', source:'LA-Feb26', frequency:'very-high',
+    text:'Yellow is the most optimistic color, yet surprisingly, people lose their tempers most often in yellow rooms and babies cry more in them. The reason may be that yellow is the hardest color on the eye. On the other hand, it speeds metabolism and enhances concentration; think of yellow legal pads and post-it notes.',
+    keywords:['yellow','optimistic','color','surprisingly','tempers','rooms','babies','cry','hardest','eye','speeds','metabolism','enhances','concentration','legal','pads'] },
+  { id:'pra-44', source:'LA-Feb26', frequency:'high',
+    text:'Moods may also have an effect on how information is processed, by influencing the extent to which judges rely on pre-existing, internal information, or focus on new external information. Positive moods promote more holistic and top-down processing style, while negative moods recruit more stimulus-driven and bottom-up processing.',
+    keywords:['moods','effect','information','processed','influencing','judges','rely','pre-existing','internal','external','positive','holistic','top-down','negative','stimulus-driven','bottom-up','processing'] },
+  { id:'pra-45', source:'LA-Feb26', frequency:'very-high',
+    text:'Botanic gardens are scientific and cultural institutions established to collect, study, exchange and display plants for research and for the education and enjoyment of the public. There are major botanic gardens in each capital city. Zoological parks and aquariums are primarily engaged in the breeding, preservation, study and display of native and exotic fauna in captivity.',
+    keywords:['botanic','gardens','scientific','cultural','institutions','collect','study','exchange','display','plants','research','education','enjoyment','zoological','parks','aquariums','breeding','preservation','exotic','fauna','captivity'] },
+  { id:'pra-46', source:'LA-Feb26', frequency:'high',
+    text:'A young man from a small provincial town, a man without independent wealth, without powerful family connection and without a university education, moved to London in the late fifteen eighties and, in a remarkably short time, became the greatest playwright not of his age alone but of all time. How did Shakespeare become Shakespeare?',
+    keywords:['young','man','provincial','town','independent','wealth','powerful','family','connection','university','education','London','remarkably','short','time','greatest','playwright','age','Shakespeare'] },
+  { id:'pra-47', source:'LA-Feb26', frequency:'very-high',
+    text:'Lincoln\'s apparently radical change of mind about his war power to emancipate slaves was caused by the escalating scope of war, which convinced him that any measure to weaken the confederacy and strengthen the Union war effort was justifiable as a military necessity.',
+    keywords:['Lincoln','radical','change','mind','war','power','emancipate','slaves','escalating','scope','convinced','measure','weaken','confederacy','strengthen','Union','effort','justifiable','military','necessity'] },
+  { id:'pra-48', source:'LA-Feb26', frequency:'very-high',
+    text:'Surprisingly, despite what appear to be infinite variations, all difficult conversations share a common structure. When you are caught up in the details and anxiety of a particular difficult conversation, this structure is hard to see. But understanding that structure is essential to improving how you handle your most challenging conversations.',
+    keywords:['surprisingly','infinite','variations','difficult','conversations','share','common','structure','caught','details','anxiety','particular','hard','understanding','essential','improving','handle','challenging'] },
+  { id:'pra-49', source:'LA-Feb26', frequency:'high',
+    text:'The semiconductor industry has been able to improve the performance of electric systems for more than four decades by making ever-smaller devices. However, this approach will soon encounter both scientific and technical limits, which is why the industry is exploring a number of alternative device technologies.',
+    keywords:['semiconductor','industry','improve','performance','electric','systems','four','decades','ever-smaller','devices','approach','encounter','scientific','technical','limits','exploring','alternative','technologies'] },
+  { id:'pra-50', source:'LA-Feb26', frequency:'very-high',
+    text:'The elephant is the largest living land mammal. During evolution, its skeleton has greatly altered from the usual mammal design for two main reasons. One is to cope with the great weight of huge grinding cheek teeth and elongated tusk, making the skull particularly massive. The other is to support the enormous bulk of such a huge body.',
+    keywords:['elephant','largest','living','land','mammal','evolution','skeleton','greatly','altered','design','reasons','cope','weight','grinding','cheek','teeth','elongated','tusk','skull','massive','enormous','bulk'] },
+  { id:'pra-51', source:'LA-Feb26', frequency:'high',
+    text:'History is selective. What history books tell us about the past is not everything that happened, but what historians have selected. They cannot put in everything: choices have to be made. Choices must similarly be made about which aspects of the past should be formally taught to the next generation in the shape of school history lessons.',
+    keywords:['history','selective','books','past','happened','historians','selected','everything','choices','made','aspects','formally','taught','generation','school','lessons'] },
+  { id:'pra-52', source:'LA-Feb26', frequency:'very-high',
+    text:'Smartphones have become an everyday essential for millions of us. We rely on them for everything from updating our social media profiles to banking. Taking out a smartphone contract that bundles together your calls, data, and texts with the cost of the handset can help spread the cost, but can also mean you will pay more over the long run.',
+    keywords:['smartphones','everyday','essential','millions','rely','social','media','profiles','banking','contract','bundles','calls','data','texts','handset','spread','cost','long','run'] },
+  { id:'pra-53', source:'LA-Mar26', frequency:'very-high',
+    text:'At the end of this year, we will launch the Cup Class boats. So these will be about twice the power. The sailors are down in cockpits, unlike today. A lot of the power is being generated by these four grinders that are providing hydraulic power, and that energy is being used to control the flying surface, the hydrofoil.',
+    keywords:['launch','Cup','Class','boats','twice','power','sailors','cockpits','grinders','providing','hydraulic','energy','control','flying','surface','hydrofoil'] },
+  { id:'pra-54', source:'LA-Mar26', frequency:'very-high',
+    text:'You may have heard of the new fad known as ecotourism. This means tourism which is environmentally friendly, and conscious about conserving the environment. The key is to minimize the physical, social and behavioral impacts of overseas travel. Tour groups will often work with local and indigenous communities to design respectful and memorable programs for visitors.',
+    keywords:['ecotourism','tourism','environmentally','friendly','conscious','conserving','environment','minimize','physical','social','behavioral','impacts','overseas','travel','local','indigenous','communities','respectful','memorable'] },
+  { id:'pra-55', source:'LA-Mar26', frequency:'high',
+    text:'The beginning of the twenty-first century will be remembered, not for military conflicts or political events, but for a whole new age of globalisation, a flattening of the world. The explosion of advanced technologies now means that suddenly knowledge pools and resources have connected all over the planet, leveling the playing field as never before.',
+    keywords:['beginning','twenty-first','century','remembered','military','conflicts','political','events','globalisation','flattening','world','explosion','advanced','technologies','knowledge','pools','resources','connected','planet','leveling','playing','field'] },
+  { id:'pra-56', source:'LA-Mar26', frequency:'very-high',
+    text:'Life expectancy has increased dramatically in the last century. Most people these days will live for over seventy years. This is more than double the lifespan of the average human in the seventeenth century. We can attribute our longevity to advances in medicine and lifestyle. While everyone agrees that living longer is wonderful, overpopulation is becoming a serious environmental concern.',
+    keywords:['life','expectancy','increased','dramatically','century','seventy','years','double','lifespan','average','human','seventeenth','longevity','advances','medicine','lifestyle','longer','wonderful','overpopulation','serious','environmental','concern'] },
+  { id:'pra-57', source:'LA-Mar26', frequency:'high',
+    text:'It seems that language appeared from nowhere since no other species has anything resembling human language. However, other animals do possess basic systems for perceiving and producing sounds that enable them to communicate. These systems may have been in place before the appearance of language.',
+    keywords:['language','appeared','nowhere','species','resembling','human','animals','possess','basic','systems','perceiving','producing','sounds','enable','communicate','place','appearance'] },
+  { id:'pra-58', source:'LA-Mar26', frequency:'very-high',
+    text:'The founding fathers established constitutional protections for the press because they understood that leaving the watchdog function to partisan politicians would not necessarily serve the public interest; both sides have too many incentives to preserve the status quo and ignore problems that elude quick fixes.',
+    keywords:['founding','fathers','established','constitutional','protections','press','understood','watchdog','function','partisan','politicians','serve','public','interest','incentives','preserve','status','quo','ignore','problems','elude','quick','fixes'] },
+  { id:'pra-59', source:'LA-Mar26', frequency:'very-high',
+    text:'When we recycle, used materials are converted into new products, reducing the need to consume natural resources. If used materials are not recycled, new products are made by extracting fresh, raw material from the Earth, through mining and forestry. Recycling helps conserve important raw materials and protects natural habitats for the future.',
+    keywords:['recycle','materials','converted','new','products','reducing','consume','natural','resources','recycled','extracting','fresh','raw','material','Earth','mining','forestry','recycling','conserve','important','protects','habitats','future'] },
+  { id:'pra-60', source:'LA-Mar26', frequency:'high',
+    text:'Companies will want to be known not just for the financial results they generate, but equally, for the imprint they leave on society as a whole. First, ensuring that their products contribute positively. Second, operating in a way that approaches a net-neutral impact to the natural environment. And third, cherishing their people.',
+    keywords:['companies','known','financial','results','generate','equally','imprint','society','whole','products','contribute','positively','operating','net-neutral','impact','natural','environment','cherishing','people'] },
+  { id:'pra-61', source:'LA-Feb26', frequency:'very-high',
+    text:'Statistics are indicators of change and allow meaningful comparisons to be made. While it may be the issues rather than the statistics as such that grab people\'s attention, it should be recognized that it is the statistics that informed the issues. Statistical literacy, then, is the ability to accurately understand, interpret and evaluate the data that inform these issues.',
+    keywords:['statistics','indicators','change','allow','meaningful','comparisons','issues','grab','attention','recognized','informed','statistical','literacy','ability','accurately','understand','interpret','evaluate','data'] },
+  { id:'pra-62', source:'LA-Mar26', frequency:'very-high',
+    text:'Neutron stars, the compressed remains of massive stars gone supernova, are the densest normal objects in the known universe. Black holes are technically denser, but far from normal. Just a single sugar-cube worth of neutron-star material would weigh one hundred million tons here on Earth, or about the same as the entire human population.',
+    keywords:['neutron','stars','compressed','remains','massive','supernova','densest','normal','objects','known','universe','black','holes','denser','sugar-cube','material','weigh','hundred','million','tons','Earth','human','population'] },
+  { id:'pra-63', source:'LA-Feb26', frequency:'high',
+    text:'The training of an actor is an intensive process that requires curiosity, courage, and commitment. You will learn how to prepare for rehearsal, how to rehearse and how to use independent and proactive processes that inform you to do the best work possible for both stage and screen.',
+    keywords:['training','actor','intensive','process','requires','curiosity','courage','commitment','learn','prepare','rehearsal','rehearse','independent','proactive','processes','best','work','stage','screen'] },
+  { id:'pra-64', source:'LA-Mar26', frequency:'very-high',
+    text:'A unique characteristic of online shopping environments is that they allow vendors to create retail interfaces with highly interactive features. One desirable form of interactivity from a consumer perspective is the implementation of sophisticated tools to assist shoppers in their purchase decisions by customizing the electronic shopping environment to their individual preferences.',
+    keywords:['unique','characteristic','online','shopping','environments','vendors','create','retail','interfaces','highly','interactive','features','interactivity','consumer','perspective','implementation','sophisticated','tools','assist','shoppers','purchase','decisions','customizing','electronic','preferences'] },
+  { id:'pra-65', source:'LA-Mar26', frequency:'high',
+    text:'The provision of accurate and authoritative statistical information strengthens modern societies. It provides a basis for decisions to be made on such things as where to open schools and hospitals, how much money to spend on welfare payments and even which football players to replace at half-time.',
+    keywords:['provision','accurate','authoritative','statistical','information','strengthens','modern','societies','basis','decisions','schools','hospitals','money','spend','welfare','payments','football','players','replace','half-time'] }
+);
+
+// ═══════════════════════════════════════════════════════════════
+// REPEAT SENTENCE — 50 LA Predictions (prs-71 → prs-120)
+// ═══════════════════════════════════════════════════════════════
+
+PTE.Predictions['repeat-sentence'] = PTE.Predictions['repeat-sentence'] || [];
+PTE.Predictions['repeat-sentence'].push(
+  { id:'prs-71', source:'LA-Feb26', frequency:'very-high', text:'Conservation is essential for the survival of future generations.', keywords:['conservation','essential','survival','future','generations'] },
+  { id:'prs-72', source:'LA-Feb26', frequency:'very-high', text:'Farmers do not always receive fair prices for agricultural goods.', keywords:['farmers','receive','fair','prices','agricultural','goods'] },
+  { id:'prs-73', source:'LA-Feb26', frequency:'very-high', text:'The original Olympic Games were celebrated as religious festivals.', keywords:['original','Olympic','Games','celebrated','religious','festivals'] },
+  { id:'prs-74', source:'LA-Feb26', frequency:'high', text:'In consultation with your supervisor, your thesis is approved by the faculty committee.', keywords:['consultation','supervisor','thesis','approved','faculty','committee'] },
+  { id:'prs-75', source:'LA-Feb26', frequency:'very-high', text:'The real reason for global hunger is not the lack of food, but poverty.', keywords:['real','reason','global','hunger','lack','food','poverty'] },
+  { id:'prs-76', source:'LA-Feb26', frequency:'high', text:'A demonstrated ability to write clear, correct and concise English is obligatory.', keywords:['demonstrated','ability','write','clear','correct','concise','English','obligatory'] },
+  { id:'prs-77', source:'LA-Feb26', frequency:'very-high', text:'Meteorology is the detailed study of the earth\'s atmosphere.', keywords:['meteorology','detailed','study','earth','atmosphere'] },
+  { id:'prs-78', source:'LA-Feb26', frequency:'high', text:'The United Kingdom is a constitutional monarchy and parliamentary democracy.', keywords:['United','Kingdom','constitutional','monarchy','parliamentary','democracy'] },
+  { id:'prs-79', source:'LA-Feb26', frequency:'very-high', text:'I will now demonstrate how the reaction can be arrested by adding a dilute acid.', keywords:['demonstrate','reaction','arrested','adding','dilute','acid'] },
+  { id:'prs-80', source:'LA-Feb26', frequency:'high', text:'The program depends entirely on private funding.', keywords:['program','depends','entirely','private','funding'] },
+  { id:'prs-81', source:'LA-Feb26', frequency:'very-high', text:'Control systems in manufacturing require a high level of accuracy.', keywords:['control','systems','manufacturing','require','high','level','accuracy'] },
+  { id:'prs-82', source:'LA-Feb26', frequency:'high', text:'Leading scientists speculate that numerous planets could support life forms.', keywords:['leading','scientists','speculate','numerous','planets','support','life','forms'] },
+  { id:'prs-83', source:'LA-Feb26', frequency:'very-high', text:'The gap between the rich and the poor did not decrease rapidly as expected.', keywords:['gap','rich','poor','decrease','rapidly','expected'] },
+  { id:'prs-84', source:'LA-Feb26', frequency:'high', text:'Answering such a complex question with a simple yes or no is absolutely impossible.', keywords:['answering','complex','question','simple','yes','no','absolutely','impossible'] },
+  { id:'prs-85', source:'LA-Feb26', frequency:'very-high', text:'The university policy on plagiarism can be viewed on the website.', keywords:['university','policy','plagiarism','viewed','website'] },
+  { id:'prs-86', source:'LA-Feb26', frequency:'high', text:'Presentation skills are important to both universities and workplaces.', keywords:['presentation','skills','important','universities','workplaces'] },
+  { id:'prs-87', source:'LA-Feb26', frequency:'very-high', text:'Experience would be an advantage for this managerial role.', keywords:['experience','advantage','managerial','role'] },
+  { id:'prs-88', source:'LA-Feb26', frequency:'high', text:'Speaking one or more foreign languages will be useful in your career.', keywords:['speaking','foreign','languages','useful','career'] },
+  { id:'prs-89', source:'LA-Feb26', frequency:'very-high', text:'Collaboration is a feature of a successful company.', keywords:['collaboration','feature','successful','company'] },
+  { id:'prs-90', source:'LA-Feb26', frequency:'high', text:'The results of the study challenge previously held assumptions.', keywords:['results','study','challenge','previously','held','assumptions'] },
+  { id:'prs-91', source:'LA-Feb26', frequency:'very-high', text:'Numerous courses devoted to life sciences are listed in the prospectus.', keywords:['numerous','courses','devoted','life','sciences','listed','prospectus'] },
+  { id:'prs-92', source:'LA-Feb26', frequency:'high', text:'The chemistry building is located near the entrance of the campus.', keywords:['chemistry','building','located','near','entrance','campus'] },
+  { id:'prs-93', source:'LA-Feb26', frequency:'very-high', text:'A balanced diet will help you study more effectively.', keywords:['balanced','diet','help','study','effectively'] },
+  { id:'prs-94', source:'LA-Feb26', frequency:'high', text:'Animal behavior appears to contain both similar and distinct aspects to that of humans.', keywords:['animal','behavior','appears','contain','similar','distinct','aspects','humans'] },
+  { id:'prs-95', source:'LA-Feb26', frequency:'very-high', text:'The support and advice of lecturers within the department has been invaluable.', keywords:['support','advice','lecturers','department','invaluable'] },
+  { id:'prs-96', source:'LA-Encoded', frequency:'very-high', text:'This parking space is for the employee of the month.', keywords:['parking','space','employee','month'] },
+  { id:'prs-97', source:'LA-Encoded', frequency:'very-high', text:'The restaurant is not far away from my apartment.', keywords:['restaurant','far','away','apartment'] },
+  { id:'prs-98', source:'LA-Encoded', frequency:'very-high', text:'Your boss requires you to finish the report before Friday.', keywords:['boss','requires','finish','report','before','Friday'] },
+  { id:'prs-99', source:'LA-Encoded', frequency:'high', text:'The best time to visit Canada is in the fall.', keywords:['best','time','visit','Canada','fall'] },
+  { id:'prs-100', source:'LA-Encoded', frequency:'very-high', text:'We will enter the building from the right side of the library.', keywords:['enter','building','right','side','library'] },
+  { id:'prs-101', source:'LA-Encoded', frequency:'very-high', text:'Please take these to Professor Mitchell in the chemistry lab.', keywords:['please','take','Professor','Mitchell','chemistry','lab'] },
+  { id:'prs-102', source:'LA-Encoded', frequency:'high', text:'Many environment experts are very concerned about the future of our planet.', keywords:['environment','experts','concerned','future','planet'] },
+  { id:'prs-103', source:'LA-Encoded', frequency:'very-high', text:'Please make sure that your assignments are successfully submitted via the online portal.', keywords:['please','make','sure','assignments','successfully','submitted','online','portal'] },
+  { id:'prs-104', source:'LA-Encoded', frequency:'high', text:'The graph shows the percentage of people who smoke according to gender.', keywords:['graph','shows','percentage','people','smoke','according','gender'] },
+  { id:'prs-105', source:'LA-Encoded', frequency:'very-high', text:'Students have the opportunity to share their lunch during the common lunch break around noon.', keywords:['students','opportunity','share','lunch','common','break','noon'] },
+  { id:'prs-106', source:'LA-Encoded', frequency:'high', text:'The free workshop will be conducted this Wednesday on the fourth floor of the department.', keywords:['free','workshop','conducted','Wednesday','fourth','floor','department'] },
+  { id:'prs-107', source:'LA-Encoded', frequency:'very-high', text:'The deadline for the essay is tomorrow.', keywords:['deadline','essay','tomorrow'] },
+  { id:'prs-108', source:'LA-Encoded', frequency:'high', text:'This lecture will discuss three different areas of digital technology.', keywords:['lecture','discuss','three','different','areas','digital','technology'] },
+  { id:'prs-109', source:'LA-Encoded', frequency:'very-high', text:'Collaboration between departments has led to groundbreaking research.', keywords:['collaboration','departments','led','groundbreaking','research'] },
+  { id:'prs-110', source:'LA-Encoded', frequency:'high', text:'The main library is at the heart of the campus.', keywords:['main','library','heart','campus'] },
+  { id:'prs-111', source:'LA-Encoded', frequency:'very-high', text:'The ratio between brain and body size is the key factor in intelligence.', keywords:['ratio','brain','body','size','key','factor','intelligence'] },
+  { id:'prs-112', source:'LA-Encoded', frequency:'high', text:'Occupations in engineering are increasing rapidly.', keywords:['occupations','engineering','increasing','rapidly'] },
+  { id:'prs-113', source:'LA-Encoded', frequency:'very-high', text:'The corporation did not work well and gained no profits.', keywords:['corporation','work','well','gained','no','profits'] },
+  { id:'prs-114', source:'LA-Encoded', frequency:'high', text:'You can get coffee and tea in the lunchroom.', keywords:['coffee','tea','lunchroom'] },
+  { id:'prs-115', source:'LA-Encoded', frequency:'very-high', text:'You must call your doctor to make an appointment.', keywords:['must','call','doctor','make','appointment'] },
+  { id:'prs-116', source:'LA-Encoded', frequency:'high', text:'An effective business manager is always open to new ideas.', keywords:['effective','business','manager','always','open','new','ideas'] },
+  { id:'prs-117', source:'LA-Encoded', frequency:'very-high', text:'The professor predicts that biotechnology is the future of traditional biology.', keywords:['professor','predicts','biotechnology','future','traditional','biology'] },
+  { id:'prs-118', source:'LA-Encoded', frequency:'high', text:'You should arrive at the bus stop a few minutes early.', keywords:['should','arrive','bus','stop','few','minutes','early'] },
+  { id:'prs-119', source:'LA-Encoded', frequency:'very-high', text:'There has been a delay in processing the enrollment due to computer problems.', keywords:['delay','processing','enrollment','computer','problems'] },
+  { id:'prs-120', source:'LA-Encoded', frequency:'high', text:'The grocery store is around the corner down the street.', keywords:['grocery','store','around','corner','down','street'] }
+);
+
+// ═══════════════════════════════════════════════════════════════
+// RE-TELL LECTURE — 8 LA Predictions (prl-21 → prl-28)
+// ═══════════════════════════════════════════════════════════════
+
+PTE.Predictions['retell-lecture'] = PTE.Predictions['retell-lecture'] || [];
+PTE.Predictions['retell-lecture'].push(
+  { id:'prl-21', source:'LA-Feb26', frequency:'very-high',
+    text:'We usually see blogging as a two-way interaction, in which the blogger creates the content, and the readers interact or challenge the author. But the case will be much more difficult when it comes to government, such as the White House. Because people will become coarser and rude online, especially in the comment area. Hence the government blog may go wild and chaotic. So the government will have to administrate the comments. Once the government starts administrating the comments, citizens may find the government manipulating what should be said and what should be shown, which contradicts the original intention.',
+    keywords:['blogging','two-way','interaction','blogger','content','readers','interact','challenge','government','White','House','coarser','rude','online','comment','chaotic','administrate','citizens','manipulating','contradicts','original','intention'] },
+  { id:'prl-22', source:'LA-Feb26', frequency:'very-high',
+    text:'You might think that space appears dark at night because that is when our side of Earth faces away from the Sun. But what about all those other far away suns that appear as stars in the night sky? Our own Milky Way galaxy contains over two hundred billion stars, and the entire universe probably contains over one hundred billion galaxies. You might suppose that that many stars would light up the night like daytime. Until the twentieth century, astronomers did not think it was even possible to count all the stars. They thought the universe went on forever. The trouble with an infinite universe is that no matter where you look, you should see a star. This problem became known as Olbers\' Paradox. Astronomers now realize that the universe is not infinite. A finite universe, even one with trillions of stars, just would not have enough stars to light up all of space.',
+    keywords:['space','dark','night','Earth','Sun','stars','Milky','Way','galaxy','billion','universe','galaxies','daytime','astronomers','count','infinite','Olbers','Paradox','realize','finite','trillions','light'] },
+  { id:'prl-23', source:'LA-Feb26', frequency:'high',
+    text:'The brain is basically built from the bottom up. First the brain builds basic circuits that are responsible for basic skills, and then more complex circuits are built on top of those basic circuits as we develop more complex skills. Biologically, the brain is prepared to be shaped by experience. It is expecting the experiences that a young child has to literally influence the formation of circuitry. Genes provide the initial blueprint, but experience shapes the building process.',
+    keywords:['brain','built','bottom','up','basic','circuits','responsible','skills','complex','develop','biologically','prepared','shaped','experience','expecting','young','child','influence','formation','circuitry','genes','blueprint','building','process'] },
+  { id:'prl-24', source:'LA-Feb26', frequency:'very-high',
+    text:'Across the world, people have been watching the choice that Britain has made. I would reassure those markets and investors that Britain\'s economy is fundamentally strong. There will be no immediate changes in your circumstances. There will be no initial change in the way our people can travel, in the way our goods can move or the way our services can be sold. We must now prepare for a negotiation with the European Union. This will need to involve the full engagement of the Scottish, Welsh and Northern Ireland governments to ensure that the interests of all parts of our United Kingdom are protected and advanced.',
+    keywords:['Britain','choice','markets','investors','economy','fundamentally','strong','immediate','changes','circumstances','travel','goods','services','negotiation','European','Union','engagement','Scottish','Welsh','Northern','Ireland','governments','interests','United','Kingdom','protected'] },
+  { id:'prl-25', source:'LA-Feb26', frequency:'high',
+    text:'Efficiency is not your friend when it comes to cognitive growth. In order to keep our brains making new connections and keep them active, you need to keep moving on to another challenging activity as soon as you reach the point of mastery in the one you were engaging in. You want to be in a constant state of slight difficulty, struggling to barely achieve whatever it is you are trying to do. This keeps your brain building new connections and pathways.',
+    keywords:['efficiency','friend','cognitive','growth','brains','connections','active','moving','challenging','activity','mastery','engaging','constant','state','difficulty','struggling','barely','achieve','building','pathways'] },
+  { id:'prl-26', source:'LA-Feb26', frequency:'very-high',
+    text:'A community\'s urban forest is an extension of its pride and community spirit. Trees enhance community economic stability by attracting businesses and tourists as people tend to linger and shop longer along tree-lined streets. Apartments and offices in wooded areas rent more quickly and businesses leasing office spaces in developments with trees reported higher productivity and fewer absences. The economic benefits of urban forests extend far beyond simple aesthetics.',
+    keywords:['community','urban','forest','extension','pride','spirit','trees','enhance','economic','stability','attracting','businesses','tourists','linger','shop','tree-lined','streets','apartments','offices','wooded','rent','quickly','productivity','fewer','absences','benefits'] },
+  { id:'prl-27', source:'LA-Mar26', frequency:'very-high',
+    text:'Spacecraft and launch pad equipment undergo extreme stress due to vibration during rocket launches. To make sure that they remain functional in space, shock absorption technology was designed to protect the spacecraft. During earthquakes, buildings and bridges undergo similar stress. That is why the same shock absorption technology used for spacecraft is now used to strengthen buildings and bridges in earthquake-prone regions. This is a perfect example of how space technology benefits everyday life on Earth.',
+    keywords:['spacecraft','launch','pad','equipment','extreme','stress','vibration','rocket','launches','functional','space','shock','absorption','technology','protect','earthquakes','buildings','bridges','similar','strengthen','earthquake-prone','regions','benefits','everyday','life','Earth'] },
+  { id:'prl-28', source:'LA-Mar26', frequency:'high',
+    text:'Researchers have found that divorce has different kinds of negative impacts on the planet, including higher demand for resources and a lower rate of efficiency in the use of household resources. People have been talking about how to protect the environment and combat climate change, but divorce is an overlooked factor that needs to be considered. When households split, the total resource consumption increases as two smaller households use more energy, water, and space per person than one combined household.',
+    keywords:['researchers','divorce','negative','impacts','planet','higher','demand','resources','lower','rate','efficiency','household','protect','environment','combat','climate','change','overlooked','factor','households','split','total','resource','consumption','increases','energy','water','space','person','combined'] }
+);

@@ -74,6 +74,9 @@ PTE.App = {
     PTE.Router.on('/reminders', () => this.requireAuth(() => this.renderPage('reminders')));
     PTE.Router.on('/challenge-create', () => this.requireAuth(() => this.renderPage('challenge-create')));
     PTE.Router.on('/challenge/:code', (code) => this.requireAuth(() => this.renderPage('challenge', code)));
+    PTE.Router.on('/score-predictor', () => this.requireAuth(() => this.renderPage('score-predictor')));
+    PTE.Router.on('/smart-practice', () => this.requireAuth(() => this.renderPage('smart-practice')));
+    PTE.Router.on('/pressure', () => this.requireAuth(() => this.renderPage('pressure')));
     PTE.Router.on('/retry/:type/:qid', (type, qid) => this.requireAuth(() => this.startRetry(type, qid)));
     PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
     PTE.Router.on('/practice/:type', (type) => this.requireAuth(() => this.startPractice(type, false)));
@@ -143,6 +146,9 @@ PTE.App = {
       case 'reminders': root.innerHTML = PTE.Reminders ? PTE.Reminders.renderPage() : PTE.Pages.home(); break;
       case 'challenge-create': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderCreatePage() : PTE.Pages.home(); break;
       case 'challenge': root.innerHTML = PTE.Challenge ? PTE.Challenge.renderChallengePage(param) : PTE.Pages.home(); break;
+      case 'score-predictor': root.innerHTML = PTE.ScorePredictor ? PTE.ScorePredictor.renderPage() : PTE.Pages.home(); break;
+      case 'smart-practice': root.innerHTML = PTE.SmartPractice ? PTE.SmartPractice.renderPage() : PTE.Pages.home(); break;
+      case 'pressure': root.innerHTML = PTE.PressureTraining ? PTE.PressureTraining.renderPage() : PTE.Pages.home(); break;
     }
   },
 
@@ -1094,16 +1100,39 @@ PTE.App = {
         ? `<p class="text-xs text-green-400 mb-3 text-center">Great score! Move to the next question.</p>`
         : '';
 
-    btnArea.innerHTML = `
-    ${scoreAdvice}
-    <button onclick="PTE.App.loadQuestion(${this.currentQuestionIndex})" class="btn-secondary px-5 py-2.5 text-sm">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-      Try Again
-    </button>
-    <button onclick="PTE.App.nextQuestion()" class="btn-primary px-5 py-2.5 text-sm">
-      Next Question
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-    </button>`;
+    // Smart Practice / Pressure Training: show special "Next" button
+    const isSmartMode = this._smartPracticeActive && this._smartPracticeNext;
+    const isPressureMode = this._pressureActive && this._pressureNext;
+
+    if (isPressureMode) {
+      const pressureNext = this._pressureNext;
+      btnArea.innerHTML = `
+      ${scoreAdvice}
+      <button onclick="PTE.App._pressureNext(${overallScore})" class="btn-primary px-5 py-2.5 text-sm">
+        Next (Pressure) <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </button>`;
+    } else if (isSmartMode) {
+      btnArea.innerHTML = `
+      ${scoreAdvice}
+      <button onclick="PTE.App.loadQuestion(${this.currentQuestionIndex})" class="btn-secondary px-5 py-2.5 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Try Again
+      </button>
+      <button onclick="PTE.App._smartPracticeNext()" class="btn-primary px-5 py-2.5 text-sm">
+        Next (Smart) <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </button>`;
+    } else {
+      btnArea.innerHTML = `
+      ${scoreAdvice}
+      <button onclick="PTE.App.loadQuestion(${this.currentQuestionIndex})" class="btn-secondary px-5 py-2.5 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Try Again
+      </button>
+      <button onclick="PTE.App.nextQuestion()" class="btn-primary px-5 py-2.5 text-sm">
+        Next Question
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </button>`;
+    }
 
     this.phase = 'review';
   },
@@ -1568,6 +1597,7 @@ PTE.App = {
     this._prepResolve = null;
     this._recordResolve = null;
     this.phase = 'idle';
+    // Don't clear smart/pressure mode on soft cleanup (they manage their own lifecycle)
   },
 
   /**
@@ -1578,6 +1608,15 @@ PTE.App = {
     PTE.AudioRecorder.cleanup();
     if (PTE.ToneAnalyzer) PTE.ToneAnalyzer.destroy();
     this.micStream = null;
+    this._smartPracticeActive = false;
+    this._smartPracticeNext = null;
+    this._pressureActive = false;
+    this._pressureNext = null;
+    if (PTE.PressureTraining && PTE.PressureTraining.active && PTE.PressureTraining.selectedType) {
+      PTE.PressureTraining.selectedType.prepTime = PTE.PressureTraining._originalPrepTime;
+      PTE.PressureTraining.selectedType.recordTime = PTE.PressureTraining._originalRecordTime;
+      PTE.PressureTraining.active = false;
+    }
   }
 };
 

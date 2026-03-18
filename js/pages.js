@@ -67,6 +67,7 @@ PTE.Pages = {
             <a href="#/mock-test" class="btn-primary px-6 py-2.5">Take Mock Test</a>
             <a href="#/practice" class="btn-secondary px-6 py-2.5">Practice by Type</a>
             <a href="#/predictions" class="btn-secondary px-6 py-2.5 !text-amber-400 !border-amber-500/15 hover:!border-amber-500/25">Predictions</a>
+            <a href="#/score-predictor" class="btn-secondary px-6 py-2.5 !text-purple-400 !border-purple-500/15 hover:!border-purple-500/25">🔮 My Score</a>
           </div>
         </div>
       </section>
@@ -117,6 +118,8 @@ PTE.Pages = {
       <section class="px-4 py-4">
         <div class="max-w-4xl mx-auto grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           ${PTE.Daily ? PTE.Daily.renderCard() : ''}
+          ${PTE.SmartPractice ? PTE.SmartPractice.renderCard() : ''}
+          ${PTE.PressureTraining ? PTE.PressureTraining.renderCard() : ''}
           ${PTE.Fluency ? PTE.Fluency.renderCard() : ''}
           ${PTE.Planner ? PTE.Planner.renderCard() : ''}
           ${PTE.Spaced ? PTE.Spaced.renderCard() : ''}
