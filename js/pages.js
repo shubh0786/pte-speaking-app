@@ -66,8 +66,6 @@ PTE.Pages = {
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="#/mock-test" class="btn-primary px-6 py-2.5">Take Mock Test</a>
             <a href="#/practice" class="btn-secondary px-6 py-2.5">Practice by Type</a>
-            <a href="#/predictions" class="btn-secondary px-6 py-2.5 !text-amber-400 !border-amber-500/15 hover:!border-amber-500/25">Predictions</a>
-            <a href="#/score-predictor" class="btn-secondary px-6 py-2.5 !text-purple-400 !border-purple-500/15 hover:!border-purple-500/25">🔮 My Score</a>
           </div>
         </div>
       </section>
@@ -128,46 +126,45 @@ PTE.Pages = {
 
       ${statsSection ? `<section class="py-4 px-4">${statsSection}</section>` : ''}
 
-      <!-- Question Types -->
+      <!-- All Modules -->
       <section class="py-12 px-4">
         <div class="max-w-5xl mx-auto">
           <div class="mb-8">
-            <h2 class="text-xl font-semibold text-zinc-100 tracking-tight mb-1">Speaking Question Types</h2>
-            <p class="text-sm text-zinc-500">All 7 PTE Academic speaking tasks including 2025 new types.</p>
+            <h2 class="text-xl font-semibold text-zinc-100 tracking-tight mb-1">PTE Academic Modules</h2>
+            <p class="text-sm text-zinc-500">All 4 test sections with 22 question types.</p>
           </div>
-          <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 stagger">
-            ${Object.values(PTE.QUESTION_TYPES).map(t => PTE.UI.typeCard(t)).join('')}
-          </div>
-        </div>
-      </section>
-
-      <!-- Features -->
-      <section class="py-12 px-4">
-        <div class="max-w-5xl mx-auto">
-          <h2 class="text-xl font-semibold text-zinc-100 tracking-tight mb-6">Features</h2>
-          <div class="grid md:grid-cols-3 gap-3">
-            ${[
-              ['Predictions','500+ high-frequency questions from APEUni, Gurully, StormEduGo.','var(--amber)'],
-              ['AI Feedback','Word-by-word analysis, keyword coverage, pronunciation tips.','var(--accent)'],
-              ['Tone Analysis','Real-time pitch, volume, and intonation tracking.','var(--violet)'],
-              ['Gamification','Earn XP, level up, unlock badges, maintain streaks.','var(--success)'],
-              ['Mock Tests','Full exam simulation with auto-advancing questions.','var(--error)'],
-              ['Analytics','Score trends, type breakdown, session history.','var(--info)']
-            ].map(([t,d,c]) => `
-            <div class="card rounded-xl p-5">
-              <div class="w-2 h-2 rounded-full mb-3" style="background:${c}"></div>
-              <h3 class="text-sm font-semibold text-zinc-200 mb-1">${t}</h3>
-              <p class="text-xs text-zinc-500">${d}</p>
-            </div>`).join('')}
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 stagger">
+            <a href="#/practice" class="module-card group">
+              <div class="module-icon" style="background:#6366f111">🎙️</div>
+              <h3 class="font-semibold text-zinc-200 text-sm mb-1 group-hover:text-[var(--accent-light)] transition-colors">Speaking</h3>
+              <p class="text-xs text-zinc-500 mb-2">7 question types including Read Aloud, Repeat Sentence, and more.</p>
+              <span class="text-[10px] text-zinc-600">${Object.keys(PTE.QUESTION_TYPES).length} types · ${Object.values(PTE.Questions).reduce((s,a)=>s+a.length,0)}+ questions</span>
+            </a>
+            <a href="#/writing" class="module-card group">
+              <div class="module-icon" style="background:#0ea5e911">✍️</div>
+              <h3 class="font-semibold text-zinc-200 text-sm mb-1 group-hover:text-[var(--accent-light)] transition-colors">Writing</h3>
+              <p class="text-xs text-zinc-500 mb-2">Summarize Written Text and Write Essay with AI scoring.</p>
+              <span class="text-[10px] text-zinc-600">${PTE.WRITING_TYPES ? Object.keys(PTE.WRITING_TYPES).length : 2} types</span>
+            </a>
+            <a href="#/reading" class="module-card group">
+              <div class="module-icon" style="background:#f59e0b11">📖</div>
+              <h3 class="font-semibold text-zinc-200 text-sm mb-1 group-hover:text-[var(--accent-light)] transition-colors">Reading</h3>
+              <p class="text-xs text-zinc-500 mb-2">Fill in Blanks, Re-order Paragraphs, Multiple Choice, and more.</p>
+              <span class="text-[10px] text-zinc-600">${PTE.READING_TYPES ? Object.keys(PTE.READING_TYPES).length : 5} types</span>
+            </a>
+            <a href="#/listening" class="module-card group">
+              <div class="module-icon" style="background:#8b5cf611">🎧</div>
+              <h3 class="font-semibold text-zinc-200 text-sm mb-1 group-hover:text-[var(--accent-light)] transition-colors">Listening</h3>
+              <p class="text-xs text-zinc-500 mb-2">Summarize Spoken Text, Write from Dictation, and 6 more types.</p>
+              <span class="text-[10px] text-zinc-600">${PTE.LISTENING_TYPES ? Object.keys(PTE.LISTENING_TYPES).length : 8} types</span>
+            </a>
           </div>
         </div>
       </section>
 
       <!-- Footer -->
-      <footer class="border-t border-[var(--border)] py-8 px-4 text-center">
-        <div class="flex items-center justify-center gap-2 mb-2">${PTE.UI.brandMark(20)}<span class="text-xs font-medium text-zinc-500">Crack PTE</span></div>
-        <p class="text-[10px] text-zinc-600">Designed by Sanjay Singh And Sons Solutions</p>
-        <p class="text-[10px] text-zinc-700 mt-0.5">Not affiliated with Pearson.</p>
+      <footer class="border-t border-[var(--border)] py-6 px-4 text-center">
+        <p class="text-[10px] text-zinc-600">Crack PTE &middot; Designed by Sanjay Singh And Sons Solutions &middot; Not affiliated with Pearson.</p>
       </footer>
     </main>`;
   },
@@ -285,8 +282,8 @@ PTE.Pages = {
       ${PTE.UI.navbar('notebook')}
       <main class="min-h-screen py-10 px-4">
         <div class="max-w-4xl mx-auto">
-          <h1 class="text-3xl font-bold text-white mb-2">Mistake Notebook</h1>
-          <p class="text-gray-500 mb-8">Questions where your score dropped below 55/90 will appear here for focused revision.</p>
+          <h1 class="text-xl font-semibold text-zinc-100 tracking-tight mb-1">Mistake Notebook</h1>
+          <p class="text-sm text-zinc-500 mb-8">Questions where your score dropped below 55/90 will appear here for focused revision.</p>
           ${PTE.UI.emptyState('📓', 'No Mistakes Yet', 'Great start. Keep practicing and your low-score questions will be collected here automatically.')}
           <div class="text-center mt-6">
             <a href="#/practice" class="btn-primary">Start Practice</a>
@@ -306,36 +303,36 @@ PTE.Pages = {
         : 'No transcript captured for this attempt.';
 
       return `
-      <div class="glass rounded-2xl p-5 card-shine">
+      <div class="card card-hover rounded-xl p-5">
         <div class="flex items-start justify-between gap-3 mb-3">
           <div class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style="background:${typeCfg ? typeCfg.color + '22' : 'rgba(99,102,241,0.15)'}">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg flex-shrink-0" style="background:${typeCfg ? typeCfg.color + '11' : 'var(--surface-2)'}">
               ${typeCfg ? typeCfg.icon : '❓'}
             </div>
             <div class="min-w-0">
-              <h3 class="font-bold text-white text-sm truncate">${typeCfg ? typeCfg.name : item.type}</h3>
-              <p class="text-xs text-gray-500">Question ID: ${item.questionId}</p>
+              <h3 class="font-semibold text-zinc-200 text-sm truncate">${typeCfg ? typeCfg.name : item.type}</h3>
+              <p class="text-xs text-zinc-600">ID: ${item.questionId}</p>
             </div>
           </div>
           <span class="text-xs font-semibold px-2.5 py-1 rounded-full" style="background:${band.color}22;color:${band.color}">
-            Latest: ${item.latestScore}/90
+            ${item.latestScore}/90
           </span>
         </div>
 
-        <p class="text-sm text-gray-300 leading-relaxed mb-3">${prompt}</p>
+        <p class="text-sm text-zinc-400 leading-relaxed mb-3">${prompt}</p>
 
-        <div class="bg-white/5 border border-white/10 rounded-xl p-3 mb-4">
-          <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">Last Transcript</p>
-          <p class="text-xs text-gray-400">${transcriptPreview}</p>
+        <div class="bg-white/[0.02] border border-[var(--border)] rounded-lg p-3 mb-4">
+          <p class="text-[10px] text-zinc-600 mb-1 uppercase tracking-wide">Last Transcript</p>
+          <p class="text-xs text-zinc-500">${transcriptPreview}</p>
         </div>
 
-        <div class="flex items-center justify-between text-xs text-gray-500 mb-4">
+        <div class="flex items-center justify-between text-[10px] text-zinc-600 mb-4">
           <span>Attempts: ${item.attempts}</span>
           <span>Best: ${item.bestScore}/90</span>
           <span>${item.latestDate || 'Recent'}</span>
         </div>
 
-        <a href="#/retry/${item.type}/${encodeURIComponent(item.questionId)}" class="inline-flex items-center gap-2 bg-indigo-600 text-white font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors">
+        <a href="#/retry/${item.type}/${encodeURIComponent(item.questionId)}" class="btn-primary inline-flex items-center gap-2 text-sm">
           Retry This Question
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
         </a>
@@ -347,8 +344,8 @@ PTE.Pages = {
     <main class="min-h-screen py-10 px-4">
       <div class="max-w-4xl mx-auto">
         <div class="mb-8">
-          <h1 class="text-3xl font-bold text-white mb-2">Mistake Notebook</h1>
-          <p class="text-gray-500">Focused revision list of weak questions (latest score under 55/90), sorted by lowest latest score first.</p>
+          <h1 class="text-xl font-semibold text-zinc-100 tracking-tight mb-1">Mistake Notebook</h1>
+          <p class="text-sm text-zinc-500">Focused revision of weak questions (score under 55/90), sorted by lowest score first.</p>
         </div>
         <div class="space-y-4">${cards}</div>
       </div>

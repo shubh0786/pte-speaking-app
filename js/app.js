@@ -77,6 +77,14 @@ PTE.App = {
     PTE.Router.on('/score-predictor', () => this.requireAuth(() => this.renderPage('score-predictor')));
     PTE.Router.on('/smart-practice', () => this.requireAuth(() => this.renderPage('smart-practice')));
     PTE.Router.on('/pressure', () => this.requireAuth(() => this.renderPage('pressure')));
+
+    PTE.Router.on('/writing', () => this.requireAuth(() => this.renderPage('writing')));
+    PTE.Router.on('/writing/:type', (type) => this.requireAuth(() => this.renderPage('writing-question', type)));
+    PTE.Router.on('/reading', () => this.requireAuth(() => this.renderPage('reading')));
+    PTE.Router.on('/reading/:type', (type) => this.requireAuth(() => this.renderPage('reading-question', type)));
+    PTE.Router.on('/listening', () => this.requireAuth(() => this.renderPage('listening')));
+    PTE.Router.on('/listening/:type', (type) => this.requireAuth(() => this.renderPage('listening-question', type)));
+
     PTE.Router.on('/retry/:type/:qid', (type, qid) => this.requireAuth(() => this.startRetry(type, qid)));
     PTE.Router.on('/predictions/:type', (type) => this.requireAuth(() => this.startPractice(type, true)));
     PTE.Router.on('/practice/:type', (type) => this.requireAuth(() => this.startPractice(type, false)));
@@ -122,6 +130,7 @@ PTE.App = {
       this.cleanup();
     }
     const root = document.getElementById('app-root');
+    root.classList.remove('page-enter');
     switch (page) {
       case 'login': root.innerHTML = PTE.Pages.login(); break;
       case 'signup': root.innerHTML = PTE.Pages.signup(); break;
@@ -149,7 +158,24 @@ PTE.App = {
       case 'score-predictor': root.innerHTML = PTE.ScorePredictor ? PTE.ScorePredictor.renderPage() : PTE.Pages.home(); break;
       case 'smart-practice': root.innerHTML = PTE.SmartPractice ? PTE.SmartPractice.renderPage() : PTE.Pages.home(); break;
       case 'pressure': root.innerHTML = PTE.PressureTraining ? PTE.PressureTraining.renderPage() : PTE.Pages.home(); break;
+      case 'writing': root.innerHTML = PTE.WritingPages ? PTE.WritingPages.practice() : PTE.Pages.home(); break;
+      case 'writing-question':
+        root.innerHTML = PTE.WritingPages ? PTE.WritingPages.practiceQuestion(param) : PTE.Pages.home();
+        if (PTE.WritingPages) setTimeout(() => PTE.WritingPages.initQuestion(param), 50);
+        break;
+      case 'reading': root.innerHTML = PTE.ReadingPages ? PTE.ReadingPages.practice() : PTE.Pages.home(); break;
+      case 'reading-question':
+        root.innerHTML = PTE.ReadingPages ? PTE.ReadingPages.practiceQuestion(param) : PTE.Pages.home();
+        if (PTE.ReadingPages) setTimeout(() => PTE.ReadingPages.initQuestion(param), 50);
+        break;
+      case 'listening': root.innerHTML = PTE.ListeningPages ? PTE.ListeningPages.practice() : PTE.Pages.home(); break;
+      case 'listening-question':
+        root.innerHTML = PTE.ListeningPages ? PTE.ListeningPages.practiceQuestion(param) : PTE.Pages.home();
+        if (PTE.ListeningPages) setTimeout(() => PTE.ListeningPages.initQuestion(param), 50);
+        break;
     }
+    void root.offsetWidth;
+    root.classList.add('page-enter');
   },
 
   // ── Keyboard Shortcuts ───────────────────────────────────────

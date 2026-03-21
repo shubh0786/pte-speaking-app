@@ -58,6 +58,23 @@ PTE.Exam = {
         { type: 'read-aloud', count: 4, label: 'Read Aloud' },
         { type: 'repeat-sentence', count: 6, label: 'Repeat Sentence' }
       ]
+    },
+    'full-pte': {
+      id: 'full-pte',
+      name: 'Full PTE Academic',
+      description: 'All 4 modules — Speaking, Writing, Reading, Listening (speaking section only for now)',
+      duration: '~30 min',
+      icon: '🏆',
+      color: '#8b5cf6',
+      sections: [
+        { type: 'read-aloud', count: 3, label: 'Read Aloud' },
+        { type: 'repeat-sentence', count: 4, label: 'Repeat Sentence' },
+        { type: 'describe-image', count: 2, label: 'Describe Image' },
+        { type: 'retell-lecture', count: 1, label: 'Re-tell Lecture' },
+        { type: 'answer-short-question', count: 3, label: 'Answer Short Question' },
+        { type: 'summarize-group-discussion', count: 1, label: 'Summarize Group Discussion' },
+        { type: 'respond-to-situation', count: 1, label: 'Respond to a Situation' }
+      ]
     }
   },
 
