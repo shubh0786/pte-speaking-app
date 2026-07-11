@@ -28,6 +28,8 @@ PTE.App = {
     if (PTE.mergePredictions) PTE.mergePredictions();
     if (PTE.mergeBankSpeaking) PTE.mergeBankSpeaking();
     if (PTE.mergeBankVocab) PTE.mergeBankVocab();
+    if (PTE.mergeBankReading) PTE.mergeBankReading();
+    if (PTE.mergeBankListening) PTE.mergeBankListening();
 
     let total = 0;
     Object.keys(PTE.Questions).forEach(function(k) { total += PTE.Questions[k].length; });
@@ -262,21 +264,46 @@ PTE.App = {
 
   /**
    * Open a question by id for targeted retry.
-   * If not found in regular bank, falls back to prediction bank.
+   * Routes speaking retries through startPractice; W/R/L retries load the
+   * specific question in the matching module page.
    */
   startRetry(typeId, qid) {
     const questionId = decodeURIComponent(qid || '');
-    const inRegular = (PTE.Questions[typeId] || []).some(q => String(q.id) === String(questionId));
-    const inPred = ((PTE.Predictions && PTE.Predictions[typeId]) || []).some(q => String(q.id) === String(questionId));
-    if (inRegular) {
-      this.startPractice(typeId, false, questionId);
+    const ALL_TYPE_MAPS = [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES];
+    const typeConfig = ALL_TYPE_MAPS.flatMap(m => m ? Object.values(m) : []).find(t => t.id === typeId);
+    const module = typeConfig ? (typeConfig.module || 'speaking') : 'speaking';
+
+    if (module === 'speaking') {
+      const inRegular = (PTE.Questions[typeId] || []).some(q => String(q.id) === String(questionId));
+      const inPred = ((PTE.Predictions && PTE.Predictions[typeId]) || []).some(q => String(q.id) === String(questionId));
+      if (inRegular) { this.startPractice(typeId, false, questionId); return; }
+      if (inPred) { this.startPractice(typeId, true, questionId); return; }
+      this.startPractice(typeId, false);
       return;
     }
-    if (inPred) {
-      this.startPractice(typeId, true, questionId);
-      return;
+
+    const bankMap = { writing: PTE.WritingQuestions, reading: PTE.ReadingQuestions, listening: PTE.ListeningQuestions };
+    const pagesMap = { writing: PTE.WritingPages, reading: PTE.ReadingPages, listening: PTE.ListeningPages };
+    const pageKey = { writing: 'writing-question', reading: 'reading-question', listening: 'listening-question' };
+    const bank = bankMap[module] && bankMap[module][typeId] ? bankMap[module][typeId] : [];
+    const pages = pagesMap[module];
+    if (pages && bank.length) {
+      const idx = bank.findIndex(q => String(q.id) === String(questionId));
+      if (!pages._currentIndex) pages._currentIndex = {};
+      pages._currentIndex[typeId] = idx >= 0 ? idx : 0;
     }
-    this.startPractice(typeId, false);
+    this.renderPage(pageKey[module], typeId);
+  },
+
+  /**
+   * Called by W/R/L engines after a submit, so Daily Challenge completion
+   * (and other mode bookkeeping) is recorded even outside the speaking flow.
+   */
+  _notifyModeCompletion(typeId, overallScore) {
+    if (this._dailyMode && PTE.Daily) {
+      PTE.Daily.markCompleted(this._dailyIndex, overallScore);
+      this._dailyMode = false;
+    }
   },
 
   loadQuestion(index) {

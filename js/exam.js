@@ -62,18 +62,37 @@ PTE.Exam = {
     'full-pte': {
       id: 'full-pte',
       name: 'Full PTE Academic',
-      description: 'All 4 modules — Speaking, Writing, Reading, Listening (speaking section only for now)',
-      duration: '~30 min',
+      description: 'All 4 modules — Speaking & Writing, Reading, and Listening (22 question types)',
+      duration: '~75 min',
       icon: '🏆',
       color: '#8b5cf6',
       sections: [
-        { type: 'read-aloud', count: 3, label: 'Read Aloud' },
-        { type: 'repeat-sentence', count: 4, label: 'Repeat Sentence' },
-        { type: 'describe-image', count: 2, label: 'Describe Image' },
-        { type: 'retell-lecture', count: 1, label: 'Re-tell Lecture' },
-        { type: 'answer-short-question', count: 3, label: 'Answer Short Question' },
-        { type: 'summarize-group-discussion', count: 1, label: 'Summarize Group Discussion' },
-        { type: 'respond-to-situation', count: 1, label: 'Respond to a Situation' }
+        // Part 1 — Speaking
+        { type: 'read-aloud', module: 'speaking', count: 2, label: 'Read Aloud' },
+        { type: 'repeat-sentence', module: 'speaking', count: 3, label: 'Repeat Sentence' },
+        { type: 'describe-image', module: 'speaking', count: 1, label: 'Describe Image' },
+        { type: 'retell-lecture', module: 'speaking', count: 1, label: 'Re-tell Lecture' },
+        { type: 'answer-short-question', module: 'speaking', count: 2, label: 'Answer Short Question' },
+        { type: 'summarize-group-discussion', module: 'speaking', count: 1, label: 'Summarize Group Discussion' },
+        { type: 'respond-to-situation', module: 'speaking', count: 1, label: 'Respond to a Situation' },
+        // Part 1 — Writing
+        { type: 'swt', module: 'writing', count: 1, label: 'Summarize Written Text' },
+        { type: 'write-essay', module: 'writing', count: 1, label: 'Write Essay' },
+        // Part 2 — Reading
+        { type: 'rw-fib', module: 'reading', count: 2, label: 'Reading & Writing: Fill in the Blanks' },
+        { type: 'r-mcma', module: 'reading', count: 1, label: 'Multiple Choice (Multiple)' },
+        { type: 'reorder', module: 'reading', count: 1, label: 'Re-order Paragraphs' },
+        { type: 'r-fib', module: 'reading', count: 1, label: 'Reading: Fill in the Blanks' },
+        { type: 'r-mcsa', module: 'reading', count: 1, label: 'Multiple Choice (Single)' },
+        // Part 3 — Listening
+        { type: 'sst', module: 'listening', count: 1, label: 'Summarize Spoken Text' },
+        { type: 'l-mcma', module: 'listening', count: 1, label: 'Multiple Choice (Multiple)' },
+        { type: 'l-fib', module: 'listening', count: 1, label: 'Fill in the Blanks' },
+        { type: 'l-hcs', module: 'listening', count: 1, label: 'Highlight Correct Summary' },
+        { type: 'l-mcsa', module: 'listening', count: 1, label: 'Multiple Choice (Single)' },
+        { type: 'l-smw', module: 'listening', count: 1, label: 'Select Missing Word' },
+        { type: 'l-hiw', module: 'listening', count: 1, label: 'Highlight Incorrect Words' },
+        { type: 'l-wfd', module: 'listening', count: 2, label: 'Write from Dictation' }
       ]
     }
   },
@@ -98,12 +117,27 @@ PTE.Exam = {
     const config = this.CONFIGS[configId];
     if (!config) return [];
 
+    const BANKS = {
+      speaking: (t) => PTE.Questions[t] || [],
+      writing: (t) => (PTE.WritingQuestions ? PTE.WritingQuestions[t] || [] : []),
+      reading: (t) => (PTE.ReadingQuestions ? PTE.ReadingQuestions[t] || [] : []),
+      listening: (t) => (PTE.ListeningQuestions ? PTE.ListeningQuestions[t] || [] : [])
+    };
+    const TYPE_MAPS = {
+      speaking: PTE.QUESTION_TYPES,
+      writing: PTE.WRITING_TYPES,
+      reading: PTE.READING_TYPES,
+      listening: PTE.LISTENING_TYPES
+    };
+
     const questions = [];
     const usedIds = new Set();
 
     for (const section of config.sections) {
-      const bank = PTE.Questions[section.type] || [];
-      const typeConfig = Object.values(PTE.QUESTION_TYPES).find(t => t.id === section.type);
+      const module = section.module || 'speaking';
+      const bank = (BANKS[module] || BANKS.speaking)(section.type);
+      const typeMap = TYPE_MAPS[module] || TYPE_MAPS.speaking;
+      const typeConfig = Object.values(typeMap).find(t => t.id === section.type);
 
       // Shuffle and pick
       const shuffled = [...bank].sort(() => Math.random() - 0.5);
@@ -115,6 +149,7 @@ PTE.Exam = {
         usedIds.add(q.id);
         questions.push({
           type: section.type,
+          module,
           typeConfig: typeConfig,
           question: q,
           sectionLabel: section.label,
@@ -142,13 +177,18 @@ PTE.Exam = {
     this.active = true;
     this.testStartTime = Date.now();
 
-    // Get microphone access upfront
-    try {
-      this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (e) {
-      alert('Microphone access is required for the mock test. Please allow microphone access and try again.');
-      this.active = false;
-      return;
+    // Get microphone access upfront (only if the test includes speaking)
+    const hasSpeaking = this.config.sections.some(s => (s.module || 'speaking') === 'speaking');
+    if (hasSpeaking) {
+      try {
+        this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (e) {
+        alert('Microphone access is required for this mock test. Please allow microphone access and try again.');
+        this.active = false;
+        return;
+      }
+    } else {
+      this.micStream = null;
     }
 
     // Render exam interface
@@ -288,11 +328,42 @@ PTE.Exam = {
     }
 
     const item = this.questions[this.currentIndex];
-    const { type, typeConfig, question, sectionLabel } = item;
     this.questionStartTime = Date.now();
-
-    // Update header
     this._updateHeader(item);
+
+    const module = item.module || 'speaking';
+    if (module === 'writing') return this._runWritingQuestion(item);
+    if (module === 'reading') return this._runReadingQuestion(item);
+    if (module === 'listening') return this._runListeningQuestion(item);
+    return this._runSpeakingQuestion(item);
+  },
+
+  // Shared: store result, advance to next question
+  async _completeAndAdvance(result) {
+    this.results.push(result);
+    this.currentIndex++;
+
+    const status = document.getElementById('exam-status');
+    if (status) status.innerHTML = '<span class="text-zinc-500">Moving to next question...</span>';
+
+    await this._showTransition();
+
+    // Cleanup any module state
+    if (PTE.AudioRecorder) PTE.AudioRecorder.cleanup();
+    if (PTE.ToneAnalyzer) PTE.ToneAnalyzer.cleanup();
+    if (PTE.WritingEngine) PTE.WritingEngine.cleanup();
+    if (PTE.ListeningEngine) PTE.ListeningEngine.cleanup();
+    [PTE.WritingEngine, PTE.ReadingEngine, PTE.ListeningEngine].forEach(e => {
+      if (e) { e.examMode = false; e.onExamSubmit = null; }
+    });
+
+    await this.runQuestion();
+  },
+
+  // ── Speaking ─────────────────────────────────────────────────
+
+  async _runSpeakingQuestion(item) {
+    const { type, typeConfig, question } = item;
 
     // Reset audio
     await this._initRecorder();
@@ -375,25 +446,99 @@ PTE.Exam = {
 
     const overallScore = PTE.Scoring.calculateOverall(scores, type);
 
-    // Store result
-    this.results.push({
+    await this._completeAndAdvance({
+      module: 'speaking',
       type, typeConfig, question, scores, overallScore, transcript, toneResults,
       duration: recordDuration, audioUrl: PTE.AudioRecorder.audioUrl
     });
+  },
 
-    // ── Transition to next question ──
-    this.currentIndex++;
-    status.innerHTML = '<span class="text-zinc-500">Moving to next question...</span>';
+  // ── Writing ──────────────────────────────────────────────────
 
-    // Brief transition
-    await this._showTransition();
+  async _runWritingQuestion(item) {
+    const { type, typeConfig, question } = item;
+    const content = document.getElementById('exam-content');
+    content.innerHTML = '';
 
-    // Cleanup recorder for next question
-    PTE.AudioRecorder.cleanup();
-    if (PTE.ToneAnalyzer) PTE.ToneAnalyzer.cleanup();
+    const status = document.getElementById('exam-status');
+    if (status) status.innerHTML = '<span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span><span class="text-[var(--accent-light)] font-medium">Writing — submit when finished</span>';
 
-    // Next question
-    await this.runQuestion();
+    const startedAt = this.questionStartTime;
+    PTE.WritingEngine.examMode = true;
+    PTE.WritingEngine.onExamSubmit = (data) => {
+      const duration = (Date.now() - startedAt) / 1000;
+      this._completeAndAdvance({
+        module: 'writing',
+        type, typeConfig, question,
+        scores: data.scores,
+        overallScore: data.scores.overall,
+        transcript: (data.text || '').slice(0, 200),
+        duration
+      });
+    };
+
+    PTE.WritingEngine.start(type, question, 'exam-content');
+  },
+
+  // ── Reading ──────────────────────────────────────────────────
+
+  async _runReadingQuestion(item) {
+    const { type, typeConfig, question } = item;
+    const content = document.getElementById('exam-content');
+    content.innerHTML = '';
+
+    const status = document.getElementById('exam-status');
+    if (status) status.innerHTML = '<span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span><span class="text-[var(--accent-light)] font-medium">Reading — choose your answer, then submit</span>';
+
+    const startedAt = this.questionStartTime;
+    PTE.ReadingEngine.examMode = true;
+    PTE.ReadingEngine.onExamSubmit = (data) => {
+      const duration = (Date.now() - startedAt) / 1000;
+      this._completeAndAdvance({
+        module: 'reading',
+        type, typeConfig, question,
+        scores: { overall: data.overall },
+        overallScore: data.overall,
+        transcript: data.summary,
+        duration
+      });
+    };
+
+    PTE.ReadingEngine.render(type, question, 'exam-content');
+    this._relabelSubmitButton('Submit & Next');
+  },
+
+  // ── Listening ────────────────────────────────────────────────
+
+  async _runListeningQuestion(item) {
+    const { type, typeConfig, question } = item;
+    const content = document.getElementById('exam-content');
+    content.innerHTML = '';
+
+    const status = document.getElementById('exam-status');
+    if (status) status.innerHTML = '<span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span><span class="text-[var(--accent-light)] font-medium">Listening — play the audio, then submit</span>';
+
+    const startedAt = this.questionStartTime;
+    PTE.ListeningEngine.examMode = true;
+    PTE.ListeningEngine.onExamSubmit = (data) => {
+      const duration = (Date.now() - startedAt) / 1000;
+      this._completeAndAdvance({
+        module: 'listening',
+        type, typeConfig, question,
+        scores: { overall: data.overall },
+        overallScore: data.overall,
+        transcript: data.summary,
+        duration
+      });
+    };
+
+    PTE.ListeningEngine.render(type, question, 'exam-content');
+    this._relabelSubmitButton('Submit & Next');
+  },
+
+  _relabelSubmitButton(label) {
+    const btn = document.querySelector('#exam-content .btn-primary');
+    if (btn) btn.textContent = label;
   },
 
   async _showTransition() {
@@ -447,6 +592,11 @@ PTE.Exam = {
   // ── Audio Playback ───────────────────────────────────────────
 
   async _playAudio(q) {
+    // Prefer a recorded file when available; fall back to TTS.
+    if (q.audioUrl && PTE.TTS && PTE.TTS.playFile) {
+      try { await PTE.TTS.playFile(q.audioUrl); return; }
+      catch (e) { console.warn('[Exam] Recorded audio unavailable, falling back to TTS:', e); }
+    }
     if (q.speakers) {
       for (const speaker of q.speakers) {
         await PTE.TTS.speak(speaker.text, 0.9);
@@ -565,9 +715,14 @@ PTE.Exam = {
     this.active = false;
     if (this._elapsedInterval) clearInterval(this._elapsedInterval);
     PTE.Timer.stop();
-    PTE.TTS.stop();
+    if (PTE.TTS && PTE.TTS.stopAll) PTE.TTS.stopAll(); else PTE.TTS.stop();
     PTE.AudioRecorder.cleanup();
     if (PTE.ToneAnalyzer) PTE.ToneAnalyzer.cleanup();
+    if (PTE.WritingEngine) PTE.WritingEngine.cleanup();
+    if (PTE.ListeningEngine) PTE.ListeningEngine.cleanup();
+    [PTE.WritingEngine, PTE.ReadingEngine, PTE.ListeningEngine].forEach(e => {
+      if (e) { e.examMode = false; e.onExamSubmit = null; }
+    });
     if (this.micStream) {
       this.micStream.getTracks().forEach(t => t.stop());
       this.micStream = null;
@@ -598,12 +753,29 @@ PTE.Exam = {
     // Calculate scores
     const allScores = results.map(r => r.overallScore);
     const overallAvg = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
-    const band = PTE.Scoring.getBand(overallAvg);
     const mins = Math.floor(totalTime / 60);
     const secs = totalTime % 60;
 
-    // PTE score mapping (10-90 scale)
-    const pteScore = overallAvg;
+    // Per-module scores (Speaking, Writing, Reading, Listening)
+    const MODULES = [
+      { id: 'speaking', name: 'Speaking', icon: '🎤', color: '#6366f1' },
+      { id: 'writing', name: 'Writing', icon: '✍️', color: '#0ea5e9' },
+      { id: 'reading', name: 'Reading', icon: '📖', color: '#f59e0b' },
+      { id: 'listening', name: 'Listening', icon: '🎧', color: '#8b5cf6' }
+    ];
+    const moduleAvgs = {};
+    MODULES.forEach(m => {
+      const rs = results.filter(r => (r.module || 'speaking') === m.id);
+      moduleAvgs[m.id] = rs.length > 0 ? Math.round(rs.reduce((a, r) => a + r.overallScore, 0) / rs.length) : null;
+    });
+    const presentModules = MODULES.filter(m => moduleAvgs[m.id] !== null);
+    const moduleOverall = presentModules.length > 0
+      ? Math.round(presentModules.reduce((a, m) => a + moduleAvgs[m.id], 0) / presentModules.length)
+      : overallAvg;
+
+    // PTE score mapping (10-90 scale) — prefer module-weighted overall
+    const pteScore = moduleOverall;
+    const band = PTE.Scoring.getBand(pteScore);
     let cefr = '';
     if (pteScore >= 76) cefr = 'C2';
     else if (pteScore >= 59) cefr = 'C1';
@@ -661,9 +833,14 @@ PTE.Exam = {
     });
 
     // Type breakdown
+    const ALL_TYPE_MAPS = [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES];
+    const findTypeConfig = (id) => {
+      for (const map of ALL_TYPE_MAPS) { const t = Object.values(map).find(x => x.id === id); if (t) return t; }
+      return null;
+    };
     let typeRows = '';
     Object.entries(byType).forEach(([typeId, scores]) => {
-      const tc = Object.values(PTE.QUESTION_TYPES).find(t => t.id === typeId);
+      const tc = findTypeConfig(typeId);
       if (!tc) return;
       const typeAvg = avg(scores);
       const pct = (typeAvg / 90) * 100;
@@ -681,6 +858,33 @@ PTE.Exam = {
         </div>
       </div>`;
     });
+
+    // Module scores card (only if more than one module was attempted)
+    let moduleCard = '';
+    if (presentModules.length > 1) {
+      const rows = presentModules.map(m => {
+        const s = moduleAvgs[m.id];
+        const pct = (s / 90) * 100;
+        return `
+        <div class="flex items-center gap-3">
+          <span class="text-lg">${m.icon}</span>
+          <div class="flex-1">
+            <div class="flex justify-between mb-1">
+              <span class="text-xs font-medium text-zinc-400">${m.name}</span>
+              <span class="text-xs font-bold" style="color:${m.color}">${s}/90</span>
+            </div>
+            <div class="h-2 bg-[var(--surface-3)] rounded-full overflow-hidden">
+              <div class="h-full rounded-full" style="width:${pct}%;background:${m.color}"></div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      moduleCard = `
+        <div class="bg-[var(--surface-1)] rounded-xl border border-[var(--border)] shadow-sm p-6 mb-6">
+          <h3 class="font-semibold text-zinc-200 mb-4">Module Scores</h3>
+          <div class="space-y-4">${rows}</div>
+        </div>`;
+    }
 
     root.innerHTML = `
     ${PTE.UI.navbar('mock-test')}
@@ -721,6 +925,7 @@ PTE.Exam = {
           </div>
         </div>
 
+        ${avgContent !== null || avgPron !== null || avgFlu !== null || avgVoc !== null ? `
         <!-- Enabling Skills -->
         <div class="bg-[var(--surface-1)] rounded-xl border border-[var(--border)] shadow-sm p-6 mb-6">
           <h3 class="font-semibold text-zinc-200 mb-4">Enabling Skills Breakdown</h3>
@@ -731,6 +936,9 @@ PTE.Exam = {
             ${avgVoc !== null ? PTE.UI.scoreBar('Vocabulary', avgVoc) : ''}
           </div>
         </div>
+        ` : ''}
+
+        ${moduleCard}
 
         <!-- By Question Type -->
         <div class="bg-[var(--surface-1)] rounded-xl border border-[var(--border)] shadow-sm p-6 mb-6">

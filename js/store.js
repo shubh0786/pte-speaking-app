@@ -45,7 +45,8 @@ PTE.Store = {
 
   updateStats(data) {
     const stats = {};
-    const types = Object.values(PTE.QUESTION_TYPES);
+    const ALL_TYPE_MAPS = [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES];
+    const types = ALL_TYPE_MAPS.flatMap(map => map ? Object.values(map) : []);
 
     types.forEach(type => {
       const typeSessions = data.sessions.filter(s => s.type === type.id);
@@ -56,7 +57,26 @@ PTE.Store = {
           averageScore: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
           bestScore: Math.max(...scores),
           recentScores: scores.slice(0, 10),
-          lastAttempt: typeSessions[0].date
+          lastAttempt: typeSessions[0].date,
+          module: type.module || 'speaking'
+        };
+      }
+    });
+
+    // Per-module aggregates (Speaking, Writing, Reading, Listening)
+    const MODULES = ['speaking', 'writing', 'reading', 'listening'];
+    stats.modules = {};
+    MODULES.forEach(m => {
+      const ms = data.sessions.filter(s => {
+        const tc = types.find(t => t.id === s.type);
+        return (tc ? tc.module : 'speaking') === m;
+      });
+      if (ms.length > 0) {
+        const scores = ms.map(s => s.overallScore);
+        stats.modules[m] = {
+          totalAttempts: ms.length,
+          averageScore: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+          bestScore: Math.max(...scores)
         };
       }
     });

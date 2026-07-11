@@ -11,10 +11,23 @@ PTE.SmartPractice = {
   currentIndex: 0,
   active: false,
 
+  _allTypes() {
+    return [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES]
+      .flatMap(m => m ? Object.values(m) : []);
+  },
+
+  _bankFor(type) {
+    const m = type.module || 'speaking';
+    if (m === 'writing') return PTE.WritingQuestions[type.id] || [];
+    if (m === 'reading') return PTE.ReadingQuestions[type.id] || [];
+    if (m === 'listening') return PTE.ListeningQuestions[type.id] || [];
+    return [...(PTE.Questions[type.id] || []), ...((PTE.Predictions && PTE.Predictions[type.id]) || [])];
+  },
+
   generatePlan() {
     const sessions = PTE.Store.getAll().sessions || [];
     const stats = PTE.Store.getStats();
-    const types = Object.values(PTE.QUESTION_TYPES);
+    const types = this._allTypes();
     const plan = [];
 
     // Score each type by weakness (lower = more needed)
@@ -24,7 +37,7 @@ PTE.SmartPractice = {
         ? typeSessions.slice(0, 10).reduce((a, b) => a + b.overallScore, 0) / Math.min(typeSessions.length, 10)
         : 0;
       const completionMap = PTE.Store.getCompletionMap(type.id);
-      const allQuestions = [...(PTE.Questions[type.id] || []), ...(PTE.Predictions && PTE.Predictions[type.id] || [])];
+      const allQuestions = this._bankFor(type);
       const unattempted = allQuestions.filter(q => !completionMap[q.id]);
       const lowScoring = allQuestions.filter(q => completionMap[q.id] && completionMap[q.id].bestScore < 55);
 
@@ -157,10 +170,11 @@ PTE.SmartPractice = {
 
     const planCards = plan.map((item, i) => {
       const q = item.question;
-      const preview = q.text ? q.text.slice(0, 80) + (q.text.length > 80 ? '...' : '')
-        : q.scenario ? q.scenario.slice(0, 80) + (q.scenario.length > 80 ? '...' : '')
-        : q.speakers ? q.speakers[0].text.slice(0, 80) + '...'
-        : q.answer || 'Question';
+      const previewText = q.text || q.scenario || q.prompt || q.passage || q.question
+        || q.audioText || q.displayText || q.transcript
+        || (q.speakers && q.speakers[0] && q.speakers[0].text)
+        || q.answer || 'Question';
+      const preview = previewText.slice(0, 80) + (previewText.length > 80 ? '...' : '');
 
       return `
       <div class="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-[var(--border)] hover:border-[rgba(109,92,255,0.2)] transition-colors">
@@ -253,10 +267,6 @@ PTE.SmartPractice = {
     const typeId = item.type.id;
     const questionId = item.question.id;
 
-    // Check which bank has the question
-    const inRegular = (PTE.Questions[typeId] || []).some(q => String(q.id) === String(questionId));
-    const inPred = ((PTE.Predictions && PTE.Predictions[typeId]) || []).some(q => String(q.id) === String(questionId));
-
     // Store the smart practice state so we can show "Next (Smart)" after scoring
     PTE.App._smartPracticeActive = true;
     PTE.App._smartPracticeNext = () => {
@@ -264,14 +274,8 @@ PTE.SmartPractice = {
       this._launchQuestion();
     };
 
-    if (inRegular) {
-      PTE.App.startPractice(typeId, false, questionId);
-    } else if (inPred) {
-      PTE.App.startPractice(typeId, true, questionId);
-    } else {
-      this.currentIndex++;
-      this._launchQuestion();
-    }
+    // Routes to the correct module page for any type (speaking or W/R/L)
+    PTE.App.startRetry(typeId, questionId);
   },
 
   _showComplete() {
@@ -309,7 +313,7 @@ PTE.SmartPractice = {
 
   renderCard() {
     const stats = PTE.Store.getStats();
-    const types = Object.values(PTE.QUESTION_TYPES);
+    const types = this._allTypes();
     const weak = types.filter(t => stats[t.id] && stats[t.id].averageScore < 55);
     const unpracticed = types.filter(t => !stats[t.id]);
     const focusCount = weak.length + unpracticed.length;

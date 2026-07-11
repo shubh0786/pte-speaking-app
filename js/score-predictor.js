@@ -74,6 +74,17 @@ PTE.ScorePredictor = {
     // Clamp to PTE range (10-90)
     predicted = Math.max(10, Math.min(90, Math.round(predicted)));
 
+    // Per-module estimates (Speaking from weighting above; W/R/L from store aggregates)
+    const moduleEstimates = { speaking: predicted };
+    ['writing', 'reading', 'listening'].forEach(m => {
+      const ms = stats.modules && stats.modules[m];
+      if (ms) moduleEstimates[m] = ms.averageScore;
+    });
+    const moduleValues = Object.values(moduleEstimates);
+    const overallPTE = moduleValues.length > 1
+      ? Math.round(moduleValues.reduce((a, b) => a + b, 0) / moduleValues.length)
+      : predicted;
+
     // Score band description
     const band = this._getBand(predicted);
 
@@ -86,6 +97,8 @@ PTE.ScorePredictor = {
     return {
       ready: true,
       predicted,
+      overallPTE,
+      modules: moduleEstimates,
       band,
       confidencePct,
       practicedCount,
@@ -252,7 +265,7 @@ PTE.ScorePredictor = {
       <div class="max-w-4xl mx-auto">
         <div class="mb-8">
           <h1 class="text-2xl font-semibold text-zinc-100 mb-1">Score Predictor</h1>
-          <p class="text-sm text-zinc-500">Estimated PTE Speaking score based on ${r.totalSessions} practice sessions.</p>
+          <p class="text-sm text-zinc-500">Estimated PTE score based on ${r.totalSessions} practice sessions across all modules.</p>
         </div>
 
         <!-- Predicted Score -->
@@ -299,6 +312,9 @@ PTE.ScorePredictor = {
 
         ${targetHtml}
 
+        <!-- Module Estimates -->
+        ${this._moduleCard(r)}
+
         <!-- Type Breakdown -->
         <div class="card rounded-xl p-5 mb-6">
           <h3 class="text-sm font-semibold text-zinc-200 mb-1">Score Breakdown by Type</h3>
@@ -323,6 +339,46 @@ PTE.ScorePredictor = {
         </div>
       </div>
     </main>`;
+  },
+
+  _moduleCard(r) {
+    const mods = [
+      { id: 'speaking', name: 'Speaking', icon: '🎤', color: '#6366f1' },
+      { id: 'writing', name: 'Writing', icon: '✍️', color: '#0ea5e9' },
+      { id: 'reading', name: 'Reading', icon: '📖', color: '#f59e0b' },
+      { id: 'listening', name: 'Listening', icon: '🎧', color: '#8b5cf6' }
+    ];
+    const rows = mods.map(m => {
+      const s = r.modules[m.id];
+      if (s === undefined) {
+        return `<div class="flex items-center gap-3 py-2 opacity-50">
+          <span class="text-lg">${m.icon}</span>
+          <span class="text-sm text-zinc-400 flex-1">${m.name}</span>
+          <span class="text-xs text-zinc-600">No data</span>
+        </div>`;
+      }
+      const pct = (s / 90) * 100;
+      return `<div class="flex items-center gap-3 py-2">
+        <span class="text-lg">${m.icon}</span>
+        <div class="flex-1">
+          <div class="flex justify-between mb-1">
+            <span class="text-xs font-medium text-zinc-400">${m.name}</span>
+            <span class="text-xs font-bold" style="color:${m.color}">${s}/90</span>
+          </div>
+          <div class="h-2 bg-white/[0.04] rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${m.color}"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const hasMultiple = Object.keys(r.modules).length > 1;
+    return `<div class="card rounded-xl p-5 mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-zinc-200">Module Estimates</h3>
+        ${hasMultiple ? `<span class="text-xs text-zinc-500">Overall PTE: <span class="font-bold text-[var(--accent-light)]">${r.overallPTE}/90</span></span>` : ''}
+      </div>
+      <div class="space-y-1">${rows}</div>
+      ${!hasMultiple ? `<p class="text-[10px] text-zinc-600 mt-3">Practice Writing, Reading, and Listening to unlock a full overall PTE estimate.</p>` : ''}
+    </div>`;
   },
 
   _getImprovementTips(r) {

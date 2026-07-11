@@ -394,11 +394,23 @@ PTE.Predictions['respond-to-situation'] = [
  * Merge prediction questions into the main question bank
  */
 PTE.mergePredictions = function() {
+  const TYPE_MAPS = [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES];
+  const allTypes = TYPE_MAPS.flatMap(m => m ? Object.values(m) : []);
+  const BANKS = {
+    speaking: PTE.Questions,
+    writing: PTE.WritingQuestions,
+    reading: PTE.ReadingQuestions,
+    listening: PTE.ListeningQuestions
+  };
   for (const [typeId, predictions] of Object.entries(PTE.Predictions)) {
-    if (!PTE.Questions[typeId]) PTE.Questions[typeId] = [];
-    const existingIds = new Set(PTE.Questions[typeId].map(q => q.id));
+    const tc = allTypes.find(t => t.id === typeId);
+    const module = tc ? (tc.module || 'speaking') : 'speaking';
+    const bank = BANKS[module];
+    if (!bank) continue;
+    if (!bank[typeId]) bank[typeId] = [];
+    const existingIds = new Set(bank[typeId].map(q => q.id));
     for (const pq of predictions) {
-      if (!existingIds.has(pq.id)) PTE.Questions[typeId].push(pq);
+      if (!existingIds.has(pq.id)) bank[typeId].push(pq);
     }
   }
 };

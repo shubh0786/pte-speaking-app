@@ -34,6 +34,9 @@ PTE.Analytics = {
     // ── Weakest Areas ──
     const weakest = this._weakestAreas(stats);
 
+    // ── Module Overview ──
+    const moduleOverview = this._moduleOverview(stats);
+
     // ── Badges ──
     const badgeSection = gp ? this._badges(gp) : '';
 
@@ -71,6 +74,8 @@ PTE.Analytics = {
             ${typePie}
           </div>
         </div>
+
+        ${moduleOverview}
 
         <!-- Weakest Areas -->
         <div class="card rounded-xl p-6 mb-6">
@@ -151,6 +156,23 @@ PTE.Analytics = {
     <span>More</span></div>`;
   },
 
+  _allTypes() {
+    return [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES]
+      .flatMap(map => map ? Object.values(map) : []);
+  },
+
+  _findType(id) {
+    return this._allTypes().find(t => t.id === id);
+  },
+
+  _practiceUrl(type) {
+    const m = type.module || 'speaking';
+    if (m === 'writing') return `#/writing/${type.id}`;
+    if (m === 'reading') return `#/reading/${type.id}`;
+    if (m === 'listening') return `#/listening/${type.id}`;
+    return `#/practice/${type.id}`;
+  },
+
   _typePie(sessions) {
     const counts = {};
     sessions.forEach(s => { counts[s.type] = (counts[s.type] || 0) + 1; });
@@ -161,7 +183,7 @@ PTE.Analytics = {
     const colors = ['#6366f1','#22d3ee','#10b981','#f59e0b','#ef4444','#a855f7','#ec4899'];
     let legend = '';
     types.forEach(([type, count], i) => {
-      const tc = Object.values(PTE.QUESTION_TYPES).find(t => t.id === type);
+      const tc = this._findType(type);
       const pct = Math.round((count / total) * 100);
       legend += `<div class="flex items-center gap-2"><span class="w-3 h-3 rounded" style="background:${colors[i%colors.length]}"></span><span class="text-xs text-zinc-400">${tc ? tc.shortName : type} ${pct}%</span></div>`;
     });
@@ -175,8 +197,43 @@ PTE.Analytics = {
     return `<div class="flex rounded-full overflow-hidden gap-0.5 mb-3">${bars}</div><div class="grid grid-cols-2 gap-1">${legend}</div>`;
   },
 
+  _moduleOverview(stats) {
+    const mods = [
+      { id: 'speaking', name: 'Speaking', icon: '🎤', color: '#6366f1' },
+      { id: 'writing', name: 'Writing', icon: '✍️', color: '#0ea5e9' },
+      { id: 'reading', name: 'Reading', icon: '📖', color: '#f59e0b' },
+      { id: 'listening', name: 'Listening', icon: '🎧', color: '#8b5cf6' }
+    ];
+    const rows = mods.map(m => {
+      const s = stats.modules && stats.modules[m.id];
+      if (!s) {
+        return `<div class="flex items-center gap-3 py-2 opacity-50">
+          <span class="text-lg">${m.icon}</span>
+          <span class="text-sm text-zinc-400 flex-1">${m.name}</span>
+          <span class="text-xs text-zinc-600">No data</span>
+        </div>`;
+      }
+      const pct = (s.averageScore / 90) * 100;
+      return `<div class="flex items-center gap-3 py-2">
+        <span class="text-lg">${m.icon}</span>
+        <div class="flex-1">
+          <div class="flex justify-between mb-1">
+            <span class="text-xs font-medium text-zinc-400">${m.name} <span class="text-zinc-600">(${s.totalAttempts})</span></span>
+            <span class="text-xs font-bold" style="color:${m.color}">${s.averageScore}/90</span>
+          </div>
+          <div class="h-2 bg-white/[0.02] rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${pct}%;background:${m.color}"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="card rounded-xl p-6 mb-6">
+      <h3 class="font-semibold text-zinc-100 mb-4">Module Overview</h3>
+      <div class="space-y-1">${rows}</div>
+    </div>`;
+  },
+
   _weakestAreas(stats) {
-    const types = Object.values(PTE.QUESTION_TYPES);
+    const types = this._allTypes();
     const weak = [];
     types.forEach(t => {
       const s = stats[t.id];
@@ -196,7 +253,7 @@ PTE.Analytics = {
             <span class="text-xs text-rose-400 font-semibold font-mono">${w.avg}/90</span>
           </div>
         </div>
-        <a href="#/practice/${w.type.id}" class="text-xs font-semibold text-[var(--accent-light)] px-3 py-1.5 rounded-lg bg-[var(--accent-surface)] border border-[rgba(109,92,255,0.12)] hover:bg-[var(--accent-surface)] transition-all">Practice</a>
+        <a href="${this._practiceUrl(w.type)}" class="text-xs font-semibold text-[var(--accent-light)] px-3 py-1.5 rounded-lg bg-[var(--accent-surface)] border border-[rgba(109,92,255,0.12)] hover:bg-[var(--accent-surface)] transition-all">Practice</a>
       </div>
     `).join('');
   },

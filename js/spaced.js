@@ -14,10 +14,11 @@ PTE.Spaced = {
   save(data) { try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data)); } catch(e) {} },
 
   trackResult(questionId, type, score) {
-    if (score >= this.PASS_THRESHOLD) return; // only track weak results
     const data = this.getData();
     const now = Date.now();
     if (!data[questionId]) {
+      // Don't start tracking questions the user already finds easy
+      if (score >= this.PASS_THRESHOLD) return;
       data[questionId] = { type, scores: [score], nextReview: now + 86400000, intervalIndex: 0, learned: false };
     } else {
       data[questionId].scores.push(score);
@@ -34,6 +35,36 @@ PTE.Spaced = {
     this.save(data);
   },
 
+  _allTypes() {
+    return [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES]
+      .flatMap(map => map ? Object.values(map) : []);
+  },
+
+  _findType(id) { return this._allTypes().find(t => t.id === id); },
+
+  _findQuestion(typeId, qId) {
+    const banks = [PTE.Questions, PTE.WritingQuestions, PTE.ReadingQuestions, PTE.ListeningQuestions];
+    for (const b of banks) {
+      if (!b || !b[typeId]) continue;
+      const q = b[typeId].find(x => x.id === qId);
+      if (q) return q;
+    }
+    if (PTE.Predictions && PTE.Predictions[typeId]) {
+      const q = PTE.Predictions[typeId].find(x => x.id === qId);
+      if (q) return q;
+    }
+    return null;
+  },
+
+  _practiceUrl(type, qId) {
+    const m = type.module || 'speaking';
+    const q = qId ? `?qid=${qId}` : '';
+    if (m === 'writing') return `#/writing/${type.id}${q}`;
+    if (m === 'reading') return `#/reading/${type.id}${q}`;
+    if (m === 'listening') return `#/listening/${type.id}${q}`;
+    return `#/practice/${type.id}${q}`;
+  },
+
   getDueQuestions() {
     const data = this.getData();
     const now = Date.now();
@@ -41,11 +72,9 @@ PTE.Spaced = {
     for (const [qId, info] of Object.entries(data)) {
       if (info.learned) continue;
       if (info.nextReview <= now) {
-        // Find the actual question object
-        const bank = PTE.Questions[info.type] || [];
-        const question = bank.find(q => q.id === qId);
-        if (question) {
-          const tc = Object.values(PTE.QUESTION_TYPES).find(t => t.id === info.type);
+        const question = this._findQuestion(info.type, qId);
+        const tc = this._findType(info.type);
+        if (question && tc) {
           due.push({ ...info, questionId: qId, question, typeConfig: tc, lastScore: info.scores[info.scores.length - 1] });
         }
       }
@@ -102,13 +131,7 @@ PTE.Spaced = {
     const due = this.getDueQuestions();
     const item = due[index];
     if (!item) return;
-    PTE.App.currentType = item.type;
-    PTE.App.currentTypeConfig = item.typeConfig;
-    PTE.App.currentQuestions = [item.question];
-    PTE.App.currentQuestionIndex = 0;
-    PTE.App.currentQuestion = item.question;
-    const root = document.getElementById('app-root');
-    root.innerHTML = PTE.Pages.practiceQuestion(item.type, false);
-    PTE.App.loadQuestion(0);
+    // Routes to the correct module page (speaking via startPractice, W/R/L via module pages)
+    PTE.App.startRetry(item.type, item.questionId);
   }
 };

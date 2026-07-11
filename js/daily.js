@@ -23,29 +23,47 @@ PTE.Daily = {
 
   save(data) { try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data)); } catch(e) {} },
 
+  _allTypes() {
+    return [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES]
+      .flatMap(m => m ? Object.values(m) : []);
+  },
+
+  _bankFor(type) {
+    const m = type.module || 'speaking';
+    if (m === 'writing') return PTE.WritingQuestions[type.id] || [];
+    if (m === 'reading') return PTE.ReadingQuestions[type.id] || [];
+    if (m === 'listening') return PTE.ListeningQuestions[type.id] || [];
+    return PTE.Questions[type.id] || [];
+  },
+
   getTodayChallenge() {
     const key = this.getTodayKey();
     const data = this.getData();
     if (data.date === key && data.questions) return data;
 
-    // Generate today's questions using date-seeded random
+    // Generate today's questions using date-seeded random across all 22 types
     const rng = this._seed(key);
-    const types = ['read-aloud','repeat-sentence','describe-image','answer-short-question'];
-    const allTypes = Object.keys(PTE.Questions);
-    const randomType = allTypes[Math.floor(rng() * allTypes.length)];
-    const picks = [...types, randomType];
+    const allTypes = this._allTypes().filter(t => this._bankFor(t).length > 0);
+    const picks = [];
+    const usedTypes = new Set();
+    // Always include Read Aloud first (highest value), then random across modules
+    const ra = allTypes.find(t => t.id === 'read-aloud');
+    if (ra) { picks.push(ra); usedTypes.add(ra.id); }
+    while (picks.length < this.QUESTIONS_PER_DAY && allTypes.length > 0) {
+      const t = allTypes[Math.floor(rng() * allTypes.length)];
+      if (!usedTypes.has(t.id)) { picks.push(t); usedTypes.add(t.id); }
+    }
 
     const questions = [];
     const usedIds = new Set();
     picks.forEach(type => {
-      const bank = PTE.Questions[type] || [];
+      const bank = this._bankFor(type);
       if (bank.length === 0) return;
       let idx = Math.floor(rng() * bank.length);
       let attempts = 0;
       while (usedIds.has(bank[idx].id) && attempts < bank.length) { idx = (idx + 1) % bank.length; attempts++; }
       usedIds.add(bank[idx].id);
-      const tc = Object.values(PTE.QUESTION_TYPES).find(t => t.id === type);
-      questions.push({ type, typeConfig: tc, question: bank[idx], completed: false, score: 0 });
+      questions.push({ type: type.id, typeConfig: type, question: bank[idx], completed: false, score: 0 });
     });
 
     const challenge = { date: key, questions, completedCount: 0, totalXP: 0, finished: false };
@@ -137,15 +155,10 @@ PTE.Daily = {
     const ch = this.getTodayChallenge();
     const q = ch.questions[index];
     if (!q || q.completed) return;
-    PTE.App.currentType = q.type;
-    PTE.App.currentTypeConfig = q.typeConfig;
-    PTE.App.currentQuestions = [q.question];
-    PTE.App.currentQuestionIndex = 0;
-    PTE.App.currentQuestion = q.question;
+    // Set daily flags so completion is recorded after the question is scored,
+    // then route to the correct module page for any type.
     PTE.App._dailyMode = true;
     PTE.App._dailyIndex = index;
-    const root = document.getElementById('app-root');
-    root.innerHTML = PTE.Pages.practiceQuestion(q.type, false);
-    PTE.App.loadQuestion(0);
+    PTE.App.startRetry(q.type, q.question.id);
   }
 };

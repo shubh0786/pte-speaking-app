@@ -8,9 +8,32 @@ PTE.Planner = {
   STORAGE_KEY: 'crackpte_planner',
 
   TARGETS: {
-    50: { label:'PTE 50 (B1)', daily:{ 'read-aloud':2,'repeat-sentence':3,'describe-image':1,'retell-lecture':1,'answer-short-question':3,'summarize-group-discussion':0,'respond-to-situation':0 }},
-    65: { label:'PTE 65 (B2)', daily:{ 'read-aloud':3,'repeat-sentence':5,'describe-image':2,'retell-lecture':1,'answer-short-question':4,'summarize-group-discussion':1,'respond-to-situation':1 }},
-    79: { label:'PTE 79+ (C1)', daily:{ 'read-aloud':4,'repeat-sentence':6,'describe-image':2,'retell-lecture':2,'answer-short-question':5,'summarize-group-discussion':1,'respond-to-situation':1 }},
+    50: { label:'PTE 50 (B1)', daily:{ 'read-aloud':2,'repeat-sentence':3,'describe-image':1,'retell-lecture':1,'answer-short-question':3,'summarize-group-discussion':0,'respond-to-situation':0,
+        'swt':1,'write-essay':0,'rw-fib':1,'r-mcma':0,'reorder':0,'r-fib':1,'r-mcsa':1,
+        'sst':1,'l-mcma':0,'l-fib':1,'l-hcs':0,'l-mcsa':0,'l-smw':0,'l-hiw':1,'l-wfd':2 }},
+    65: { label:'PTE 65 (B2)', daily:{ 'read-aloud':3,'repeat-sentence':5,'describe-image':2,'retell-lecture':1,'answer-short-question':4,'summarize-group-discussion':1,'respond-to-situation':1,
+        'swt':1,'write-essay':1,'rw-fib':2,'r-mcma':1,'reorder':1,'r-fib':2,'r-mcsa':1,
+        'sst':1,'l-mcma':1,'l-fib':2,'l-hcs':1,'l-mcsa':1,'l-smw':1,'l-hiw':1,'l-wfd':3 }},
+    79: { label:'PTE 79+ (C1)', daily:{ 'read-aloud':4,'repeat-sentence':6,'describe-image':2,'retell-lecture':2,'answer-short-question':5,'summarize-group-discussion':1,'respond-to-situation':1,
+        'swt':2,'write-essay':1,'rw-fib':3,'r-mcma':1,'reorder':2,'r-fib':3,'r-mcsa':2,
+        'sst':2,'l-mcma':1,'l-fib':3,'l-hcs':1,'l-mcsa':1,'l-smw':1,'l-hiw':2,'l-wfd':4 }},
+  },
+
+  _allTypes() {
+    return [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES]
+      .flatMap(map => map ? Object.values(map) : []);
+  },
+
+  _findType(id) {
+    return this._allTypes().find(t => t.id === id);
+  },
+
+  _practiceUrl(type) {
+    const m = type.module || 'speaking';
+    if (m === 'writing') return `#/writing/${type.id}`;
+    if (m === 'reading') return `#/reading/${type.id}`;
+    if (m === 'listening') return `#/listening/${type.id}`;
+    return `#/practice/${type.id}`;
   },
 
   getData() { try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || null; } catch(e) { return null; } },
@@ -121,12 +144,11 @@ PTE.Planner = {
     // Show plan
     const daysLeft = this.getDaysLeft();
     const tp = this.getTodayPlan();
-    const types = Object.values(PTE.QUESTION_TYPES);
 
     let planRows = '';
     if (tp) {
       for (const [typeId, info] of Object.entries(tp.plan)) {
-        const tc = types.find(t => t.id === typeId);
+        const tc = this._findType(typeId);
         if (!tc) continue;
         const done = info.done >= info.needed;
         planRows += `
@@ -136,7 +158,7 @@ PTE.Planner = {
             <p class="text-sm font-medium ${done ? 'text-zinc-500 line-through' : 'text-zinc-100'}">${tc.name}</p>
             <p class="text-xs text-zinc-600">${info.done}/${info.needed} done</p>
           </div>
-          ${done ? '<span class="text-emerald-400 text-sm">✅</span>' : `<a href="#/practice/${typeId}" class="text-xs font-semibold text-[var(--accent-light)] px-3 py-1.5 rounded-lg bg-[var(--accent-surface)] border border-[rgba(109,92,255,0.12)] hover:bg-[var(--accent-surface)] transition-all">Practice</a>`}
+          ${done ? '<span class="text-emerald-400 text-sm">✅</span>' : `<a href="${this._practiceUrl(tc)}" class="text-xs font-semibold text-[var(--accent-light)] px-3 py-1.5 rounded-lg bg-[var(--accent-surface)] border border-[rgba(109,92,255,0.12)] hover:bg-[var(--accent-surface)] transition-all">Practice</a>`}
         </div>`;
       }
     }

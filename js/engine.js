@@ -672,6 +672,45 @@ PTE.TTS = {
     }
     this.speaking = false;
     this._stopResumeHack();
+  },
+
+  /**
+   * Play a pre-recorded audio file (e.g. real exam-style recording) instead of TTS.
+   * Falls back gracefully if the file is missing or fails to load.
+   * Returns a Promise that resolves when playback finishes (or rejects on error).
+   */
+  playFile(url) {
+    return new Promise((resolve, reject) => {
+      if (!url) { reject(new Error('No audio URL')); return; }
+      const audio = new Audio(url);
+      audio.preload = 'auto';
+      this._activeAudio = audio;
+      audio.onended = () => { if (this._activeAudio === audio) this._activeAudio = null; resolve(); };
+      audio.onerror = () => { if (this._activeAudio === audio) this._activeAudio = null; reject(new Error('Audio playback failed')); };
+      audio.play().catch(reject);
+    });
+  },
+
+  /**
+   * Play a question's audio: use a recorded file when `audioUrl` is present,
+   * otherwise synthesize via TTS. Returns a Promise.
+   */
+  async playQuestionAudio(question, rate = 0.95) {
+    const url = question && question.audioUrl;
+    if (url) {
+      try { await this.playFile(url); return; }
+      catch (e) { console.warn('[TTS] Recorded audio unavailable, falling back to TTS:', e); }
+    }
+    const text = question && (question.audioText || question.text || '');
+    if (text) await this.speak(text, rate);
+  },
+
+  stopAll() {
+    this.stop();
+    if (this._activeAudio) {
+      try { this._activeAudio.pause(); } catch (e) {}
+      this._activeAudio = null;
+    }
   }
 };
 

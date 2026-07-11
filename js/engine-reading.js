@@ -8,6 +8,15 @@ window.PTE = window.PTE || {};
 PTE.ReadingEngine = {
   currentType: null,
   currentQuestion: null,
+  examMode: false,
+  onExamSubmit: null,
+
+  _examDone(overall, summary) {
+    const cb = this.onExamSubmit;
+    this.examMode = false;
+    this.onExamSubmit = null;
+    if (cb) cb({ overall, summary, typeId: this.currentType.id, questionId: this.currentQuestion.id });
+  },
 
   render(typeId, question, containerId) {
     this.currentType = PTE.READING_TYPES[Object.keys(PTE.READING_TYPES).find(k => PTE.READING_TYPES[k].id === typeId)];
@@ -62,6 +71,7 @@ PTE.ReadingEngine = {
       el.disabled = true;
     });
     const overall = total > 0 ? Math.round((correct / total) * 90) : 0;
+    if (this.examMode) return this._examDone(overall, `${correct}/${total} blanks correct`);
     this._showScore(correct, total, overall);
     this._saveSession(overall, `${correct}/${total} blanks correct`);
   },
@@ -105,6 +115,7 @@ PTE.ReadingEngine = {
     score = Math.max(0, score);
     const maxScore = q.options.filter(o => o.correct).length;
     const overall = maxScore > 0 ? Math.round((score / maxScore) * 90) : 0;
+    if (this.examMode) return this._examDone(overall, `${score}/${maxScore} points`);
     this._showScore(score, maxScore, overall);
     this._saveSession(overall, `${score}/${maxScore} points`);
   },
@@ -192,6 +203,7 @@ PTE.ReadingEngine = {
     });
 
     const overall = totalPairs > 0 ? Math.round((pairsCorrect / totalPairs) * 90) : 0;
+    if (this.examMode) return this._examDone(overall, `${pairsCorrect}/${totalPairs} pairs`);
     this._showScore(pairsCorrect, totalPairs, overall, 'correct pairs');
     this._saveSession(overall, `${pairsCorrect}/${totalPairs} pairs`);
   },
@@ -247,6 +259,7 @@ PTE.ReadingEngine = {
     });
     const total = q.blanks.length;
     const overall = total > 0 ? Math.round((correct / total) * 90) : 0;
+    if (this.examMode) return this._examDone(overall, `${correct}/${total} blanks correct`);
     this._showScore(correct, total, overall);
     this._saveSession(overall, `${correct}/${total} blanks correct`);
   },
@@ -287,6 +300,7 @@ PTE.ReadingEngine = {
 
     const isCorrect = selectedIdx === q.correctIndex;
     const overall = isCorrect ? 90 : 0;
+    if (this.examMode) return this._examDone(overall, isCorrect ? 'Correct' : 'Incorrect');
     this._showScore(isCorrect ? 1 : 0, 1, overall);
     this._saveSession(overall, isCorrect ? 'Correct' : 'Incorrect');
   },
@@ -319,5 +333,7 @@ PTE.ReadingEngine = {
       duration: this.currentType.answerTime || 120
     });
     if (PTE.Gamify) PTE.Gamify.addXP(overall >= 60 ? 20 : 8, this.currentType.id);
+    if (PTE.Spaced) PTE.Spaced.trackResult(this.currentQuestion.id, this.currentType.id, overall);
+    if (PTE.App && PTE.App._notifyModeCompletion) PTE.App._notifyModeCompletion(this.currentType.id, overall);
   }
 };

@@ -58,10 +58,10 @@ PTE.Pages = {
         <div class="max-w-4xl mx-auto px-4 py-14 md:py-20 text-center">
           ${user ? `<p class="text-sm text-[var(--accent-light)] font-medium mb-3">Welcome back, ${user.username}</p>` : ''}
           <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-            Crack PTE <span class="gradient-text">Speaking</span>
+            Crack PTE <span class="gradient-text">Academic</span>
           </h1>
           <p class="text-sm md:text-base text-zinc-500 mb-8 max-w-xl mx-auto">
-            Practice with 500+ real exam predictions. AI-powered scoring and detailed feedback.
+            Full PTE prep across all 4 sections and 22 question types — 600+ speaking predictions, AI scoring, mock tests, and smart progress tracking.
           </p>
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="#/mock-test" class="btn-primary px-6 py-2.5">Take Mock Test</a>
@@ -177,7 +177,7 @@ PTE.Pages = {
       <div class="max-w-5xl mx-auto">
         <div class="mb-8">
           <h1 class="text-xl font-semibold text-zinc-100 tracking-tight mb-1">Choose a Question Type</h1>
-          <p class="text-sm text-zinc-500">Select a speaking task to begin practicing.</p>
+          <p class="text-sm text-zinc-500">Pick any of the 7 speaking question types to practice, or jump to Writing, Reading, or Listening from the menu.</p>
         </div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 stagger">
           ${Object.values(PTE.QUESTION_TYPES).map(t => PTE.UI.typeCard(t)).join('')}
@@ -203,7 +203,9 @@ PTE.Pages = {
     }
 
     let typeBreakdown = '';
-    Object.values(PTE.QUESTION_TYPES).forEach(type => {
+    [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES]
+      .flatMap(m => m ? Object.values(m) : [])
+      .forEach(type => {
       const typeStat = stats[type.id];
       if (typeStat) {
         typeBreakdown += `
@@ -233,7 +235,7 @@ PTE.Pages = {
         <div class="px-5 py-3 border-b border-[var(--border)]"><h3 class="text-sm font-semibold text-zinc-200">Recent Sessions</h3></div>
         <div class="divide-y divide-[var(--border)]">
           ${recentSessions.map(s => {
-            const typeConfig = Object.values(PTE.QUESTION_TYPES).find(t => t.id === s.type);
+            const typeConfig = this._findTypeConfig(s.type);
             const band = PTE.Scoring.getBand(s.overallScore);
             return `
             <div class="px-5 py-2.5 flex items-center gap-3 hover:bg-white/[0.01] transition-colors">
@@ -293,7 +295,7 @@ PTE.Pages = {
     }
 
     const cards = weakItems.map(item => {
-      const typeCfg = Object.values(PTE.QUESTION_TYPES).find(t => t.id === item.type);
+      const typeCfg = this._findTypeConfig(item.type);
       const band = PTE.Scoring.getBand(item.latestScore || 0);
       const q = this._findQuestionById(item.type, item.questionId);
       const prompt = this._questionPrompt(q);
@@ -352,21 +354,37 @@ PTE.Pages = {
     </main>`;
   },
 
+  _findTypeConfig(typeId) {
+    return [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES]
+      .flatMap(m => m ? Object.values(m) : [])
+      .find(t => t.id === typeId);
+  },
+
   _findQuestionById(typeId, questionId) {
     const byId = q => q && q.id && String(q.id) === String(questionId);
-    const regular = (PTE.Questions[typeId] || []).find(byId);
-    if (regular) return regular;
+    const banks = [PTE.Questions, PTE.WritingQuestions, PTE.ReadingQuestions, PTE.ListeningQuestions];
+    for (const b of banks) {
+      const arr = b && b[typeId] ? b[typeId] : [];
+      const found = arr.find(byId);
+      if (found) return found;
+    }
     return (PTE.Predictions && PTE.Predictions[typeId] ? PTE.Predictions[typeId] : []).find(byId) || null;
   },
 
   _questionPrompt(question) {
     if (!question) return 'Question details unavailable. It may no longer exist in the current question bank.';
-    if (question.scenario) return question.scenario.slice(0, 220) + (question.scenario.length > 220 ? '...' : '');
-    if (question.text) return question.text.slice(0, 220) + (question.text.length > 220 ? '...' : '');
-    if (question.audioText) return question.audioText.slice(0, 220) + (question.audioText.length > 220 ? '...' : '');
+    const clip = (s, n = 220) => s.slice(0, n) + (s.length > n ? '...' : '');
+    if (question.scenario) return clip(question.scenario);
+    if (question.prompt) return clip(question.prompt);          // essay
+    if (question.passage) return clip(question.passage);        // reading / swt
+    if (question.question) return clip(question.question);      // MCQ stem
+    if (question.text) return clip(question.text);
+    if (question.audioText) return clip(question.audioText);
+    if (question.displayText) return clip(question.displayText);// HIW
+    if (question.transcript) return clip(question.transcript);  // L-FIB
     if (question.speakers && question.speakers.length) {
       const merged = question.speakers.map(s => s.text).join(' ');
-      return merged.slice(0, 220) + (merged.length > 220 ? '...' : '');
+      return clip(merged);
     }
     return 'Prompt not available for this item.';
   },
@@ -449,13 +467,22 @@ PTE.Pages = {
 
   // ── Predictions ───────────────────────────────────
   predictions() {
-    const types = Object.values(PTE.QUESTION_TYPES);
+    const types = [PTE.QUESTION_TYPES, PTE.WRITING_TYPES, PTE.READING_TYPES, PTE.LISTENING_TYPES]
+      .flatMap(m => m ? Object.values(m) : []);
     const predictions = PTE.Predictions || {};
     let totalPredictions = 0;
     const typeCounts = {};
     types.forEach(t => { const c = predictions[t.id] ? predictions[t.id].length : 0; typeCounts[t.id] = c; totalPredictions += c; });
     const sourceCounts = {};
     Object.values(predictions).forEach(arr => { (arr || []).forEach(q => { if (q.source) sourceCounts[q.source] = (sourceCounts[q.source] || 0) + 1; }); });
+
+    const linkFor = (t) => {
+      const m = t.module || 'speaking';
+      if (m === 'writing') return `#/writing/${t.id}`;
+      if (m === 'reading') return `#/reading/${t.id}`;
+      if (m === 'listening') return `#/listening/${t.id}`;
+      return `#/predictions/${t.id}`;
+    };
 
     return `
     ${PTE.UI.navbar('predictions')}
@@ -480,7 +507,7 @@ PTE.Pages = {
             const veryHigh = preds.filter(q => q.frequency === 'very-high').length;
             const high = preds.filter(q => q.frequency === 'high').length;
             return `
-            <a href="#/predictions/${t.id}" class="block group">
+            <a href="${linkFor(t)}" class="block group">
               <div class="card card-hover rounded-xl p-5">
                 <div class="flex items-start justify-between mb-3">
                   <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl" style="background:${t.color}11">${t.icon}</div>

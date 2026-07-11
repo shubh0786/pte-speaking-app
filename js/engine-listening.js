@@ -10,6 +10,15 @@ PTE.ListeningEngine = {
   currentQuestion: null,
   audioPlayed: false,
   replayCount: 0,
+  examMode: false,
+  onExamSubmit: null,
+
+  _examDone(overall, summary) {
+    const cb = this.onExamSubmit;
+    this.examMode = false;
+    this.onExamSubmit = null;
+    if (cb) cb({ overall, summary, typeId: this.currentType.id, questionId: this.currentQuestion.id });
+  },
 
   render(typeId, question, containerId) {
     this.currentType = PTE.LISTENING_TYPES[Object.keys(PTE.LISTENING_TYPES).find(k => PTE.LISTENING_TYPES[k].id === typeId)];
@@ -72,28 +81,29 @@ PTE.ListeningEngine = {
       if (progressEl) progressEl.style.width = pct + '%';
     }, 100);
 
-    if (PTE.TTS) {
-      PTE.TTS.speak(text, () => {
-        clearInterval(progressInterval);
-        if (progressEl) progressEl.style.width = '100%';
-        if (statusEl) statusEl.textContent = 'Completed';
-        if (playBtn) playBtn.disabled = false;
-        this.audioPlayed = true;
-        this.replayCount++;
-      });
-    } else {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.onend = () => {
-        clearInterval(progressInterval);
-        if (progressEl) progressEl.style.width = '100%';
-        if (statusEl) statusEl.textContent = 'Completed';
-        if (playBtn) playBtn.disabled = false;
-        this.audioPlayed = true;
-        this.replayCount++;
-      };
-      speechSynthesis.speak(utterance);
-    }
+    const onDone = () => {
+      clearInterval(progressInterval);
+      if (progressEl) progressEl.style.width = '100%';
+      if (statusEl) statusEl.textContent = 'Completed';
+      if (playBtn) playBtn.disabled = false;
+      this.audioPlayed = true;
+      this.replayCount++;
+    };
+
+    // Prefer a recorded file when available; otherwise synthesize via TTS.
+    const playPromise = (this.currentQuestion.audioUrl && PTE.TTS && PTE.TTS.playFile)
+      ? PTE.TTS.playFile(this.currentQuestion.audioUrl).catch(() => PTE.TTS ? PTE.TTS.speak(text) : Promise.resolve())
+      : (PTE.TTS
+        ? PTE.TTS.speak(text)
+        : new Promise((resolve) => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.onend = resolve;
+            utterance.onerror = resolve;
+            speechSynthesis.speak(utterance);
+          }));
+
+    playPromise.then(onDone).catch(onDone);
   },
 
   // ── SST: Summarize Spoken Text ──
@@ -129,6 +139,7 @@ PTE.ListeningEngine = {
       { currentQuestion: this.currentQuestion, currentType: { minWords:50, maxWords:70 }, _getWords: t => t.trim().split(/\s+/).filter(w=>w) },
       text
     );
+    if (this.examMode) return this._examDone(scores.overall, text.slice(0, 300));
     this._showWritingScore(scores);
     this._saveSession(scores.overall, text.slice(0, 300));
   },
@@ -164,6 +175,7 @@ PTE.ListeningEngine = {
     score = Math.max(0, score);
     const max = q.options.filter(o => o.correct).length;
     const overall = max > 0 ? Math.round((score / max) * 90) : 0;
+    if (this.examMode) return this._examDone(overall, `${score}/${max}`);
     this._showSimpleScore(score, max, overall);
     this._saveSession(overall, `${score}/${max}`);
   },
@@ -203,6 +215,7 @@ PTE.ListeningEngine = {
     });
     const total = q.answers.length;
     const overall = total > 0 ? Math.round((correct / total) * 90) : 0;
+    if (this.examMode) return this._examDone(overall, `${correct}/${total} blanks`);
     this._showSimpleScore(correct, total, overall);
     this._saveSession(overall, `${correct}/${total} blanks`);
   },
@@ -240,6 +253,7 @@ PTE.ListeningEngine = {
     }
 
     const isCorrect = selected === correctIdx;
+    if (this.examMode) return this._examDone(isCorrect ? 90 : 0, isCorrect ? 'Correct' : 'Incorrect');
     this._showSimpleScore(isCorrect ? 1 : 0, 1, isCorrect ? 90 : 0);
     this._saveSession(isCorrect ? 90 : 0, isCorrect ? 'Correct' : 'Incorrect');
   },
@@ -275,6 +289,7 @@ PTE.ListeningEngine = {
     }
 
     const isCorrect = selected === q.correctIndex;
+    if (this.examMode) return this._examDone(isCorrect ? 90 : 0, isCorrect ? 'Correct' : 'Incorrect');
     this._showSimpleScore(isCorrect ? 1 : 0, 1, isCorrect ? 90 : 0);
     this._saveSession(isCorrect ? 90 : 0, isCorrect ? 'Correct' : 'Incorrect');
   },
@@ -309,6 +324,7 @@ PTE.ListeningEngine = {
     }
 
     const isCorrect = selected === q.correctIndex;
+    if (this.examMode) return this._examDone(isCorrect ? 90 : 0, isCorrect ? 'Correct' : 'Incorrect');
     this._showSimpleScore(isCorrect ? 1 : 0, 1, isCorrect ? 90 : 0);
     this._saveSession(isCorrect ? 90 : 0, isCorrect ? 'Correct' : 'Incorrect');
   },
@@ -356,6 +372,7 @@ PTE.ListeningEngine = {
     score = Math.max(0, score);
     const total = q.incorrectIndices.length;
     const overall = total > 0 ? Math.round((score / total) * 90) : 0;
+    if (this.examMode) return this._examDone(overall, `${score}/${total} incorrect words found`);
     this._showSimpleScore(score, total, overall, 'identified');
     this._saveSession(overall, `${score}/${total} incorrect words found`);
   },
@@ -392,6 +409,8 @@ PTE.ListeningEngine = {
 
     const total = expectedWords.length;
     const overall = total > 0 ? Math.round((correct / total) * 90) : 0;
+
+    if (this.examMode) return this._examDone(overall, `${correct}/${total} words`);
 
     const area = document.getElementById('listening-score-area');
     if (area) {
@@ -463,9 +482,12 @@ PTE.ListeningEngine = {
       duration: this.currentType.answerTime || 60
     });
     if (PTE.Gamify) PTE.Gamify.addXP(overall >= 60 ? 20 : 8, this.currentType.id);
+    if (PTE.Spaced) PTE.Spaced.trackResult(this.currentQuestion.id, this.currentType.id, overall);
+    if (PTE.App && PTE.App._notifyModeCompletion) PTE.App._notifyModeCompletion(this.currentType.id, overall);
   },
 
   cleanup() {
+    if (PTE.TTS && PTE.TTS.stopAll) PTE.TTS.stopAll();
     speechSynthesis.cancel();
   }
 };

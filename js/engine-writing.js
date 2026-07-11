@@ -9,6 +9,8 @@ PTE.WritingEngine = {
   timer: null,
   currentType: null,
   currentQuestion: null,
+  examMode: false,
+  onExamSubmit: null,
 
   start(typeId, question, containerId) {
     this.currentType = PTE.WRITING_TYPES[Object.keys(PTE.WRITING_TYPES).find(k => PTE.WRITING_TYPES[k].id === typeId)];
@@ -118,6 +120,15 @@ PTE.WritingEngine = {
     if (submitBtn) submitBtn.disabled = true;
 
     const scores = this.currentType.id === 'swt' ? this.scoreSWT(text) : this.scoreEssay(text);
+
+    if (this.examMode) {
+      const cb = this.onExamSubmit;
+      this.examMode = false;
+      this.onExamSubmit = null;
+      if (cb) cb({ scores, text, typeId: this.currentType.id, questionId: this.currentQuestion.id });
+      return;
+    }
+
     this._renderScore(scores);
     this._saveSession(scores, text);
   },
@@ -270,6 +281,8 @@ PTE.WritingEngine = {
       duration: this.currentType.answerTime
     });
     if (PTE.Gamify) PTE.Gamify.addXP(scores.overall >= 60 ? 25 : 10, this.currentType.id);
+    if (PTE.Spaced) PTE.Spaced.trackResult(this.currentQuestion.id, this.currentType.id, scores.overall);
+    if (PTE.App && PTE.App._notifyModeCompletion) PTE.App._notifyModeCompletion(this.currentType.id, scores.overall);
   },
 
   cleanup() {
