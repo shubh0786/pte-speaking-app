@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Vocabulary Builder (Flashcard drills for ASQ)
+ * PTEverse - Vocabulary Builder (Flashcard drills for ASQ)
  * No microphone needed - practice anywhere
  */
 window.PTE = window.PTE || {};

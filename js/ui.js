@@ -8,7 +8,7 @@ window.PTE = window.PTE || {};
 PTE.UI = {
   /** Brand mark inline SVG */
   brandMark(size = 32) {
-    return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6d5cff"/><path d="M8 10h6v2H10v8h4v2H8V10zm10 0h6v2h-4v3h3v2h-3v3h4v2h-6V10z" fill="white"/></svg>`;
+    return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#6d5cff"/><circle cx="16" cy="16" r="8" fill="none" stroke="white" stroke-width="1.6"/><path d="M8 16h16M16 8v16M10.5 11.5c3.5 2.5 7.5 2.5 11 0M10.5 20.5c3.5-2.5 7.5-2.5 11 0" fill="none" stroke="white" stroke-width="1.4"/></svg>`;
   },
 
   /** Navigation bar */
@@ -85,9 +85,9 @@ PTE.UI = {
     <nav class="bg-[var(--bg)] border-b border-[var(--border)] sticky top-0 z-50" role="navigation" aria-label="Main navigation">
       <div class="max-w-5xl mx-auto px-4 sm:px-6">
         <div class="flex items-center justify-between h-12">
-          <a href="#/" class="flex items-center gap-2.5" aria-label="Crack PTE Home">
+          <a href="#/" class="flex items-center gap-2.5" aria-label="PTEverse Home">
             ${this.brandMark(28)}
-            <span class="font-semibold text-zinc-100 text-sm tracking-tight">Crack PTE</span>
+            <span class="font-semibold text-zinc-100 text-sm tracking-tight">PTEverse</span>
           </a>
           <div class="hidden md:flex items-center gap-0.5">
             ${links.map(dLink).join('')}

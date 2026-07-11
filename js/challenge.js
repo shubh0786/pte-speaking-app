@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Challenge a Friend
+ * PTEverse - Challenge a Friend
  * Generate shareable challenge URLs, compare scores
  */
 window.PTE = window.PTE || {};

@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Study Planner
+ * PTEverse - Study Planner
  * Set target score, exam date, get daily practice plan
  */
 window.PTE = window.PTE || {};

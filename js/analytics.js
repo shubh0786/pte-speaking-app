@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Analytics Dashboard
+ * PTEverse - Analytics Dashboard
  * SVG charts: score trends, heatmap, type breakdown, weakest areas
  */
 window.PTE = window.PTE || {};

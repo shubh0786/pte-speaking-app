@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Daily Challenge Mode
+ * PTEverse - Daily Challenge Mode
  * 5 questions per day, seeded by date, bonus XP for completion
  */
 window.PTE = window.PTE || {};

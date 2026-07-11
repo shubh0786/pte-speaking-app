@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Gamification Engine
+ * PTEverse - Gamification Engine
  * XP, Levels, Streaks, Badges, Achievements
  */
 window.PTE = window.PTE || {};

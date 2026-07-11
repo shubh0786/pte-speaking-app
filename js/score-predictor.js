@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Score Predictor
+ * PTEverse - Score Predictor
  * Estimates PTE Speaking communicative skill score (10-90)
  * based on practice history, weighted by question type importance
  */

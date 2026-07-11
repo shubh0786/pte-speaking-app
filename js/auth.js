@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Authentication Module
+ * PTEverse - Authentication Module
  * Handles user signup, login, logout, and per-user data isolation
  * All data stored in localStorage (client-side only)
  */

@@ -58,7 +58,7 @@ PTE.Pages = {
         <div class="max-w-4xl mx-auto px-4 py-14 md:py-20 text-center">
           ${user ? `<p class="text-sm text-[var(--accent-light)] font-medium mb-3">Welcome back, ${user.username}</p>` : ''}
           <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">
-            Crack PTE <span class="gradient-text">Academic</span>
+            <span class="gradient-text">PTEverse</span>
           </h1>
           <p class="text-sm md:text-base text-zinc-500 mb-8 max-w-xl mx-auto">
             Full PTE prep across all 4 sections and 22 question types — 600+ speaking predictions, AI scoring, mock tests, and smart progress tracking.
@@ -164,7 +164,7 @@ PTE.Pages = {
 
       <!-- Footer -->
       <footer class="border-t border-[var(--border)] py-6 px-4 text-center">
-        <p class="text-[10px] text-zinc-600">Crack PTE &middot; Designed by Sanjay Singh And Sons Solutions &middot; Not affiliated with Pearson.</p>
+        <p class="text-[10px] text-zinc-600">PTEverse &middot; Designed by Sanjay Singh And Sons Solutions &middot; Not affiliated with Pearson.</p>
       </footer>
     </main>`;
   },

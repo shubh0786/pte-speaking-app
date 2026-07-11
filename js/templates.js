@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Templates Library
+ * PTEverse - Templates Library
  * Copy-paste speaking templates for every question type
  */
 window.PTE = window.PTE || {};

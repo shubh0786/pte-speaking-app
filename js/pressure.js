@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Timed Pressure Training
+ * PTEverse - Timed Pressure Training
  * Progressively reduces preparation and recording time
  * to build speed and confidence under exam pressure
  */

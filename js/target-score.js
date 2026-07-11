@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Target Score & Personalized Recommendations
+ * PTEverse - Target Score & Personalized Recommendations
  * Set target score, get recommendations based on weak areas
  */
 window.PTE = window.PTE || {};

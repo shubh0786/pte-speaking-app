@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Leaderboard (Local)
+ * PTEverse - Leaderboard (Local)
  * Rankings by XP with display names
  */
 window.PTE = window.PTE || {};

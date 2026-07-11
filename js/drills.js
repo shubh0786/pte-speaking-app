@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Pronunciation Drill Mode
+ * PTEverse - Pronunciation Drill Mode
  * Word-by-word pronunciation practice with TTS comparison
  */
 window.PTE = window.PTE || {};

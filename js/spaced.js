@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Spaced Repetition System
+ * PTEverse - Spaced Repetition System
  * Auto-resurfaces weak questions at optimal intervals
  */
 window.PTE = window.PTE || {};

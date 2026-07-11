@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Accent Detection & Pronunciation Coach
+ * PTEverse - Accent Detection & Pronunciation Coach
  * Identifies accent patterns from speech recognition mismatches,
  * tracks problem sounds per user, and provides targeted coaching.
  */

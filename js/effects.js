@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Effects Engine (Minimal)
+ * PTEverse - Effects Engine (Minimal)
  * Scroll reveal, ripple, mobile bottom nav, dropdown escape
  */
 window.PTE = window.PTE || {};

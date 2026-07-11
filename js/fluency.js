@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Fluency Lab
+ * PTEverse - Fluency Lab
  * Dedicated fluency training with 6 interactive exercise types
  */
 window.PTE = window.PTE || {};

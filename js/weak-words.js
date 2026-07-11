@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Weak Word Drill
+ * PTEverse - Weak Word Drill
  * Practice words you frequently mispronounce (from accent analysis)
  */
 window.PTE = window.PTE || {};

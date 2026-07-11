@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Study Reminders
+ * PTEverse - Study Reminders
  * Browser notifications for daily practice
  */
 window.PTE = window.PTE || {};
@@ -80,7 +80,7 @@ PTE.Reminders = {
   _showNotification() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-    const title = 'Crack PTE — Time to Practice!';
+    const title = 'PTEverse — Time to Practice!';
     const body = 'Keep your streak alive. A few minutes of practice can make a big difference.';
     const n = new Notification(title, {
       body,

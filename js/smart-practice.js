@@ -1,5 +1,5 @@
 /**
- * Crack PTE - Smart Practice Mode
+ * PTEverse - Smart Practice Mode
  * Automatically generates a personalized practice session
  * targeting the user's weakest areas and least-practiced types
  */
